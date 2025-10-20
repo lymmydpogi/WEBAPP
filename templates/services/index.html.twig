@@ -1,0 +1,260 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Services{% endblock %}
+{% block page_title %}Services{% endblock %}
+
+{% block stylesheets %}
+{{ parent() }}
+<!-- DataTables CSS -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css"/>
+
+<style>
+    body {
+        background: #f5f7fa;
+    }
+
+    /* Hero Section */
+    .hero-section {
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        padding: 48px 32px;
+        border-radius: 16px;
+        margin-bottom: 32px;
+        box-shadow: 0 10px 30px rgba(99, 102, 241, 0.2);
+        text-align: center;
+        color: #fff;
+    }
+
+    .hero-section h1 {
+        font-size: 36px;
+        font-weight: 700;
+        margin-bottom: 12px;
+    }
+
+    .hero-section p {
+        font-size: 16px;
+        opacity: 0.9;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    /* Table Container */
+    .table-container {
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        border: 1px solid #e5e7eb;
+        overflow: hidden;
+        margin-bottom: 24px;
+    }
+
+    .table {
+        width: 100% !important;
+        border-collapse: collapse;
+    }
+
+    .table thead {
+        background: #f9fafb;
+    }
+
+    .table thead th {
+        padding: 14px 20px;
+        text-align: left;
+        font-weight: 600;
+        font-size: 12px;
+        text-transform: uppercase;
+        border-bottom: 2px solid #e5e7eb;
+        color: #374151;
+    }
+
+    .table tbody td {
+        padding: 14px 20px;
+        color: #6b7280;
+        font-size: 14px;
+        border-bottom: 1px solid #f3f4f6;
+    }
+
+    .table tbody tr:hover {
+        background: #f9fafb;
+    }
+
+    /* Action Buttons */
+    .table tbody td a {
+        display: inline-block;
+        padding: 7px 16px;
+        margin-right: 6px;
+        background: #f9fafb;
+        color: #374151;
+        text-decoration: none;
+        border-radius: 6px;
+        font-size: 13px;
+        font-weight: 500;
+        border: 1px solid #e5e7eb;
+        transition: all 0.2s ease;
+    }
+
+    .table tbody td a:first-of-type:hover {
+        background: #3b82f6;
+        color: #fff;
+        border-color: #3b82f6;
+    }
+
+    .table tbody td a:last-of-type:hover {
+        background: #8b5cf6;
+        color: #fff;
+        border-color: #8b5cf6;
+    }
+
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #9ca3af;
+        font-size: 15px;
+    }
+
+    /* Create Button */
+    .btn-create {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 24px;
+        background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+        color: #fff;
+        text-decoration: none;
+        border-radius: 10px;
+        font-size: 14px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .btn-create:hover {
+        background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
+        transform: translateY(-2px);
+    }
+
+    .button-container {
+        text-align: right;
+        margin-bottom: 32px;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .table-container {
+            overflow-x: auto;
+        }
+        .button-container {
+            text-align: center;
+        }
+        .table tbody td a {
+            display: block;
+            margin-bottom: 6px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <h1>Service Management Dashboard</h1>
+    <p>Manage your services, pricing, delivery times, and availability all in one place.</p>
+</section>
+
+<!-- Services Table -->
+<section class="service-table-section">
+    <h2 class="section-title">All Services</h2>
+    <div class="table-container">
+        <table class="table" id="servicesTable">
+            <thead>
+                <tr>
+                    <th>Id</th>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th>Price (₱)</th>
+                    <th>Status</th>
+                    <th>Pricing Model</th>
+                    <th>Pricing Unit</th>
+                    <th>Delivery Time</th>
+                    <th>Category</th>
+                    <th>Tools Used</th>
+                    <th>Revision Limit</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if services|length > 0 %}
+                    {% for service in services %}
+                        <tr>
+                            <td>{{ service.id }}</td>
+                            <td>{{ service.name }}</td>
+                            <td>{{ service.description }}</td>
+                            <td>₱{{ service.price|number_format(2, '.', ',') }}</td>
+                            <td>{{ service.status }}</td>
+                            <td>{{ service.pricingModel }}</td>
+                            <td>{{ service.pricingUnit }}</td>
+                            <td>{{ service.deliveryTime }} days</td>
+                            <td>{{ service.category }}</td>
+                            <td>{{ service.toolsUsed }}</td>
+                            <td>{{ service.revisionLimit }}</td>
+                            <td>
+                                <a href="{{ path('app_services_show', {'id': service.id}) }}">Show</a>
+                                <a href="{{ path('app_services_edit', {'id': service.id}) }}">Edit</a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="12" class="empty-state">No services found.</td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="button-container">
+        <a href="{{ path('app_services_new') }}" class="btn-create">
+            <span>+</span> Create New Service
+        </a>
+    </div>
+</section>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<!-- DataTables -->
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+
+{% if services|length > 0 %}
+<script>
+$(document).ready(function() {
+    $('#servicesTable').DataTable({
+        paging: true,
+        searching: true,
+        ordering: true,
+        info: true,
+        pageLength: 10,
+        lengthMenu: [5, 10, 20, 50],
+        order: [[0, 'desc']],
+        columnDefs: [
+            { orderable: false, targets: -1 } // Actions column
+        ],
+        language: {
+            search: "Search:",
+            lengthMenu: "Show _MENU_ entries",
+            info: "Showing _START_ to _END_ of _TOTAL_ services",
+            infoEmpty: "Showing 0 to 0 of 0 services",
+            infoFiltered: "(filtered from _MAX_ total services)",
+            paginate: {
+                first: "First",
+                last: "Last",
+                next: "Next",
+                previous: "Previous"
+            }
+        }
+    });
+});
+</script>
+{% endif %}
+{% endblock %}

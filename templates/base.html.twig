@@ -4,14 +4,222 @@
         <meta charset="UTF-8">
         <title>{% block title %}Welcome!{% endblock %}</title>
         <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>⚫️</text><text y=%221.3em%22 x=%220.2em%22 font-size=%2276%22 fill=%22%23fff%22>sf</text></svg>">
+        
         {% block stylesheets %}
+            {{ encore_entry_link_tags('app') }}
+            <style>
+                @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+                * {
+                    margin: 0;
+                    padding: 0;
+                    box-sizing: border-box;
+                }
+
+                body {
+                    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                    background: #ffffff;
+                    color: #1a1a1a;
+                    min-height: 100vh;
+                    overflow-x: hidden;
+                }
+
+                /* Sidebar */
+                .sidebar {
+                    width: 260px;
+                    background: #0f0f14;
+                    color: #fff;
+                    display: flex;
+                    flex-direction: column;
+                    padding: 24px 0;
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    height: 100vh;
+                    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+                    z-index: 100;
+                }
+
+                .sidebar h2 {
+                    font-size: 22px;
+                    font-weight: 700;
+                    text-align: center;
+                    margin-bottom: 32px;
+                    color: #fff;
+                    letter-spacing: -0.5px;
+                }
+
+                .sidebar a {
+                    padding: 14px 28px;
+                    color: #9ca3af;
+                    text-decoration: none;
+                    font-weight: 500;
+                    font-size: 15px;
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                    transition: all 0.2s;
+                    position: relative;
+                }
+
+                .sidebar a::before {
+                    content: '';
+                    position: absolute;
+                    left: 0;
+                    top: 50%;
+                    transform: translateY(-50%);
+                    width: 3px;
+                    height: 0;
+                    background: #6366f1;
+                    transition: height 0.2s;
+                }
+
+                .sidebar a:hover::before,
+                .sidebar a.active::before {
+                    height: 60%;
+                }
+
+                .sidebar a:hover,
+                .sidebar a.active {
+                    background: rgba(99, 102, 241, 0.1);
+                    color: #fff;
+                }
+
+                /* Admin Panel Logo - White & Hover Glow */
+                .admin-logo {
+                    display: flex;
+                    justify-content: center;
+                    margin-bottom: 16px;
+                }
+
+                .admin-logo img {
+                    max-height: 40px;
+                    height: auto;
+                    filter: brightness(0) invert(1); /* white logo */
+                    transition: filter 0.3s ease, transform 0.3s ease;
+                }
+
+                .admin-logo img:hover {
+                    filter: brightness(0) invert(1) drop-shadow(0 0 12px rgba(147, 112, 219, 0.6));
+                    transform: scale(1.05);
+                }
+
+                /* Top Navbar */
+                .navbar {
+                    position: fixed;
+                    top: 0;
+                    left: 260px;
+                    right: 0;
+                    background: #ffffff;
+                    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    padding: 16px 40px;
+                    z-index: 99;
+                    border-bottom: 1px solid #f0f0f0;
+                    height: 60px;
+                }
+
+                .navbar .nav-title {
+                    font-size: 18px;
+                    font-weight: 600;
+                    color: #1a1a1a;
+                }
+
+                .navbar .nav-buttons {
+                    display: flex;
+                    gap: 12px;
+                }
+
+                .navbar .nav-buttons a {
+                    background: #f8f9fa;
+                    color: #1a1a1a;
+                    padding: 8px 18px;
+                    border-radius: 8px;
+                    text-decoration: none;
+                    font-weight: 500;
+                    font-size: 14px;
+                    transition: all 0.2s;
+                    border: 1px solid #e5e7eb;
+                }
+
+                .navbar .nav-buttons a:hover,
+                .navbar .nav-buttons a.active {
+                    background: #6366f1;
+                    color: #fff;
+                    border-color: #6366f1;
+                }
+
+                /* Main Content */
+                .main-content {
+                    margin-left: 260px;
+                    padding: 100px 40px 40px;
+                    width: calc(100% - 260px);
+                    min-height: 100vh;
+                }
+
+                /* Account for fixed navbar */
+                .main-content::before {
+                    content: '';
+                    display: block;
+                    height: 0;
+                }
+
+                .main-content > *:first-child {
+                    margin-top: 0;
+                }
+
+                /* Responsive */
+                @media (max-width: 768px) {
+                    .sidebar {
+                        transform: translateX(-100%);
+                    }
+
+                    .navbar {
+                        left: 0;
+                    }
+
+                    .main-content {
+                        margin-left: 0;
+                        width: 100%;
+                        padding: 40px 20px;
+                    }
+                }
+            </style>
         {% endblock %}
 
-        {% block javascripts %}
-            {% block importmap %}{{ importmap('app') }}{% endblock %}
-        {% endblock %}
+        {% block javascripts %}{% endblock %}
     </head>
     <body>
-        {% block body %}{% endblock %}
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="admin-logo">
+                <img src="{{ asset('images/cd_logo.png') }}" alt="Campana Designs Logo">
+            </div>
+
+            <h2>Admin Panel</h2>
+
+            <a href="{{ path('app_services_index') }}" class="{{ app.request.attributes.get('_route') starts with 'app_services' ? 'active' : '' }}">Services</a>
+            <a href="{{ path('app_order_index') }}" class="{{ app.request.attributes.get('_route') starts with 'app_order' ? 'active' : '' }}">Orders</a>
+            <a href="{{ path('app_client_index') }}" class="{{ app.request.attributes.get('_route') starts with 'app_client' ? 'active' : '' }}">Clients</a>
+            <a href="{{ path('app_analytics_index') }}" class="{{ app.request.attributes.get('_route') starts with 'app_analytics' ? 'active' : '' }}">Analytics</a>
+            <a href="{{ path('app_reports_index') }}" class="{{ app.request.attributes.get('_route') starts with 'app_reports' ? 'active' : '' }}">Reports</a>
+            <a href="{{ path('app_settings_index') }}" class="{{ app.request.attributes.get('_route') starts with 'app_settings' ? 'active' : '' }}">Settings</a>
+        </div>
+
+        <!-- Top Navbar -->
+        <nav class="navbar">
+            <div class="nav-title">{% block page_title %}Dashboard{% endblock %}</div>
+            <div class="nav-buttons">
+                <a href="{{ path('app_home_index') }}" class="{{ app.request.attributes.get('_route') == 'app_home_index' ? 'active' : '' }}">Home</a>
+                <a href="{{ path('app_logout') }}">Logout</a>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            {% block body %}{% endblock %}
+        </div>
     </body>
 </html>

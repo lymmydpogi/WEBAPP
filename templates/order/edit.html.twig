@@ -1,0 +1,155 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edit Order{% endblock %}
+{% block page_title %}Edit Order{% endblock %}
+
+{% block stylesheets %}
+{{ parent() }}
+<style>
+.page-header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+.page-header h1 {
+    font-size: 32px;
+    font-weight: 700;
+    margin: 0 0 10px 0;
+    color: #1a1a1a;
+}
+.page-header p {
+    font-size: 16px;
+    color: #6b7280;
+    margin: 0;
+}
+.form-container {
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+    padding: 40px;
+    max-width: 800px;
+    margin: 0 auto 40px;
+    border: 1px solid #f0f0f0;
+}
+.form-container input,
+.form-container select,
+.form-container textarea {
+    width: 100%;
+    padding: 12px 16px;
+    font-size: 14px;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+    background: #ffffff;
+    color: #1a1a1a;
+    font-family: inherit;
+    transition: all 0.2s;
+    box-sizing: border-box;
+}
+.form-container input:focus,
+.form-container select:focus,
+.form-container textarea:focus {
+    outline: none;
+    border-color: #8b5cf6;
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+}
+.form-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-start;
+    align-items: center;
+    margin-top: 30px;
+    padding-top: 30px;
+    border-top: 1px solid #f0f0f0;
+}
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.btn:hover {
+    transform: translateY(-1px);
+}
+.btn-update {
+    background: #8b5cf6;
+    color: #ffffff;
+}
+.btn-update:hover {
+    background: #7c3aed;
+}
+.btn-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    color: #6b7280;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+.btn-back:hover {
+    text-decoration: underline;
+}
+.btn-danger {
+    background: #ef4444;
+    color: #ffffff;
+    padding: 12px 24px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+}
+.btn-danger:hover {
+    background: #dc2626;
+}
+.back-icon {
+    font-size: 16px;
+    margin-right: 6px;
+}
+@media (max-width: 768px) {
+    .form-container { padding: 28px 20px; }
+    .page-header h1 { font-size: 28px; }
+    .form-actions { flex-direction: column; align-items: stretch; }
+    .btn, .btn-back, .btn-danger {
+        width: 100%;
+        justify-content: center;
+    }
+}
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="page-header">
+    <h1>Edit Order</h1>
+    <p>Update the order details below</p>
+</div>
+
+<div class="form-container">
+    {{ form_start(form) }}
+        {{ form_widget(form) }}
+        <div class="form-actions">
+            <a href="{{ path('app_order_index') }}" class="btn-back">
+                <span class="back-icon">←</span> Back to List
+            </a>
+            <button type="submit" class="btn btn-update">Update</button>
+
+            {# Inline Delete Button #}
+            <form method="post"
+                  action="{{ path('app_order_delete', {'id': order.id}) }}"
+                  onsubmit="return confirm('Are you sure you want to delete this order?');"
+                  style="display:inline;">
+                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ order.id) }}">
+                <button class="btn btn-danger" type="submit">Delete</button>
+            </form>
+        </div>
+    {{ form_end(form) }}
+</div>
+{% endblock %}

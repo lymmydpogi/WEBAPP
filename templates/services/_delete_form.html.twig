@@ -1,0 +1,6 @@
+<form method="post" action="{{ path('app_services_delete', {'id': service.id}) }}" style="display:inline-block;">
+    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ service.id) }}">
+    <button type="submit" class="btn btn-delete" onclick="return confirm('Proceed with action?')">
+        Delete Service
+    </button>
+</form>
