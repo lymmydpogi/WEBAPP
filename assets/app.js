@@ -1,10 +1,20 @@
-import './bootstrap.js';
-/*
- * Welcome to your app's main JavaScript file!
- *
- * This file will be included onto the page via the importmap() Twig function,
- * which should already be in your base.html.twig.
- */
-import './styles/app.css';
+// assets/app.js
 
-console.log('This log comes from assets/app.js - welcome to AssetMapper! 🎉');
+// Import global/base styles first
+import './styles/base.scss';
+
+// Import page/entity-specific styles
+import './styles/clients.scss';
+import './styles/orders.scss';
+import './styles/services.scss';
+import './styles/home.scss';
+import './styles/analytics.scss';
+import './styles/reports.scss';
+import './styles/security.scss';
+import './styles/settings.scss';
+
+// Optional: import Stimulus controllers if you are using them
+import './controllers';
+
+// Optional: any global JS logic can go here
+console.log('App.js loaded successfully');

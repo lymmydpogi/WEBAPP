@@ -1,0 +1,153 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Order{% endblock %}
+
+{% block stylesheets %}
+{{ parent() }}
+<style>
+    /* Table styling */
+    .table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+    }
+
+    .table th,
+    .table td {
+        padding: 12px 15px;
+        border: 1px solid #e5e7eb;
+        text-align: left;
+    }
+
+    .table th {
+        background-color: #f3f4f6;
+        font-weight: 600;
+        color: #1a1a1a;
+    }
+
+    .table td {
+        color: #374151;
+    }
+
+    /* Buttons */
+    .actions {
+        margin-top: 20px;
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .btn {
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        text-decoration: none;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        transition: all 0.2s ease;
+        border: none;
+    }
+
+    .btn:hover {
+        transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 20px;
+        color: #6b7280;
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        border-radius: 8px;
+        border: 1px solid #e5e7eb;
+    }
+
+    .btn-secondary:hover {
+    text-decoration: underline;
+    }
+
+    .btn-primary {
+        background-color: #8b5cf6;
+        color: #ffffff;
+    }
+
+    .btn-primary:hover {
+        background-color: #7c3aed;
+    }
+
+    .btn-danger {
+        background-color: #ef4444;
+        color: #ffffff;
+    }
+
+    .btn-danger:hover {
+        background-color: #dc2626;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .actions {
+            flex-direction: column;
+        }
+        .btn {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+    <h1>Order</h1>
+
+    <table class="table">
+        <tbody>
+            <tr>
+                <th>Id</th>
+                <td>{{ order.id }}</td>
+            </tr>
+            <tr>
+                <th>Client Name</th>
+                <td>{{ order.clientName }}</td>
+            </tr>
+            <tr>
+                <th>Client Email</th>
+                <td>{{ order.clientEmail }}</td>
+            </tr>
+            <tr>
+                <th>Order Date</th>
+                <td>{{ order.orderDate ? order.orderDate|date('Y-m-d H:i:s') : '' }}</td>
+            </tr>
+            <tr>
+                <th>Status</th>
+                <td>{{ order.status }}</td>
+            </tr>
+            <tr>
+                <th>Total Price</th>
+                <td>{{ order.totalPrice }}</td>
+            </tr>
+            <tr>
+                <th>Notes</th>
+                <td>{{ order.notes }}</td>
+            </tr>
+            <tr>
+                <th>Delivery Date</th>
+                <td>{{ order.deliveryDate ? order.deliveryDate|date('Y-m-d H:i:s') : '' }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="actions">
+        
+        <a href="{{ path('app_order_index') }}" class="btn btn-secondary" <span>← </span>Back to list</a>
+        <a href="{{ path('app_order_edit', {'id': order.id}) }}" class="btn btn-primary">Edit</a>
+
+ 
+    </div>
+{% endblock %}

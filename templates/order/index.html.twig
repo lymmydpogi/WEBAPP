@@ -1,0 +1,316 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Order Index{% endblock %}
+{% block page_title %}Orders{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css"/>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #f5f7fa;
+        }
+
+        /* Hero Section */
+        .hero-section {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            padding: 48px 32px;
+            border-radius: 16px;
+            margin-bottom: 32px;
+            box-shadow: 0 10px 30px rgba(99, 102, 241, 0.2);
+            text-align: center;
+            position: relative;
+        }
+
+        .hero-section h1 {
+            font-size: 36px;
+            font-weight: 700;
+            color: #ffffff;
+            margin: 0 0 12px 0;
+            letter-spacing: -0.5px;
+        }
+
+        .hero-section p {
+            font-size: 16px;
+            color: rgba(255, 255, 255, 0.9);
+            margin: 0;
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        /* Create Button */
+        .btn-create {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 28px;
+            background: #6366f1;
+            color: #ffffff;
+            text-decoration: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn-create:hover {
+            background: #4f46e5;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-container {
+            text-align: right;
+            margin-top: 20px;
+        }
+
+        /* Section Title */
+        .section-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #111827;
+            margin: 0 0 24px 0;
+            letter-spacing: -0.3px;
+        }
+
+        /* Table Container */
+        .table-container {
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+            margin-bottom: 10px;
+            border: 1px solid #e5e7eb;
+        }
+
+        /* DataTables Wrapper Styling */
+        .dataTables_wrapper {
+            padding: 20px;
+        }
+
+        .dataTables_wrapper .dataTables_length,
+        .dataTables_wrapper .dataTables_filter {
+            margin-bottom: 20px;
+        }
+
+        .dataTables_wrapper .dataTables_length label,
+        .dataTables_wrapper .dataTables_filter label {
+            font-size: 14px;
+            color: #4b5563;
+            font-weight: 500;
+        }
+
+        .dataTables_wrapper .dataTables_length select,
+        .dataTables_wrapper .dataTables_filter input {
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 14px;
+            margin-left: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .dataTables_wrapper .dataTables_filter input {
+            width: 250px;
+        }
+
+        .dataTables_wrapper .dataTables_length select:focus,
+        .dataTables_wrapper .dataTables_filter input:focus {
+            outline: none;
+            border-color: #6366f1;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        /* Table Styling */
+        .table {
+            width: 100% !important;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin: 0 !important;
+        }
+
+        .table thead {
+            background: linear-gradient(180deg, #f9fafb 0%, #f3f4f6 100%);
+        }
+
+        .table thead th {
+            color: #374151;
+            padding: 16px 20px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            border-bottom: 2px solid #e5e7eb;
+            white-space: nowrap;
+        }
+
+        .table tbody tr {
+            transition: all 0.2s ease;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        .table tbody tr:hover {
+            background: #f9fafb;
+            transform: scale(1.001);
+        }
+
+        .table tbody td {
+            padding: 16px 20px;
+            color: #6b7280;
+            font-size: 14px;
+            vertical-align: middle;
+        }
+
+        .table tbody td:first-child {
+            font-weight: 700;
+            color: #111827;
+            font-size: 15px;
+        }
+
+        /* Action Links */
+        .table tbody td a {
+            display: inline-block;
+            padding: 7px 16px;
+            margin-right: 6px;
+            background: #f9fafb;
+            color: #374151;
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            border: 1px solid #e5e7eb;
+        }
+
+        .table tbody td a:first-of-type:hover {
+            background: #3b82f6;
+            color: #fff;
+            border-color: #3b82f6;
+        }
+
+        .table tbody td a:last-of-type:hover {
+            background: #8b5cf6;
+            color: #fff;
+            border-color: #8b5cf6;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #9ca3af;
+            font-size: 15px;
+            font-weight: 500;
+        }
+
+        @media (max-width: 768px) {
+            .btn-container {
+                text-align: center;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <h1>Order Management Dashboard</h1>
+    <p>Track, manage, and process all customer orders efficiently from a single centralized interface.</p>
+</section>
+
+<!-- Order Table Section -->
+<section class="order-table-section">
+    <h2 class="section-title">All Orders</h2>
+    <div class="table-container">
+        <table class="table" id="ordersTable">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Client Name</th>
+                    <th>Client Email</th>
+                    <th>Service</th>
+                    <th>Total Price</th>
+                    <th>Status</th>
+                    <th>Order Date</th>
+                    <th>Delivery Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in orders %}
+                    <tr>
+                        <td>{{ order.id }}</td>
+                        <td>{{ order.client ? order.client.name : order.clientName }}</td>
+                        <td>{{ order.client ? order.client.email : order.clientEmail }}</td>
+                        <td>{{ order.service ? order.service.Name : 'N/A' }}</td>
+                        <td>{{ order.totalPrice ? '₱' ~ order.totalPrice : 'N/A' }}</td>
+                        <td>{{ order.status }}</td>
+                        <td>{{ order.orderDate ? order.orderDate|date('Y-m-d H:i') : 'N/A' }}</td>
+                        <td>{{ order.deliveryDate ? order.deliveryDate|date('Y-m-d') : 'N/A' }}</td>
+                        <td>
+                            <a href="{{ path('app_order_show', {'id': order.id}) }}">Show</a>
+                            <a href="{{ path('app_order_edit', {'id': order.id}) }}">Edit</a>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="9" class="empty-state">No orders found.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Create New Button aligned right -->
+    <div class="btn-container">
+        <a href="{{ path('app_order_new') }}" class="btn-create">
+            <span>+</span> Create New Order
+        </a>
+    </div>
+</section>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <!-- jQuery (required for DataTables) -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <!-- DataTables JS -->
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('#ordersTable').DataTable({
+                paging: true,
+                searching: true,
+                ordering: true,
+                info: true,
+                pageLength: 10,
+                lengthMenu: [5, 10, 20, 50],
+                order: [[0, 'desc']],
+                columnDefs: [
+                    { orderable: false, targets: -1 }
+                ],
+                language: {
+                    search: "Search:",
+                    lengthMenu: "Show _MENU_ entries",
+                    info: "Showing _START_ to _END_ of _TOTAL_ orders",
+                    infoEmpty: "Showing 0 to 0 of 0 orders",
+                    infoFiltered: "(filtered from _MAX_ total orders)",
+                    paginate: {
+                        first: "First",
+                        last: "Last",
+                        next: "Next",
+                        previous: "Previous"
+                    }
+                }
+            });
+        });
+    </script>
+{% endblock %}

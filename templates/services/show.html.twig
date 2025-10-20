@@ -1,0 +1,300 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Service Details{% endblock %}
+{% block page_title %}Service Details{% endblock %}
+
+{% block stylesheets %}
+{{ parent() }}
+<style>
+/* Page Header */
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+h1 {
+    font-size: 32px;
+    font-weight: 700;
+    margin: 0;
+    color: #1a1a1a;
+    letter-spacing: -0.5px;
+}
+
+.service-id {
+    font-size: 13px;
+    color: #6b7280;
+    font-weight: 500;
+    background: #f8f9fa;
+    padding: 6px 12px;
+    border-radius: 6px;
+    border: 1px solid #e5e7eb;
+}
+
+/* Service Details Container */
+.service-details {
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+    overflow: hidden;
+    margin-bottom: 30px;
+    border: 1px solid #f0f0f0;
+}
+
+/* Table Styling */
+.table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.table tbody tr {
+    border-bottom: 1px solid #f0f0f0;
+    transition: background 0.2s ease;
+}
+
+.table tbody tr:last-child {
+    border-bottom: none;
+}
+
+.table tbody tr:hover {
+    background: #f8f9fa;
+}
+
+.table th {
+    text-align: left;
+    padding: 16px 20px;
+    font-weight: 600;
+    color: #1a1a1a;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    width: 200px;
+    background: #f8f9fa;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.table td {
+    padding: 16px 20px;
+    color: #4b5563;
+    font-size: 14px;
+}
+
+/* Status Badge */
+.status-badge {
+    display: inline-block;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.status-badge.active {
+    background: #dcfce7;
+    color: #16a34a;
+}
+
+.status-badge.inactive {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+/* Info Grid */
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    padding: 20px;
+    background: #f8f9fa;
+    border-top: 1px solid #e5e7eb;
+}
+
+.info-card {
+    background: #ffffff;
+    padding: 16px;
+    border-radius: 8px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    transition: all 0.2s ease;
+    border: 1px solid #f0f0f0;
+}
+
+.info-card:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+}
+
+.info-label {
+    font-size: 12px;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+    font-weight: 600;
+}
+
+.info-value {
+    font-size: 16px;
+    color: #1a1a1a;
+    font-weight: 600;
+}
+
+/* Action Buttons */
+.action-buttons {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    border: none;
+    font-family: inherit;
+}
+
+.btn-back {
+    background: #f8f9fa;
+    color: #6b7280;
+    border: 1px solid #e5e7eb;
+}
+
+.btn-back:hover {
+    background: #f0f1f3;
+    color: #1a1a1a;
+    transform: translateX(-2px);
+}
+
+.btn-edit {
+    background: #6366f1;
+    color: #ffffff;
+}
+
+.btn-edit:hover {
+    background: #4f46e5;
+    transform: translateY(-1px);
+}
+
+.btn-delete {
+    background: #ef4444;
+    color: #ffffff;
+}
+
+.btn-delete:hover {
+    background: #dc2626;
+    transform: translateY(-1px);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .page-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    h1 {
+        font-size: 28px;
+    }
+
+    .table th,
+    .table td {
+        padding: 12px 16px;
+        font-size: 13px;
+    }
+
+    .table th {
+        width: 140px;
+    }
+
+    .info-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .action-buttons {
+        flex-direction: column;
+    }
+
+    .btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+</style>
+{% endblock %}
+
+{% block body %}
+    <div class="page-header">
+        <h1>{{ service.Name }}</h1>
+        <span class="service-id">ID: {{ service.id }}</span>
+    </div>
+
+    <div class="service-details">
+        <table class="table">
+            <tbody>
+                <tr>
+                    <th>Service Name</th>
+                    <td>{{ service.Name }}</td>
+                </tr>
+                <tr>
+                    <th>Description</th>
+                    <td>{{ service.description }}</td>
+                </tr>
+                <tr>
+                    <th>Category</th>
+                    <td>{{ service.Category }}</td>
+                </tr>
+                <tr>
+                    <th>Status</th>
+                    <td>
+                        <span class="status-badge {{ service.status|lower }}">
+                            {{ service.status }}
+                        </span>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="info-grid">
+            <div class="info-card">
+                <div class="info-label">Price</div>
+                <div class="info-value">{{ service.price }}</div>
+            </div>
+            <div class="info-card">
+                <div class="info-label">Pricing Model</div>
+                <div class="info-value">{{ service.pricingModel }}</div>
+            </div>
+            <div class="info-card">
+                <div class="info-label">Delivery Time</div>
+                <div class="info-value">{{ service.DeliveryTime }}</div>
+            </div>
+            <div class="info-card">
+                <div class="info-label">Revision Limit</div>
+                <div class="info-value">{{ service.revisionLimit }}</div>
+            </div>
+            <div class="info-card">
+                <div class="info-label">Tools Used</div>
+                <div class="info-value">{{ service.toolsUsed }}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="action-buttons">
+        <a href="{{ path('app_services_index') }}" class="btn btn-back">
+            ← Back to List
+        </a>
+        <a href="{{ path('app_services_edit', {'id': service.id}) }}" class="btn btn-edit">
+            Edit Service
+        </a>
+        {{ include('services/_delete_form.html.twig') }}
+    </div>
+{% endblock %}
