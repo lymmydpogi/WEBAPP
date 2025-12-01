@@ -5,14 +5,13 @@ namespace App\Entity;
 use App\Repository\OrderRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use App\Entity\Client;
+use App\Entity\User;
 use App\Entity\Services;
 
 #[ORM\Entity(repositoryClass: OrderRepository::class)]
 #[ORM\Table(name: '`order`')]
 class Order
 {
-    
     public const STATUS_PENDING = 'pending';
     public const STATUS_COMPLETED = 'completed';
     public const STATUS_CANCELED = 'canceled';
@@ -22,13 +21,13 @@ class Order
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\ManyToOne(inversedBy: 'orders')]
+    #[ORM\ManyToOne(targetEntity: Services::class, inversedBy: 'orders')]
     #[ORM\JoinColumn(nullable: true)]
     private ?Services $service = null;
 
-    #[ORM\ManyToOne(inversedBy: 'orders')]
-    #[ORM\JoinColumn(nullable: true)]
-    private ?Client $client = null;
+    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'orders')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?User $user = null;
 
     #[ORM\Column(length: 255)]
     private ?string $clientName = null;
@@ -40,7 +39,7 @@ class Order
     private ?\DateTimeImmutable $orderDate = null;
 
     #[ORM\Column(length: 50)]
-    private ?string $status = self::STATUS_PENDING;
+    private string $status = self::STATUS_PENDING;
 
     #[ORM\Column(nullable: true)]
     private ?float $totalPrice = 0.0;
@@ -58,7 +57,6 @@ class Order
         $this->totalPrice = 0.0;
     }
 
-
     // ──────────────── Getters & Setters ────────────────
 
     public function getId(): ?int
@@ -74,6 +72,23 @@ class Order
     public function setService(?Services $service): static
     {
         $this->service = $service;
+        return $this;
+    }
+
+    public function getUser(): ?User
+    {
+        return $this->user;
+    }
+
+    public function setUser(?User $user): static
+    {
+        $this->user = $user;
+
+        if ($user) {
+            $this->clientName = $user->getName();
+            $this->clientEmail = $user->getEmail();
+        }
+
         return $this;
     }
 
@@ -110,7 +125,7 @@ class Order
         return $this;
     }
 
-    public function getStatus(): ?string
+    public function getStatus(): string
     {
         return $this->status;
     }
@@ -118,7 +133,7 @@ class Order
     public function setStatus(string $status): static
     {
         if (!in_array($status, [self::STATUS_PENDING, self::STATUS_COMPLETED, self::STATUS_CANCELED])) {
-            throw new \InvalidArgumentException("Invalid order status");
+            throw new \InvalidArgumentException("Invalid order status: $status");
         }
         $this->status = $status;
         return $this;
@@ -154,17 +169,6 @@ class Order
     public function setDeliveryDate(?\DateTime $deliveryDate): static
     {
         $this->deliveryDate = $deliveryDate;
-        return $this;
-    }
-
-    public function getClient(): ?Client
-    {
-        return $this->client;
-    }
-
-    public function setClient(?Client $client): static
-    {
-        $this->client = $client;
         return $this;
     }
 }

@@ -37,8 +37,8 @@ security:
     # Note: Only the *first* access control that matches will be used
     access_control:
         - { path: ^/login, roles: PUBLIC_ACCESS }  # ✅ Allow everyone to access login
-        - { path: ^/home, roles: ROLE_USER }  # ✅ Require authentication for home
-        - { path: ^/services, roles: ROLE_USER }  # ✅ Require authentication for services
+        - { path: ^/home, roles: ROLE_ADMIN }  # ✅ Require authentication for home
+        - { path: ^/services, roles: ROLE_ADMIN }  # ✅ Require authentication for services
         # - { path: ^/admin, roles: ROLE_ADMIN }
         # - { path: ^/profile, roles: ROLE_USER }
 

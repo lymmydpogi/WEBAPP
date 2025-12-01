@@ -2,7 +2,7 @@
 
 namespace App\Controller;
 
-use App\Repository\ClientRepository;
+use App\Repository\UserRepository;
 use App\Repository\OrderRepository;
 use App\Repository\ServicesRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -11,7 +11,7 @@ use Symfony\Component\HttpFoundation\Response;
 class ReportsDataController extends AbstractController
 {
     public function __construct(
-        private ClientRepository $clientRepository,
+        private UserRepository $userRepository,
         private OrderRepository $orderRepository,
         private ServicesRepository $serviceRepository,
     ) {}
@@ -23,7 +23,7 @@ class ReportsDataController extends AbstractController
         $reportTitle = '';
 
         match ($reportType) {
-            'clients' => $this->generateClientsReport($from, $to, $reportsData, $tableHeaders, $reportTitle),
+            'users' => $this->generateUsersReport($from, $to, $reportsData, $tableHeaders, $reportTitle),
             'orders' => $this->generateOrdersReport($from, $to, $reportsData, $tableHeaders, $reportTitle),
             'services' => $this->generateServicesReport($from, $to, $reportsData, $tableHeaders, $reportTitle),
             'revenue' => $this->generateRevenueReport($from, $to, $reportsData, $tableHeaders, $reportTitle),
@@ -48,7 +48,7 @@ class ReportsDataController extends AbstractController
         $reportTitle = '';
 
         match ($type) {
-            'clients' => $this->generateClientsReport($from, $to, $reportsData, $tableHeaders, $reportTitle),
+            'users' => $this->generateUsersReport($from, $to, $reportsData, $tableHeaders, $reportTitle),
             'orders' => $this->generateOrdersReport($from, $to, $reportsData, $tableHeaders, $reportTitle),
             'services' => $this->generateServicesReport($from, $to, $reportsData, $tableHeaders, $reportTitle),
             'revenue' => $this->generateRevenueReport($from, $to, $reportsData, $tableHeaders, $reportTitle),
@@ -63,43 +63,43 @@ class ReportsDataController extends AbstractController
     }
 
     /** ---- REPORT GENERATORS ---- **/
-    private function generateClientsReport(?\DateTime $from, ?\DateTime $to, &$reportsData, &$tableHeaders, &$reportTitle): void
+    private function generateUsersReport(?\DateTime $from, ?\DateTime $to, &$reportsData, &$tableHeaders, &$reportTitle): void
     {
-        $tableHeaders = ['Client ID', 'Name', 'Email', 'Phone', 'Total Orders', 'Joined Date'];
-        $reportTitle = 'Clients Report';
+        $tableHeaders = ['User ID', 'Name', 'Email', 'Phone', 'Total Orders', 'Joined Date'];
+        $reportTitle = 'Users Report';
 
-        $queryBuilder = $this->clientRepository->createQueryBuilder('c');
+        $queryBuilder = $this->userRepository->createQueryBuilder('u');
 
-        if ($from) $queryBuilder->andWhere('c.createdAt >= :from')->setParameter('from', $from);
+        if ($from) $queryBuilder->andWhere('u.createdAt >= :from')->setParameter('from', $from);
         if ($to) {
             $to->modify('+1 day');
-            $queryBuilder->andWhere('c.createdAt < :to')->setParameter('to', $to);
+            $queryBuilder->andWhere('u.createdAt < :to')->setParameter('to', $to);
         }
 
-        $clients = $queryBuilder->orderBy('c.createdAt', 'DESC')->getQuery()->getResult();
+        $users = $queryBuilder->orderBy('u.createdAt', 'DESC')->getQuery()->getResult();
 
-        foreach ($clients as $client) {
-            $ordersCount = $this->orderRepository->count(['client' => $client]);
+        foreach ($users as $user) {
+            $ordersCount = $this->orderRepository->count(['client' => $user]);
             $reportsData[] = [
-                $client->getId(),
-                $client->getName(),
-                $client->getEmail(),
-                $client->getPhone() ?? 'N/A',
+                $user->getId(),
+                $user->getName(),
+                $user->getEmail(),
+                $user->getPhone() ?? 'N/A',
                 $ordersCount,
-                $client->getCreatedAt()?->format('Y-m-d') ?? 'N/A',
+                $user->getCreatedAt()?->format('Y-m-d') ?? 'N/A',
             ];
         }
     }
 
     private function generateOrdersReport(?\DateTime $from, ?\DateTime $to, &$reportsData, &$tableHeaders, &$reportTitle): void
     {
-        $tableHeaders = ['Order ID', 'Client', 'Service', 'Status', 'Amount', 'Date'];
+        $tableHeaders = ['Order ID', 'User', 'Service', 'Status', 'Amount', 'Date'];
         $reportTitle = 'Orders Report';
 
         $queryBuilder = $this->orderRepository->createQueryBuilder('o')
-            ->leftJoin('o.client', 'c')
+            ->leftJoin('o.client', 'u')
             ->leftJoin('o.service', 's')
-            ->addSelect('c', 's');
+            ->addSelect('u', 's');
 
         if ($from) $queryBuilder->andWhere('o.createdAt >= :from')->setParameter('from', $from);
         if ($to) {

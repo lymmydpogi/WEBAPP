@@ -33,8 +33,8 @@ final class OrderController extends AbstractController
             $entityManager->persist($order);
             $entityManager->flush();
 
-            // Update client status
-            $this->updateClientStatus($order->getClient(), $entityManager);
+            // Update user status
+            $this->updateUserStatus($order->getUser(), $entityManager);
 
             return $this->redirectToRoute('app_order_index', [], Response::HTTP_SEE_OTHER);
         }
@@ -62,8 +62,8 @@ final class OrderController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->flush();
 
-            // Update client status
-            $this->updateClientStatus($order->getClient(), $entityManager);
+            // Update user status
+            $this->updateUserStatus($order->getUser(), $entityManager);
 
             return $this->redirectToRoute('app_order_index', [], Response::HTTP_SEE_OTHER);
         }
@@ -78,33 +78,33 @@ final class OrderController extends AbstractController
     public function delete(Request $request, Order $order, EntityManagerInterface $entityManager): Response
     {
         if ($this->isCsrfTokenValid('delete'.$order->getId(), $request->request->get('_token'))) {
-            $client = $order->getClient(); // save client before removal
+            $user = $order->getUser(); // save user before removal
             $entityManager->remove($order);
             $entityManager->flush();
 
-            // Update client status
-            $this->updateClientStatus($client, $entityManager);
+            // Update user status
+            $this->updateUserStatus($user, $entityManager);
         }
 
         return $this->redirectToRoute('app_order_index', [], Response::HTTP_SEE_OTHER);
     }
 
-    private function updateClientStatus($client, EntityManagerInterface $entityManager): void
+    private function updateUserStatus($user, EntityManagerInterface $entityManager): void
     {
-        if (!$client) {
+        if (!$user) {
             return;
         }
 
         $hasActiveOrder = false;
 
-        foreach ($client->getOrders() as $order) {
+        foreach ($user->getOrders() as $order) {
             if ($order->getStatus() === 'active') {
                 $hasActiveOrder = true;
                 break;
             }
         }
 
-        $client->setStatus($hasActiveOrder ? 'active' : 'suspended');
+        $user->setStatus($hasActiveOrder ? 'active' : 'suspended');
         $entityManager->flush();
     }
 }

@@ -20,7 +20,7 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
     }
 
     /**
-     * Used to upgrade (rehash) the user's password automatically over time.
+     * Upgrade (rehash) the user's password automatically over time.
      */
     public function upgradePassword(PasswordAuthenticatedUserInterface $user, string $newHashedPassword): void
     {
@@ -33,28 +33,67 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
         $this->getEntityManager()->flush();
     }
 
-//    /**
-//     * @return User[] Returns an array of User objects
-//     */
-//    public function findByExampleField($value): array
-//    {
-//        return $this->createQueryBuilder('u')
-//            ->andWhere('u.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->orderBy('u.id', 'ASC')
-//            ->setMaxResults(10)
-//            ->getQuery()
-//            ->getResult()
-//        ;
-//    }
+    // ──────────────── Client-like Queries ────────────────
 
-//    public function findOneBySomeField($value): ?User
-//    {
-//        return $this->createQueryBuilder('u')
-//            ->andWhere('u.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->getQuery()
-//            ->getOneOrNullResult()
-//        ;
-//    }
+    /**
+     * Count all users with ROLE_CLIENT
+     */
+    public function countAllClients(): int
+    {
+        return (int) $this->createQueryBuilder('u')
+            ->select('COUNT(u.id)')
+            ->where('JSON_CONTAINS(u.roles, :role) = 1')
+            ->setParameter('role', json_encode("ROLE_CLIENT"))
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    /**
+     * Count active clients
+     */
+    public function countActiveClients(): int
+    {
+        return (int) $this->createQueryBuilder('u')
+            ->select('COUNT(u.id)')
+            ->where('JSON_CONTAINS(u.roles, :role) = 1')
+            ->andWhere('u.status = :status')
+            ->setParameters([
+                'role'   => json_encode("ROLE_CLIENT"),
+                'status' => 'active',
+            ])
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    /**
+     * Count suspended clients
+     */
+    public function countSuspendedClients(): int
+    {
+        return (int) $this->createQueryBuilder('u')
+            ->select('COUNT(u.id)')
+            ->where('JSON_CONTAINS(u.roles, :role) = 1')
+            ->andWhere('u.status = :status')
+            ->setParameters([
+                'role'   => json_encode("ROLE_CLIENT"),
+                'status' => 'suspended',
+            ])
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    /**
+     * Find all clients ordered by creation date
+     *
+     * @return User[]
+     */
+    public function findAllClientsOrderedByCreatedAt(): array
+    {
+        return $this->createQueryBuilder('u')
+            ->where('JSON_CONTAINS(u.roles, :role) = 1')
+            ->setParameter('role', json_encode("ROLE_CLIENT"))
+            ->orderBy('u.createdAt', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
 }
