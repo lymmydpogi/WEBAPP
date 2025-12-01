@@ -7,7 +7,7 @@ use App\Entity\Order;
 use App\Form\ServicesType;
 use App\Repository\ServicesRepository;
 use App\Repository\OrderRepository;
-use App\Repository\ClientRepository;
+use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -22,7 +22,7 @@ class HomeController extends AbstractController
         EntityManagerInterface $em,
         ServicesRepository $servicesRepository,
         OrderRepository $orderRepository,
-        ClientRepository $clientRepository
+        UserRepository $userRepository
     ): Response {
         // ────────── Service Creation Form ──────────
         $service = new Services();
@@ -37,8 +37,8 @@ class HomeController extends AbstractController
         }
 
         // ────────── Analytics ──────────
-        $activeServices = $servicesRepository->count([]); 
-        $totalClients = $clientRepository->count([]);
+        $activeServices = $servicesRepository->count([]);
+        $totalUsers = $userRepository->countAllClients(); // updated to count ROLE_CLIENT users
 
         // Use QueryBuilder for accurate pending orders count
         $pendingOrders = (int) $orderRepository->createQueryBuilder('o')
@@ -62,7 +62,6 @@ class HomeController extends AbstractController
             ->getSingleScalarResult() ?? 0;
 
         // ────────── Trend Calculation (Optional) ──────────
-        // Example: pending orders trend (compare with previous month)
         $startPrevMonth = (clone $currentDate)->modify('first day of last month')->setTime(0, 0, 0);
         $endPrevMonth = (clone $currentDate)->modify('last day of last month')->setTime(23, 59, 59);
 
@@ -84,9 +83,9 @@ class HomeController extends AbstractController
             'services' => $servicesRepository->findAll(),
             'activeServices' => $activeServices,
             'pendingOrders' => $pendingOrders,
-            'totalClients' => $totalClients,
+            'totalUsers' => $totalUsers, // renamed for clarity
             'monthlyRevenue' => $monthlyRevenue,
-            'pendingOrdersTrend' => $pendingOrdersTrend, // pass trend to Twig
+            'pendingOrdersTrend' => $pendingOrdersTrend,
         ]);
     }
 }

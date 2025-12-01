@@ -1,0 +1,111 @@
+/* Page Header */
+.page-header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.page-header h1 {
+    font-size: 32px;
+    font-weight: 700;
+    margin: 0 0 10px 0;
+    color: #1a1a1a;
+    letter-spacing: -0.5px;
+}
+
+.page-header p {
+    font-size: 16px;
+    color: #6b7280;
+    margin: 0;
+}
+
+/* Table */
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 30px;
+}
+
+.table th,
+.table td {
+    padding: 12px 15px;
+    border: 1px solid #e5e7eb;
+    text-align: left;
+}
+
+.table th {
+    background-color: #f9fafb;
+    font-weight: 600;
+    color: #1a1a1a;
+}
+
+/* Button Base */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    font-family: inherit;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+}
+
+/* Back Button */
+.btn-back {
+    color: #6b7280;
+    border: 1px solid #e5e7eb;
+    background: #ffffff;
+}
+
+.btn-back:hover {
+    background: #e5e7eb;
+}
+
+/* Edit Button */
+.btn-edit {
+    background: #8b5cf6;
+    color: #ffffff;
+    border: none;
+}
+
+.btn-edit:hover {
+    background: #7c3aed;
+}
+
+/* Delete Button */
+.btn-delete {
+    background: #ef4444;
+    color: #ffffff;
+    border: none;
+}
+
+.btn-delete:hover {
+    background: #dc2626;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .table th,
+    .table td {
+        font-size: 14px;
+        padding: 10px;
+    }
+
+    .btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .form-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+}

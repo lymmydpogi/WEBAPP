@@ -1,0 +1,83 @@
+/* Form Container */
+.form-container {
+    background: #ffffff;
+    border-radius: 1rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    border: 1px solid #f0f0f0;
+    padding: 2rem;
+}
+
+/* Form Actions */
+.form-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding-top: 2rem;
+    border-top: 1px solid #f0f0f0;
+}
+
+@media (min-width: 640px) {
+    .form-actions {
+        flex-direction: row;
+    }
+}
+
+/* Buttons */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    font-family: inherit;
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    border: none;
+    text-decoration: none;
+}
+
+.btn .icon {
+    width: 1.25rem;
+    height: 1.25rem;
+}
+
+.btn-update {
+    background-color: #6366f1;
+    color: #ffffff;
+}
+
+.btn-update:hover {
+    background-color: #4f46e5;
+    transform: translateY(-2px);
+}
+
+.btn-back {
+    background-color: #f8f9fa;
+    color: #6b7280;
+    border: 1px solid #e5e7eb;
+    text-decoration: none;
+}
+
+.btn-back:hover {
+    background-color: #f0f1f3;
+    color: #1a1a1a;
+    transform: translateX(-2px);
+}
+
+.btn-delete {
+    background-color: #ef4444;
+    color: #ffffff;
+}
+
+.btn-delete:hover {
+    background-color: #dc2626;
+    transform: translateY(-2px);
+}
+
+/* Inline Form for Delete Button */
+.inline-form {
+    display: inline-flex;
+}

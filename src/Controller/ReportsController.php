@@ -1,7 +1,8 @@
 <?php
 
 namespace App\Controller;
-use App\Repository\ClientRepository;
+
+use App\Repository\UserRepository;
 use App\Repository\OrderRepository;
 use App\Repository\ServicesRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -16,7 +17,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class ReportsController extends AbstractController
 {
     public function __construct(
-        private ClientRepository $clientRepository,
+        private UserRepository $userRepository,
         private OrderRepository $orderRepository,
         private ServicesRepository $serviceRepository,
         private EntityManagerInterface $entityManager,
@@ -25,14 +26,14 @@ class ReportsController extends AbstractController
     #[Route('', name: 'app_reports_index', methods: ['GET'])]
     public function index(): Response
     {
-        $totalClients = $this->clientRepository->count();
+        $totalUsers = $this->userRepository->countAllClients(); // updated to count ROLE_CLIENT users
         $totalOrders = $this->orderRepository->count();
         $totalServices = $this->serviceRepository->count();
         $totalRevenue = $this->orderRepository->getTotalRevenue();
         $activeServices = $this->serviceRepository->count(['isActive' => true]);
 
         return $this->render('reports/index.html.twig', [
-            'total_clients' => $totalClients,
+            'total_users' => $totalUsers,
             'total_orders' => $totalOrders,
             'total_revenue' => $totalRevenue ?? 0,
             'active_services' => $activeServices,
@@ -50,11 +51,9 @@ class ReportsController extends AbstractController
             return $this->redirectToRoute('app_reports_index');
         }
 
-        // Prepare for delegation
         $from = $fromDate ? \DateTime::createFromFormat('Y-m-d', $fromDate) : null;
         $to = $toDate ? \DateTime::createFromFormat('Y-m-d', $toDate) : null;
 
-        // Delegate data generation to service class
         return $this->forward('App\\Controller\\ReportsDataController::generateReport', [
             'reportType' => $reportType,
             'from' => $from,
@@ -66,7 +65,7 @@ class ReportsController extends AbstractController
     public function export(Request $request): Response
     {
         $format = $request->query->get('format', 'pdf');
-        $type = $request->query->get('type', 'clients');
+        $type = $request->query->get('type', 'users'); // changed from 'clients' to 'users'
         $fromDate = $request->query->get('from');
         $toDate = $request->query->get('to');
 
