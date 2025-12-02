@@ -17,49 +17,25 @@ class UserType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-            ->add('name', TextType::class, [
-                'label' => 'Full Name',
-                'required' => true,
-            ])
-            ->add('email', EmailType::class, [
-                'label' => 'Email Address',
-                'required' => true,
-            ])
-            ->add('password', PasswordType::class, [
-                'label' => 'Password',
-                'required' => true,
-            ])
-            ->add('phone', TelType::class, [
-                'label' => 'Phone Number',
-                'required' => false,
-            ])
-            ->add('address', TextType::class, [
-                'label' => 'Address',
-                'required' => false,
-            ])
+            ->add('name', TextType::class, ['label' => 'Full Name', 'required' => true])
+            ->add('email', EmailType::class, ['label' => 'Email Address', 'required' => true])
+            ->add('password', PasswordType::class, ['label' => 'Password', 'required' => true])
+            ->add('phone', TelType::class, ['label' => 'Phone Number', 'required' => false])
+            ->add('address', TextType::class, ['label' => 'Address', 'required' => false])
             ->add('status', ChoiceType::class, [
                 'label' => 'Status',
-                'choices' => [
-                    'Active' => 'active',
-                    'Suspended' => 'suspended',
-                ],
+                'choices' => ['Active' => 'active', 'Suspended' => 'suspended'],
             ])
             ->add('roles', ChoiceType::class, [
                 'label' => 'Roles',
-                'choices' => [
-                    'User' => 'ROLE_USER',
-                    'Client' => 'ROLE_CLIENT',
-                    'Admin' => 'ROLE_ADMIN',
-                ],
+                'choices' => ['User' => 'ROLE_USER', 'Client' => 'ROLE_CLIENT', 'Admin' => 'ROLE_ADMIN'],
                 'multiple' => true,
-                'expanded' => true, // checkboxes
+                'expanded' => true,
             ]);
     }
 
     public function configureOptions(OptionsResolver $resolver): void
     {
-        $resolver->setDefaults([
-            'data_class' => User::class,
-        ]);
+        $resolver->setDefaults(['data_class' => User::class]);
     }
 }

@@ -9,9 +9,6 @@ use Symfony\Component\Security\Core\Exception\UnsupportedUserException;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\PasswordUpgraderInterface;
 
-/**
- * @extends ServiceEntityRepository<User>
- */
 class UserRepository extends ServiceEntityRepository implements PasswordUpgraderInterface
 {
     public function __construct(ManagerRegistry $registry)
@@ -33,17 +30,17 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
         $this->getEntityManager()->flush();
     }
 
-    // ──────────────── Client-like Queries ────────────────
+    // ──────────────── User queries ────────────────
 
     /**
-     * Count all users with ROLE_CLIENT
+     * Count all clients
      */
     public function countAllClients(): int
     {
         return (int) $this->createQueryBuilder('u')
             ->select('COUNT(u.id)')
-            ->where('JSON_CONTAINS(u.roles, :role) = 1')
-            ->setParameter('role', json_encode("ROLE_CLIENT"))
+            ->where('u.roles LIKE :role')
+            ->setParameter('role', '%"ROLE_CLIENT"%')
             ->getQuery()
             ->getSingleScalarResult();
     }
@@ -55,12 +52,10 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
     {
         return (int) $this->createQueryBuilder('u')
             ->select('COUNT(u.id)')
-            ->where('JSON_CONTAINS(u.roles, :role) = 1')
+            ->where('u.roles LIKE :role')
             ->andWhere('u.status = :status')
-            ->setParameters([
-                'role'   => json_encode("ROLE_CLIENT"),
-                'status' => 'active',
-            ])
+            ->setParameter('role', '%"ROLE_CLIENT"%')
+            ->setParameter('status', 'active')
             ->getQuery()
             ->getSingleScalarResult();
     }
@@ -72,26 +67,24 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
     {
         return (int) $this->createQueryBuilder('u')
             ->select('COUNT(u.id)')
-            ->where('JSON_CONTAINS(u.roles, :role) = 1')
+            ->where('u.roles LIKE :role')
             ->andWhere('u.status = :status')
-            ->setParameters([
-                'role'   => json_encode("ROLE_CLIENT"),
-                'status' => 'suspended',
-            ])
+            ->setParameter('role', '%"ROLE_CLIENT"%')
+            ->setParameter('status', 'suspended')
             ->getQuery()
             ->getSingleScalarResult();
     }
 
     /**
-     * Find all clients ordered by creation date
+     * Find all clients ordered by creation date (DESC)
      *
      * @return User[]
      */
     public function findAllClientsOrderedByCreatedAt(): array
     {
         return $this->createQueryBuilder('u')
-            ->where('JSON_CONTAINS(u.roles, :role) = 1')
-            ->setParameter('role', json_encode("ROLE_CLIENT"))
+            ->where('u.roles LIKE :role')
+            ->setParameter('role', '%"ROLE_CLIENT"%')
             ->orderBy('u.createdAt', 'DESC')
             ->getQuery()
             ->getResult();
