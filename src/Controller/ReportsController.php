@@ -9,11 +9,9 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Component\Routing\Annotation\Route;
 
 #[Route('/reports')]
-#[IsGranted('ROLE_ADMIN')]
 class ReportsController extends AbstractController
 {
     public function __construct(
@@ -23,53 +21,76 @@ class ReportsController extends AbstractController
         private EntityManagerInterface $entityManager,
     ) {}
 
+    /**
+     * Main reports dashboard
+     */
     #[Route('', name: 'app_reports_index', methods: ['GET'])]
     public function index(): Response
     {
-        $totalUsers = $this->userRepository->countAllClients(); // updated to count ROLE_CLIENT users
+        // Dashboard summary
+        $totalClients = $this->userRepository->countAllClients();
+        $activeClients = $this->userRepository->countActiveClients();
+        $suspendedClients = $this->userRepository->countSuspendedClients();
         $totalOrders = $this->orderRepository->count();
-        $totalServices = $this->serviceRepository->count();
-        $totalRevenue = $this->orderRepository->getTotalRevenue();
-        $activeServices = $this->serviceRepository->count(['isActive' => true]);
+        $totalRevenue = $this->orderRepository->getTotalRevenue() ?? 0;
+        $activeServices = $this->serviceRepository->countActive();
 
-        return $this->render('reports/index.html.twig', [
-            'total_users' => $totalUsers,
-            'total_orders' => $totalOrders,
-            'total_revenue' => $totalRevenue ?? 0,
-            'active_services' => $activeServices,
+
+        // Render with default empty report table to avoid Twig errors
+        return $this->render('ADMIN/reports/index.html.twig', [
+            'totalClients' => $totalClients,
+            'activeClients' => $activeClients,
+            'suspendedClients' => $suspendedClients,
+            'totalOrders' => $totalOrders,
+            'totalRevenue' => $totalRevenue,
+            'activeServices' => $activeServices,
+            // Default empty report variables
+            'table_headers' => [],
+            'reports_data' => [],
+            'report_title' => '',
+            'report_type' => '',
         ]);
     }
 
-    #[Route('/generate', name: 'app_reports_generate', methods: ['GET'])]
-    public function generate(Request $request): Response
-    {
-        $reportType = $request->query->get('reportType');
-        $fromDate = $request->query->get('from');
-        $toDate = $request->query->get('to');
+    /**
+     * Generate a report (users, orders, services, revenue)
+     */
+ #[Route('/generate', name: 'app_reports_generate', methods: ['GET'])]
+public function generate(Request $request, ReportsDataController $reportsDataController): Response
+{
+    $reportType = $request->query->get('reportType');
+    $fromDate = $request->query->get('from');
+    $toDate = $request->query->get('to');
 
-        if (!$reportType) {
-            return $this->redirectToRoute('app_reports_index');
-        }
+    // Debug - write to log file
+    $logFile = __DIR__ . '/../../var/log/report_debug.log';
+    file_put_contents($logFile, date('Y-m-d H:i:s') . " - Generate called. Type: $reportType\n", FILE_APPEND);
 
-        $from = $fromDate ? \DateTime::createFromFormat('Y-m-d', $fromDate) : null;
-        $to = $toDate ? \DateTime::createFromFormat('Y-m-d', $toDate) : null;
-
-        return $this->forward('App\\Controller\\ReportsDataController::generateReport', [
-            'reportType' => $reportType,
-            'from' => $from,
-            'to' => $to,
-        ]);
+    if (!$reportType) {
+        return $this->redirectToRoute('app_analytics_index');
     }
 
+    $from = $fromDate ? \DateTime::createFromFormat('Y-m-d', $fromDate) : null;
+    $to = $toDate ? \DateTime::createFromFormat('Y-m-d', $toDate) : null;
+
+    file_put_contents($logFile, "About to forward to generateReportForAnalytics\n", FILE_APPEND);
+
+    // Call ReportsDataController method directly
+    return $reportsDataController->generateReportForAnalytics($reportType, $from, $to, $request);
+}
+    /**
+     * Export a report to PDF or Excel
+     */
     #[Route('/export', name: 'app_reports_export', methods: ['GET'])]
     public function export(Request $request): Response
     {
-        $format = $request->query->get('format', 'pdf');
-        $type = $request->query->get('type', 'users'); // changed from 'clients' to 'users'
+        $format = $request->query->get('format', 'pdf'); // pdf or excel
+        $type = $request->query->get('type', 'users'); // users, orders, services, revenue
         $fromDate = $request->query->get('from');
         $toDate = $request->query->get('to');
 
-        return $this->forward('App\\Controller\\ReportsDataController::exportReport', [
+        // Forward to ReportsDataController export
+        return $this->forward('App\Controller\ReportsDataController::exportReport', [
             'format' => $format,
             'type' => $type,
             'fromDate' => $fromDate,

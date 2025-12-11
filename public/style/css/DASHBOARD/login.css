@@ -1,56 +1,61 @@
+/* ===== Body Full Screen Dark Gradient ===== */
 body {
     margin: 0;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    background: linear-gradient(135deg, #eef1f7 0%, #f9fafc 100%);
-    color: #1a1a1a;
+    background: linear-gradient(135deg, #1f1c2c 0%, #928dab 100%);
+    color: #fff;
     min-height: 100vh;
     display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 40px 20px;
+    align-items: flex-start;
+    justify-content: flex-start;
+    padding: 60px;
 }
 
-/* Container + Card */
-.login-container {
+/* ===== Flex layout: logo + form ===== */
+.login-body {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
     width: 100%;
-    max-width: 420px;
-    animation: fadeInUp 0.6s ease both;
 }
 
-.login-card {
-    background: #fff;
-    border-radius: 18px;
-    padding: 36px 30px;
-    box-shadow: 0 6px 18px rgba(0,0,0,0.05), 0 3px 9px rgba(0,0,0,0.03);
-    border: 1px solid #f1f1f5;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+/* Logo styling - make it huge */
+/* Logo styling - make it huge */
+/* Logo styling - make it huge */
+.login-logo .logo-img {
+    margin-left: 50px;
+    max-width: 600px;
+    height: auto;
+    transition: transform 0.3s ease, box-shadow 0.3s ease, filter 0.3s ease;
 }
 
-.login-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 26px rgba(0,0,0,0.07), 0 6px 14px rgba(0,0,0,0.04);
+/* Hover effect: logo glows with violet */
+.login-logo .logo-img:hover {
+    filter: brightness(0) invert(0.7);
+    transform: scale(1.08);
 }
 
-/* Header */
-.login-header {
-    text-align: center;
-    margin-bottom: 28px;
+/* Push form all the way to the right */
+.login-form {
+    margin-top: 50px;
+    margin-left: 300px; /* pushes form to the right edge */
+    max-width: 400px;
 }
 
-.login-header h1 {
-    font-size: 26px;
+/* Form header */
+.login-form h1 {
+    font-size: 32px;
     font-weight: 700;
-    margin: 0 0 8px;
-    color: #222;
+    margin-bottom: 8px;
 }
 
-.login-header p {
-    color: #666;
-    font-size: 14px;
-    margin: 0;
+.login-form p {
+    color: #ddd;
+    font-size: 16px;
+    margin-bottom: 24px;
 }
 
-/* Form */
+/* Form elements */
 .form-group {
     margin-bottom: 18px;
 }
@@ -59,7 +64,7 @@ body {
     display: block;
     font-size: 14px;
     font-weight: 600;
-    color: #333;
+    color: #ddd;
     margin-bottom: 6px;
 }
 
@@ -67,10 +72,10 @@ body {
     width: 100%;
     padding: 10px 12px;
     font-size: 15px;
-    border: 2px solid #dcdcdc;
+    border: 2px solid rgba(255,255,255,0.3);
     border-radius: 8px;
-    background: #fff;
-    color: #1a1a1a;
+    background: rgba(255,255,255,0.1);
+    color: #fff;
     transition: all 0.2s ease;
     box-sizing: border-box;
     font-family: inherit;
@@ -79,7 +84,7 @@ body {
 .form-control:focus {
     outline: none;
     border-color: #6366f1;
-    box-shadow: 0 0 0 3px rgba(99,102,241,0.1);
+    box-shadow: 0 0 0 3px rgba(99,102,241,0.3);
 }
 
 /* Checkbox */
@@ -99,11 +104,11 @@ body {
 
 .checkbox-group label {
     font-size: 14px;
-    color: #555;
+    color: #ddd;
     cursor: pointer;
 }
 
-/* Buttons */
+/* Button */
 .btn-primary {
     width: 100%;
     padding: 12px;
@@ -115,50 +120,26 @@ body {
     border-radius: 8px;
     cursor: pointer;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 12px rgba(99,102,241,0.3);
+    box-shadow: 0 4px 12px rgba(99,102,241,0.6);
 }
 
 .btn-primary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 18px rgba(99,102,241,0.4);
+    box-shadow: 0 6px 18px rgba(99,102,241,0.8);
 }
 
-/* Alerts */
-.alert {
-    background: #fee;
-    border: 1px solid #fcc;
-    color: #c33;
-    padding: 12px 16px;
-    border-radius: 12px;
-    margin-bottom: 24px;
+/* Already have account */
+.create-account p {
     font-size: 14px;
-    line-height: 1.5;
+    color: #ddd;
 }
 
-.logged-in-banner {
-    background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
-    border: 1px solid #a5d6a7;
-    color: #2e7d32;
-    padding: 16px;
-    border-radius: 12px;
-    margin-bottom: 24px;
-    text-align: center;
-}
-
-.logged-in-banner a {
-    color: #1b5e20;
-    text-decoration: none;
+.create-account a {
+    color: #6366f1;
     font-weight: 600;
-    border-bottom: 1px solid #1b5e20;
-    transition: opacity 0.2s;
+    text-decoration: none;
 }
 
-.logged-in-banner a:hover {
-    opacity: 0.7;
-}
-
-/* Animation */
-@keyframes fadeInUp {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
+.create-account a:hover {
+    opacity: 0.8;
 }

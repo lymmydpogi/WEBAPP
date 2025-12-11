@@ -1,24 +1,29 @@
-/* Page Header */
-.page-header {
+/* --- HERO SECTION --- */
+.hero-section {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    padding: 48px 32px;
+    border-radius: 16px;
+    margin-bottom: 32px;
+    box-shadow: 0 10px 30px rgba(99, 102, 241, 0.2);
     text-align: center;
-    margin-bottom: 40px;
 }
 
-.page-header h1 {
-    font-size: 32px;
+.hero-section h1 {
+    font-size: 36px;
     font-weight: 700;
-    margin: 0 0 10px 0;
-    color: #1a1a1a;
+    color: #ffffff;
+    margin: 0 0 12px 0;
     letter-spacing: -0.5px;
 }
 
-.page-header p {
+.hero-section p {
     font-size: 16px;
-    color: #6b7280;
-    margin: 0;
+    color: rgba(255, 255, 255, 0.9);
+    max-width: 800px;
+    margin: 0 auto;
 }
 
-/* Form Container */
+/* --- FORM CONTAINER --- */
 .form-container {
     background: #ffffff;
     border-radius: 16px;
@@ -29,7 +34,7 @@
     border: 1px solid #f0f0f0;
 }
 
-/* Form Group */
+/* --- FORM GROUPS --- */
 .form-group {
     display: flex;
     flex-direction: column;
@@ -69,7 +74,7 @@
     line-height: 1.5;
 }
 
-/* Form Actions */
+/* --- FORM ACTIONS --- */
 .form-actions {
     display: flex;
     gap: 12px;
@@ -83,15 +88,14 @@
 .form-actions a {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
     padding: 10px 20px;
     color: #6b7280;
     text-decoration: none;
     font-size: 14px;
     font-weight: 500;
-    transition: all 0.2s ease;
-    border-radius: 8px;
     border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    transition: all 0.2s ease;
 }
 
 .form-actions a:hover {
@@ -99,12 +103,9 @@
     background: #f8f9fa;
 }
 
-/* Buttons */
+/* --- BUTTONS --- */
 button[type="button"],
 button[type="submit"] {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
     padding: 12px 24px;
     background: #6366f1;
     color: #ffffff;
@@ -112,29 +113,26 @@ button[type="submit"] {
     border-radius: 8px;
     font-size: 14px;
     font-weight: 600;
-    transition: all 0.2s ease;
     cursor: pointer;
-    font-family: inherit;
+    transition: all 0.2s ease;
 }
 
-button[type="button"]:hover,
-button[type="submit"]:hover {
+button:hover {
     background: #4f46e5;
     transform: translateY(-1px);
 }
 
-button[type="button"]:active,
-button[type="submit"]:active {
+button:active {
     transform: translateY(0);
 }
 
-/* Responsive Design */
+/* --- RESPONSIVE --- */
 @media (max-width: 768px) {
     .form-container {
         padding: 28px 20px;
     }
 
-    .page-header h1 {
+    .hero-section h1 {
         font-size: 28px;
     }
 
@@ -143,8 +141,7 @@ button[type="submit"]:active {
         align-items: stretch;
     }
 
-    button[type="button"],
-    button[type="submit"],
+    button,
     .form-actions a {
         width: 100%;
         justify-content: center;

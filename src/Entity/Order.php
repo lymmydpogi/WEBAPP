@@ -12,10 +12,42 @@ use App\Entity\Services;
 #[ORM\Table(name: '`order`')]
 class Order
 {
-    public const STATUS_PENDING = 'pending';
-    public const STATUS_COMPLETED = 'completed';
-    public const STATUS_CANCELED = 'canceled';
+    // ───────────── Order Status ─────────────
+    public const STATUS_PENDING = 'Pending';
+    public const STATUS_COMPLETED = 'Completed';
+    public const STATUS_CANCELED = 'Canceled';
 
+    public const STATUSES = [
+        self::STATUS_PENDING,
+        self::STATUS_COMPLETED,
+        self::STATUS_CANCELED,
+    ];
+
+    // ───────────── Payment Method ─────────────
+    public const PAYMENT_CASH = 'Cash';
+    public const PAYMENT_CREDIT_CARD = 'Credit Card';
+    public const PAYMENT_GCASH = 'GCash';
+    public const PAYMENT_OTHER = 'Other';
+
+    public const PAYMENT_METHODS = [
+        self::PAYMENT_CASH,
+        self::PAYMENT_CREDIT_CARD,
+        self::PAYMENT_GCASH,
+        self::PAYMENT_OTHER,
+    ];
+
+    // ───────────── Payment Status ─────────────
+    public const PAYMENT_STATUS_PENDING = 'Pending';
+    public const PAYMENT_STATUS_COMPLETED = 'Completed';
+    public const PAYMENT_STATUS_FAILED = 'Failed';
+
+    public const PAYMENT_STATUSES = [
+        self::PAYMENT_STATUS_PENDING,
+        self::PAYMENT_STATUS_COMPLETED,
+        self::PAYMENT_STATUS_FAILED,
+    ];
+
+    // ───────────── Fields ─────────────
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -50,15 +82,27 @@ class Order
     #[ORM\Column(nullable: true)]
     private ?\DateTime $deliveryDate = null;
 
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?User $createdBy = null;
+
+    #[ORM\Column(length: 50)]
+    private string $paymentMethod = self::PAYMENT_CASH;
+
+    #[ORM\Column(length: 50)]
+    private string $paymentStatus = self::PAYMENT_STATUS_PENDING;
+
+    // ───────────── Constructor ─────────────
     public function __construct()
     {
         $this->orderDate = new \DateTimeImmutable();
         $this->status = self::STATUS_PENDING;
         $this->totalPrice = 0.0;
+        $this->paymentMethod = self::PAYMENT_CASH;
+        $this->paymentStatus = self::PAYMENT_STATUS_PENDING;
     }
 
-    // ──────────────── Getters & Setters ────────────────
-
+    // ───────────── Getters & Setters ─────────────
     public function getId(): ?int
     {
         return $this->id;
@@ -132,7 +176,7 @@ class Order
 
     public function setStatus(string $status): static
     {
-        if (!in_array($status, [self::STATUS_PENDING, self::STATUS_COMPLETED, self::STATUS_CANCELED])) {
+        if (!in_array($status, self::STATUSES)) {
             throw new \InvalidArgumentException("Invalid order status: $status");
         }
         $this->status = $status;
@@ -169,6 +213,45 @@ class Order
     public function setDeliveryDate(?\DateTime $deliveryDate): static
     {
         $this->deliveryDate = $deliveryDate;
+        return $this;
+    }
+
+    public function getCreatedBy(): ?User
+    {
+        return $this->createdBy;
+    }
+
+    public function setCreatedBy(?User $user): static
+    {
+        $this->createdBy = $user;
+        return $this;
+    }
+
+    public function getPaymentMethod(): string
+    {
+        return $this->paymentMethod;
+    }
+
+    public function setPaymentMethod(string $paymentMethod): static
+    {
+        if (!in_array($paymentMethod, self::PAYMENT_METHODS)) {
+            throw new \InvalidArgumentException("Invalid payment method: $paymentMethod");
+        }
+        $this->paymentMethod = $paymentMethod;
+        return $this;
+    }
+
+    public function getPaymentStatus(): string
+    {
+        return $this->paymentStatus;
+    }
+
+    public function setPaymentStatus(string $paymentStatus): static
+    {
+        if (!in_array($paymentStatus, self::PAYMENT_STATUSES)) {
+            throw new \InvalidArgumentException("Invalid payment status: $paymentStatus");
+        }
+        $this->paymentStatus = $paymentStatus;
         return $this;
     }
 }

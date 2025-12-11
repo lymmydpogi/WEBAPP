@@ -1,195 +1,188 @@
-/* Page Header */
-.page-header {
-    text-align: center;
-    margin-bottom: 40px;
+/* Page Wrapper */
+.page-wrapper {
+    margin-left: 100px;
+    margin-top: 50px;
+    padding: 30px 40px 40px 30px;
+    background: #f5f7fa;
+    min-height: calc(100vh - 50px);
+    font-family: 'Inter', sans-serif;
 }
 
-.page-header h1 {
+.content-container {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+/* Header Section */
+.header-section {
+    background: #ffffff;
+    padding: 30px 40px;
+    border-radius: 16px;
+    margin-bottom: 30px;
+    border-left: 6px solid #6366f1;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.header-section h1 {
     font-size: 32px;
     font-weight: 700;
-    margin: 0 0 10px 0;
-    color: #1a1a1a;
-    letter-spacing: -0.5px;
+    color: #1f2937;
+    margin-bottom: 8px;
 }
 
-.page-header p {
+.header-section p {
     font-size: 16px;
     color: #6b7280;
-    margin: 0;
 }
 
-/* Form Container */
-.form-container {
+/* Form Card */
+.form-card {
     background: #ffffff;
+    padding: 32px;
     border-radius: 16px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
-    padding: 40px;
-    max-width: 800px;
-    margin: 0 auto 40px;
-    border: 1px solid #f0f0f0;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+    overflow: hidden;
 }
 
-/* Form */
-.order-form {
+/* Form Grid */
+.form-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 25px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
 }
 
-.order-form > div.full-width {
-    grid-column: 1 / -1;
-}
-
+/* Form Group as Card */
 .form-group {
+    background: #f9fafb;
+    padding: 20px;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
     display: flex;
     flex-direction: column;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.03);
 }
 
-.order-form label {
-    font-weight: 600;
-    color: #1a1a1a;
-    margin-bottom: 8px;
-    font-size: 14px;
-    display: block;
-}
-
-.order-form input,
-.order-form select,
-.order-form textarea {
-    padding: 12px 16px;
-    font-size: 14px;
-    border-radius: 8px;
-    border: 1px solid #e5e7eb;
+.form-group:hover {
     background: #ffffff;
-    color: #1a1a1a;
-    font-family: inherit;
-    transition: all 0.2s;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.08);
 }
 
-.order-form input:focus,
-.order-form select:focus,
-.order-form textarea:focus {
+/* Full Width Field (Notes) */
+.form-group.full-width {
+    grid-column: 1 / -1; /* spans both columns */
+}
+
+/* Labels */
+.form-group label {
+    font-size: 12px;
+    text-transform: uppercase;
+    font-weight: 600;
+    color: #6b7280;
+    margin-bottom: 8px;
+}
+
+/* Inputs, selects, textareas */
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 12px 16px;
+    border-radius: 10px;
+    border: 1px solid #d1d5db;
+    font-size: 14px;
+    color: #1f2937;
+    font-family: inherit;
+    background: #ffffff;
+    transition: all 0.2s ease;
+    box-sizing: border-box;
+    min-height: 45px;
+}
+
+.form-group textarea {
+    height: auto;      /* allow automatic expansion */
+    resize: vertical;  /* user can drag vertically */
+    resize: none;
+    min-height: 25px;
+}
+
+/* Focus & hover on inputs */
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
     outline: none;
     border-color: #6366f1;
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    box-shadow: 0 0 0 3px rgba(99,102,241,0.15);
 }
 
-.order-form input:hover,
-.order-form select:hover,
-.order-form textarea:hover {
-    border-color: #d1d5db;
-}
-
-.order-form textarea {
-    min-height: 100px;
-    resize: vertical;
-    grid-column: 1 / -1;
-}
-
-.order-form select {
-    cursor: pointer;
-    appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%231a1a1a' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 15px center;
-    padding-right: 40px;
+.form-group input:hover,
+.form-group select:hover,
+.form-group textarea:hover {
+    border-color: #9ca3af;
 }
 
 /* Form Actions */
 .form-actions {
-    grid-column: 1 / -1;
-    display: flex;
-    gap: 12px;
-    justify-content: flex-end;
-    align-items: center;
     margin-top: 30px;
-    padding-top: 30px;
-    border-top: 1px solid #f0f0f0;
+    display: flex;
+    justify-content: flex-end;
+    gap: 16px;
 }
 
-/* Buttons */
 .btn-submit {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 12px 24px;
     background: #6366f1;
     color: #ffffff;
     border: none;
-    border-radius: 8px;
-    font-size: 14px;
+    padding: 14px 32px;
+    border-radius: 10px;
     font-weight: 600;
-    transition: all 0.2s ease;
+    font-size: 15px;
     cursor: pointer;
-    font-family: inherit;
-    text-decoration: none;
+    transition: all 0.2s ease;
 }
 
 .btn-submit:hover {
     background: #4f46e5;
-    transform: translateY(-1px);
+    transform: translateY(-2px);
 }
 
-.btn-submit:active {
-    transform: translateY(0);
-}
-
-/* Back Link */
-.back-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 10px 20px;
-    color: #6b7280;
-    text-decoration: none;
-    font-size: 14px;
+.btn-back {
+    background: #ffffff;
+    color: #374151;
+    border: 1.5px solid #d1d5db;
+    padding: 14px 32px;
+    border-radius: 10px;
+    font-size: 15px;
     font-weight: 500;
+    text-decoration: none;
     transition: all 0.2s ease;
-    border-radius: 8px;
-    border: 1px solid #e5e7eb;
 }
 
-.back-link:hover {
-    color: #1a1a1a;
-    background: #f8f9fa;
+.btn-back:hover {
+    background: #f3f4f6;
+    color: #1f2937;
+    border-color: #9ca3af;
 }
 
-.back-icon {
-    font-size: 16px;
-    transition: transform 0.2s ease;
+/* Responsive */
+@media (max-width: 900px) {
+    .form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px; /* space between columns */
 }
 
-.back-link:hover .back-icon {
-    transform: translateX(-3px);
-}
-
-/* Responsive Design */
-@media (max-width: 968px) {
-    .order-form {
-        grid-template-columns: 1fr;
-    }
-
-    .form-container {
-        padding: 32px;
-    }
-}
-
-@media (max-width: 768px) {
-    .form-container {
-        padding: 28px 20px;
-    }
-
-    .page-header h1 {
-        font-size: 28px;
+    .form-group.full-width {
+        grid-column: 1 / -1;
     }
 
     .form-actions {
         flex-direction: column;
-        align-items: stretch;
     }
 
     .btn-submit,
-    .back-link {
+    .btn-back {
         width: 100%;
         justify-content: center;
     }

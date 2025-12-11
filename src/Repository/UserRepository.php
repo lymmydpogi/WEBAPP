@@ -30,46 +30,38 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
         $this->getEntityManager()->flush();
     }
 
-    // ──────────────── User queries ────────────────
+    // ──────────────── Client Queries ────────────────
 
-    /**
-     * Count all clients
-     */
+    private function createClientQueryBuilder(): \Doctrine\ORM\QueryBuilder
+    {
+        return $this->createQueryBuilder('u')
+            ->where('u.roles LIKE :role')
+            ->setParameter('role', '%"ROLE_CLIENT"%');
+    }
+
     public function countAllClients(): int
     {
-        return (int) $this->createQueryBuilder('u')
+        return (int) $this->createClientQueryBuilder()
             ->select('COUNT(u.id)')
-            ->where('u.roles LIKE :role')
-            ->setParameter('role', '%"ROLE_CLIENT"%')
             ->getQuery()
             ->getSingleScalarResult();
     }
 
-    /**
-     * Count active clients
-     */
     public function countActiveClients(): int
     {
-        return (int) $this->createQueryBuilder('u')
+        return (int) $this->createClientQueryBuilder()
             ->select('COUNT(u.id)')
-            ->where('u.roles LIKE :role')
             ->andWhere('u.status = :status')
-            ->setParameter('role', '%"ROLE_CLIENT"%')
             ->setParameter('status', 'active')
             ->getQuery()
             ->getSingleScalarResult();
     }
 
-    /**
-     * Count suspended clients
-     */
     public function countSuspendedClients(): int
     {
-        return (int) $this->createQueryBuilder('u')
+        return (int) $this->createClientQueryBuilder()
             ->select('COUNT(u.id)')
-            ->where('u.roles LIKE :role')
             ->andWhere('u.status = :status')
-            ->setParameter('role', '%"ROLE_CLIENT"%')
             ->setParameter('status', 'suspended')
             ->getQuery()
             ->getSingleScalarResult();
@@ -78,15 +70,36 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
     /**
      * Find all clients ordered by creation date (DESC)
      *
+     * @param \DateTime|null $from Optional start date filter
+     * @param \DateTime|null $to Optional end date filter
+     *
      * @return User[]
      */
-    public function findAllClientsOrderedByCreatedAt(): array
+    public function findAllClientsOrderedByCreatedAt(?\DateTime $from = null, ?\DateTime $to = null): array
     {
-        return $this->createQueryBuilder('u')
-            ->where('u.roles LIKE :role')
-            ->setParameter('role', '%"ROLE_CLIENT"%')
-            ->orderBy('u.createdAt', 'DESC')
+        $qb = $this->createClientQueryBuilder();
+
+        if ($from) {
+            $qb->andWhere('u.createdAt >= :from')->setParameter('from', $from);
+        }
+
+        if ($to) {
+            $toEnd = clone $to;
+            $toEnd->modify('+1 day');
+            $qb->andWhere('u.createdAt < :to')->setParameter('to', $toEnd);
+        }
+
+        return $qb->orderBy('u.createdAt', 'DESC')
+                  ->getQuery()
+                  ->getResult();
+    }
+
+    public function findClientById(int $id): ?User
+    {
+        return $this->createClientQueryBuilder()
+            ->andWhere('u.id = :id')
+            ->setParameter('id', $id)
             ->getQuery()
-            ->getResult();
+            ->getOneOrNullResult();
     }
 }

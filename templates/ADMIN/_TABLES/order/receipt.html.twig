@@ -1,0 +1,38 @@
+{# templates/order/receipt.html.twig #}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Receipt #{{ order.id }}</title>
+
+  <link rel="stylesheet" href="{{ asset('style/css/ORDER/order-receipts.css') }}">
+</head>
+<body>
+
+    <div class="header">
+        <h1>Official Receipt</h1>
+        <div class="serial-number">
+            Serial Number: <strong>SN-{{ '%06d'|format(order.id) }}</strong>
+        </div>
+    </div>
+
+    <div class="receipt-box">
+        <p><span class="label">Order ID:</span> {{ order.id }}</p>
+        <p><span class="label">Client:</span> {{ order.user.name ?? order.clientName }}</p>
+        <p><span class="label">Email:</span> {{ order.user.email ?? order.clientEmail }}</p>
+        <p><span class="label">Service:</span> {{ order.service.name }}</p>
+        <p><span class="label">Status:</span> {{ order.status }}</p>
+        <p><span class="label">Order Date:</span> {{ order.orderDate|date('Y-m-d') }}</p>
+        <p><span class="label">Delivery Date:</span> {{ order.deliveryDate ? order.deliveryDate|date('Y-m-d') : 'N/A' }}</p>
+        <p><span class="label">Total Price:</span> ₱{{ order.totalPrice|number_format(2) }}</p>
+    </div>
+
+    <hr>
+
+    <div class="footer">
+        <p>Thank you for your order!</p>
+        <p>This is a system-generated receipt.</p>
+    </div>
+
+</body>
+</html>

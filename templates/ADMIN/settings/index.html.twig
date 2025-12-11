@@ -1,0 +1,93 @@
+{% extends 'ADMIN/base.html.twig' %}
+
+{% block title %}Website Settings{% endblock %}
+{% block page_title %}Settings{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('style/css/DASHBOARD/settings.css') }}">
+{% endblock %}
+
+{% block body %}
+
+<div class="hero-section">
+    <h1>Website Settings</h1>
+    <p>Manage your preferences for the admin panel</p>
+</div>
+
+<div class="form-container">
+
+    <!-- Dark Mode -->
+    <div class="form-group">
+        <label for="darkMode">
+            <input type="checkbox" id="darkMode" name="darkMode">
+            Dark Mode
+        </label>
+        <small>Toggle between dark and light mode for the interface.</small>
+    </div>
+
+    <!-- Notifications -->
+    <div class="form-group">
+        <label for="notifications">
+            <input type="checkbox" id="notifications" name="notifications">
+            Enable Notifications
+        </label>
+        <small>Receive alerts for new orders, clients, or other events.</small>
+    </div>
+
+    <!-- Do Not Ask Again -->
+    <div class="form-group">
+        <label for="doNotAsk">
+            <input type="checkbox" id="doNotAsk" name="doNotAsk">
+            Do Not Ask Me Again
+        </label>
+        <small>Disable confirmation popups or tutorial hints.</small>
+    </div>
+
+    <!-- Footer Actions -->
+    <div class="form-actions">
+        <a href="{{ path('app_home_index') }}">Cancel</a>
+        <button type="button" id="saveSettings">Save Settings</button>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const darkModeCheckbox = document.getElementById('darkMode');
+    const notificationsCheckbox = document.getElementById('notifications');
+    const doNotAskCheckbox = document.getElementById('doNotAsk');
+    const saveButton = document.getElementById('saveSettings');
+
+    // Load saved settings
+    function loadSettings() {
+        darkModeCheckbox.checked = localStorage.getItem('adminDarkMode') === 'true';
+        notificationsCheckbox.checked = localStorage.getItem('adminNotifications') === 'true';
+        doNotAskCheckbox.checked = localStorage.getItem('adminDoNotAsk') === 'true';
+
+        if (darkModeCheckbox.checked) {
+            document.body.classList.add('dark-mode');
+        }
+    }
+
+    loadSettings();
+
+    // Instant preview of dark mode
+    darkModeCheckbox.addEventListener('change', function() {
+        document.body.classList.toggle('dark-mode', this.checked);
+    });
+
+    // Save settings
+    saveButton.addEventListener('click', function() {
+        localStorage.setItem('adminDarkMode', darkModeCheckbox.checked);
+        localStorage.setItem('adminNotifications', notificationsCheckbox.checked);
+        localStorage.setItem('adminDoNotAsk', doNotAskCheckbox.checked);
+
+        alert('Settings saved successfully!');
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,111 @@
+{% extends 'ADMIN/base.html.twig' %}
+
+{% block title %}{{ order.id ? 'Edit Order' : 'Create New Order' }}{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('style/css/ORDER/order-new.css') }}">
+{% endblock %}
+
+{% block body %}
+<div class="page-wrapper">
+    <div class="content-container">
+
+        <!-- Header Section -->
+        <div class="header-section">
+            <h1>{{ order.id ? 'Edit Order' : 'Create New Order' }}</h1>
+            <p>{{ order.id ? 'Update the order details below' : 'Add a new order to your system' }}</p>
+        </div>
+
+        <!-- Form Card -->
+        <div class="form-card">
+            {{ form_start(form, {'attr': {'class': 'order-form'}}) }}
+
+            <div class="form-grid">
+
+                <!-- CLIENT -->
+                <div class="form-group">
+                    <label>Client</label>
+                    {{ form_widget(form.user) }}
+                    {{ form_errors(form.user) }}
+                </div>
+
+                <!-- SERVICE -->
+                <div class="form-group">
+                    <label>Service</label>
+                    {{ form_widget(form.service, {'attr': {'class': 'service-select'}}) }}
+                    {{ form_errors(form.service) }}
+                </div>
+
+                <!-- ORDER DATE -->
+                <div class="form-group">
+                    <label>Order Date</label>
+                    {{ form_widget(form.orderDate) }}
+                    {{ form_errors(form.orderDate) }}
+                </div>
+
+                <!-- DELIVERY DATE -->
+                <div class="form-group">
+                    <label>Delivery Date</label>
+                    {{ form_widget(form.deliveryDate) }}
+                    {{ form_errors(form.deliveryDate) }}
+                </div>
+
+                {% if form.status is defined %}
+                <div class="form-group">
+                    <label>Status</label>
+                    {{ form_widget(form.status) }}
+                    {{ form_errors(form.status) }}
+                </div>
+                {% endif %}
+
+                <!-- TOTAL PRICE -->
+                <div class="form-group">
+                    <label>Total Price</label>
+                    {{ form_widget(form.totalPrice, {'attr': {'readonly': 'readonly', 'class': 'total-price'}}) }}
+                    {{ form_errors(form.totalPrice) }}
+                </div>
+
+                <!-- NOTES -->
+             <!-- NOTES -->
+<div class="form-group">
+    <label>Notes</label>
+    {{ form_widget(form.notes) }}
+    {{ form_errors(form.notes) }}
+</div>
+
+            </div>
+
+            <!-- Form Actions -->
+            <div class="form-actions">
+                <a href="{{ path('app_order_index') }}" class="btn-back">← Cancel</a>
+                <button type="submit" class="btn-submit">
+                    {{ order.id ? 'Update Order' : 'Create Order' }}
+                </button>
+            </div>
+
+            {{ form_end(form) }}
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            const serviceField = $('.service-select');
+            const priceField = $('.total-price');
+
+            serviceField.change(function() {
+                const selectedOption = $(this).find('option:selected');
+                const price = selectedOption.data('price');
+                priceField.val(price ? parseFloat(price).toFixed(2) : '');
+            });
+
+            serviceField.trigger('change');
+        });
+    </script>
+{% endblock %}

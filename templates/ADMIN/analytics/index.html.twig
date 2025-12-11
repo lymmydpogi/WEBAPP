@@ -1,0 +1,288 @@
+{% extends 'ADMIN/base.html.twig' %}
+
+{% block title %}Analytics & Reports{% endblock %}
+{% block page_title %}Analytics & Reports{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('style/css/DASHBOARD/analytics.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block body %}
+<div class="analytics-hero">
+    <h1>Analytics & Reports Dashboard</h1>
+    <p>Track performance, metrics, and system activity in real time.</p>
+</div>
+
+{# <!-- DEBUG: Remove this after testing -->
+<div style="background: yellow; padding: 20px; margin: 20px 0;">
+    <strong>DEBUG INFO:</strong><br>
+    Report Type: {{ report_type }}<br>
+    Table Headers Count: {{ table_headers|length }}<br>
+    Reports Data Count: {{ reports_data|length }}<br>
+    Report Title: {{ report_title }}<br>
+    <pre>{{ dump(table_headers) }}</pre>
+    <pre>{{ dump(reports_data|slice(0, 3)) }}</pre>
+</div> #}
+<!-- Stats Overview -->
+<div class="stats-overview">
+    <div class="stat-card">
+        <div class="stat-header"><span class="stat-label">Total Revenue</span></div>
+        <div class="stat-value">₱{{ monthlyRevenue|number_format(2, '.', ',') }}</div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-header"><span class="stat-label">Pending Orders</span></div>
+        <div class="stat-value">{{ pendingOrders }}</div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-header"><span class="stat-label">Total Clients</span></div>
+        <div class="stat-value">{{ totalUsers }}</div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-header"><span class="stat-label">Active Services</span></div>
+        <div class="stat-value">{{ activeServices }}</div>
+    </div>
+</div>
+
+
+<!-- Revenue Chart -->
+<div class="full-chart">
+    <h3>Monthly Revenue</h3>
+    <canvas id="revenueChart"></canvas>
+</div>
+
+<!-- Charts Grid -->
+<div class="charts-grid">
+    <!-- Orders by Status -->
+    <div class="chart-card">
+        <h3>Orders by Status</h3>
+        <canvas id="ordersStatusChart"></canvas>
+    </div>
+
+    <!-- Top Services -->
+    <div class="chart-card">
+        <h3>Top Services</h3>
+        <canvas id="topServicesChart"></canvas>
+    </div>
+
+    <!-- Client Growth -->
+    <div class="chart-card">
+        <h3>Client Growth (New Clients per Month)</h3>
+        <canvas id="clientGrowthChart"></canvas>
+    </div>
+
+    <!-- Orders by Payment Method -->
+    <div class="chart-card">
+        <h3>Orders by Payment Method</h3>
+        <canvas id="paymentMethodChart"></canvas>
+    </div>
+</div>
+
+
+<!-- Report Generation Section -->
+<div class="reports-section">
+    <h2>Generate Reports</h2>
+    <form method="GET" action="{{ path('app_analytics_index') }}" class="report-form">
+        <div class="form-group">
+            <label for="reportType">Report Type</label>
+            <select name="reportType" id="reportType" required>
+                <option value="">Select Report Type</option>
+                <option value="users">Users Report</option>
+                <option value="orders">Orders Report</option>
+                <option value="services">Services Report</option>
+                <option value="revenue">Revenue Report</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="from">From Date</label>
+            <input type="date" name="from" id="from">
+        </div>
+
+        <div class="form-group">
+            <label for="to">To Date</label>
+            <input type="date" name="to" id="to">
+        </div>
+
+        <button type="submit" class="btn btn-primary">Generate Report</button>
+    </form>
+
+    <!-- Export Options (shown after report is generated) -->
+    {% if report_type is defined and report_type %}
+    <div class="export-options">
+        <h3>Export Report</h3>
+        <div class="export-buttons">
+            <a href="{{ path('app_reports_export', {
+                format: 'pdf',
+                type: report_type,
+                from: app.request.get('from'),
+                to: app.request.get('to')
+            }) }}" class="btn btn-export" target="_blank">
+                📄 Export as PDF
+            </a>
+            <a href="{{ path('app_reports_export', {
+                format: 'excel',
+                type: report_type,
+                from: app.request.get('from'),
+                to: app.request.get('to')
+            }) }}" class="btn btn-export">
+                📊 Export as Excel
+            </a>
+        </div>
+    </div>
+
+    <!-- Report Table -->
+    {% if reports_data is defined and reports_data|length > 0 %}
+    <div class="report-table-section">
+        <h3>{{ report_title }}</h3>
+        <div class="table-responsive">
+            <table class="report-table">
+                <thead>
+                    <tr>
+                        {% for header in table_headers %}
+                        <th>{{ header }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in reports_data %}
+                    <tr>
+                        {% for cell in row %}
+                        <td>{{ cell }}</td>
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+    {% endif %}
+</div>
+
+
+
+<!-- Recent Activity -->
+<div class="activity-section">
+    <h3>Recent Activity</h3>
+    <div class="activity-list">
+        {% for activity in activities %}
+        <div class="activity-item">
+            <div class="activity-icon">{{ activity.type == 'order' ? '📦' : '👤' }}</div>
+            <div class="activity-content">
+                <div class="activity-title">{{ activity.title }}</div>
+                <div class="activity-time">{{ activity.time|date('Y-m-d H:i') }}</div>
+            </div>
+        </div>
+        {% else %}
+        <div>No recent activity.</div>
+        {% endfor %}
+    </div>
+</div>
+
+
+
+
+
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Monthly Revenue Chart
+    const revenueCtx = document.getElementById('revenueChart')?.getContext('2d');
+    if (revenueCtx) {
+        new Chart(revenueCtx, {
+            type: 'line',
+            data: {
+                labels: {{ monthlyRevenueChartData.labels|json_encode|raw }},
+                datasets: [{
+                    label: 'Revenue',
+                    data: {{ monthlyRevenueChartData.values|json_encode|raw }},
+                    borderColor: '#6366F1',
+                    backgroundColor: 'rgba(99,102,241,0.2)',
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: { responsive: true, plugins: { legend: { display: false } } }
+        });
+    }
+
+    // Orders by Status Chart
+    const statusCtx = document.getElementById('ordersStatusChart')?.getContext('2d');
+    if (statusCtx) {
+        new Chart(statusCtx, {
+            type: 'doughnut',
+            data: {
+                labels: {{ orderStatusData.labels|json_encode|raw }},
+                datasets: [{
+                    data: {{ orderStatusData.values|json_encode|raw }},
+                    backgroundColor: ['#f59e0b','#10b981','#ef4444','#3b82f6']
+                }]
+            },
+            options: { responsive: true }
+        });
+    }
+
+    // Top Services Chart
+    const servicesCtx = document.getElementById('topServicesChart')?.getContext('2d');
+    if (servicesCtx) {
+        new Chart(servicesCtx, {
+            type: 'bar',
+            data: {
+                labels: {{ topServicesData.labels|json_encode|raw }},
+                datasets: [{
+                    label: 'Orders',
+                    data: {{ topServicesData.values|json_encode|raw }},
+                    backgroundColor: '#6366F1'
+                }]
+            },
+            options: { responsive: true, plugins: { legend: { display: false } } }
+        });
+    }
+
+    // Client Growth Chart
+    const growthCtx = document.getElementById('clientGrowthChart')?.getContext('2d');
+    if (growthCtx) {
+        new Chart(growthCtx, {
+            type: 'line',
+            data: {
+                labels: {{ clientGrowthData.labels|json_encode|raw }},
+                datasets: [{
+                    label: 'New Clients',
+                    data: {{ clientGrowthData.values|json_encode|raw }},
+                    borderColor: '#10b981',
+                    backgroundColor: 'rgba(16,185,129,0.2)',
+                    fill: true,
+                    tension: 0.3
+                }]
+            },
+            options: { responsive: true, plugins: { legend: { display: false } } }
+        });
+    }
+
+    // Orders by Payment Method Chart
+    const paymentCtx = document.getElementById('paymentMethodChart')?.getContext('2d');
+    const paymentData = {{ paymentMethodData|default({'labels':[], 'values':[]})|json_encode|raw }};
+    if (paymentCtx) {
+        new Chart(paymentCtx, {
+            type: 'pie',
+            data: {
+                labels: paymentData.labels,
+                datasets: [{
+                    data: paymentData.values,
+                    backgroundColor: ['#6366F1','#10B981','#F59E0B','#EF4444','#3B82F6']
+                }]
+            },
+            options: { responsive: true }
+        });
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,93 @@
+{% extends 'ADMIN/base.html.twig' %}
+
+{% block title %}User Details{% endblock %}
+{% block page_title %}User Details{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('style/css/CLIENT/client-show.css') }}">
+{% endblock %}
+
+{% block body %}
+<div class="page-header">
+    <h1>User Details</h1>
+    <p>View complete information about this user</p>
+</div>
+
+<table class="table table-bordered table-striped">
+    <tbody>
+        <tr>
+            <th>ID</th>
+            <td>{{ user.id }}</td>
+        </tr>
+
+        <tr>
+            <th>Name</th>
+            <td>
+                {% if user.name is defined %}
+                    {{ user.name }}
+                {% else %}
+                    {{ user.firstname ~ ' ' ~ user.lastname }}
+                {% endif %}
+            </td>
+        </tr>
+
+        <tr>
+            <th>Email</th>
+            <td>{{ user.email }}</td>
+        </tr>
+
+        {% if user.phone is defined %}
+        <tr>
+            <th>Phone</th>
+            <td>{{ user.phone }}</td>
+        </tr>
+        {% endif %}
+
+        {% if user.address is defined %}
+        <tr>
+            <th>Address</th>
+            <td>{{ user.address }}</td>
+        </tr>
+        {% endif %}
+
+        <tr>
+            <th>Roles</th>
+            <td>
+                {% for role in user.roles %}
+                    <span class="badge bg-primary">{{ role }}</span>
+                {% endfor %}
+            </td>
+        </tr>
+
+        {% if user.status is defined %}
+        <tr>
+            <th>Status</th>
+            <td>{{ user.status }}</td>
+        </tr>
+        {% endif %}
+
+        <tr>
+            <th>Created At</th>
+            <td>{{ user.createdAt ? user.createdAt|date('Y-m-d H:i:s') : '' }}</td>
+        </tr>
+    </tbody>
+</table>
+
+<div class="form-actions mt-4">
+    <a href="{{ path('app_user_index') }}" class="btn btn-secondary">
+        ← Back to List
+    </a>
+{# 
+    <a href="{{ path('app_user_edit', {'id': user.id}) }}" class="btn btn-primary">
+        Edit User
+    </a> #}
+
+    <form method="post" action="{{ path('app_user_delete', {'id': user.id}) }}"
+          onsubmit="return confirm('Are you sure you want to delete this user?');"
+          style="display:inline-block; margin-left: 10px;">
+        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ user.id) }}">
+        <button type="submit" class="btn btn-danger">Delete</button>
+    </form>
+</div>
+{% endblock %}

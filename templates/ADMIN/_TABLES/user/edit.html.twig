@@ -1,0 +1,63 @@
+{% extends 'ADMIN/base.html.twig' %}
+
+{% block title %}Edit User{% endblock %}
+{% block page_title %}Edit User{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('style/css/CLIENT/client-edit.css') }}">  
+{% endblock %}
+
+{% block body %}
+<div class="page-wrapper">
+    <div class="content-container">
+
+        <!-- Header -->
+        <div class="header-section">
+            <h1>Edit User</h1>
+            <p>Update user information below</p>
+        </div>
+
+        <!-- Form Card -->
+        <div class="form-card">
+            {{ form_start(form) }}
+
+            <div class="form-grid">
+                <div class="form-group">{{ form_row(form.name) }}</div>
+                <div class="form-group">{{ form_row(form.email) }}</div>
+                <div class="form-group">{{ form_row(form.phone) }}</div>
+                <div class="form-group">{{ form_row(form.address) }}</div>
+                
+                {# Password field for new users #}
+                {% if form.password is defined %}
+                    <div class="form-group">{{ form_row(form.password) }}</div>
+                {% endif %}
+
+                {# New password field for editing users (note the underscore!) #}
+                {% if form.new_password is defined %}
+                    <div class="form-group">{{ form_row(form.new_password) }}</div>
+                {% endif %}
+                
+                {# Render status only if it exists (edit mode) #}
+                {% if form.status is defined %}
+                    <div class="form-group">{{ form_row(form.status) }}</div>
+                {% endif %}
+                
+                <div class="form-group">{{ form_row(form.roles) }}</div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-update">Update User</button>
+                <a href="{{ path('app_user_index') }}" class="btn btn-back">Back to Users</a>
+            </div>
+
+            {{ form_end(form) }}
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+{% endblock %}

@@ -1,0 +1,54 @@
+
+        body { 
+            font-family: Arial, sans-serif; 
+            font-size: 14px; 
+            line-height: 1.6; 
+            margin: 30px; 
+            color: #333;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 26px;
+            margin-bottom: 5px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .serial-number {
+            font-size: 13px;
+            color: #555;
+            margin-top: 8px;
+        }
+
+        .receipt-box {
+            border: 1px solid #ddd;
+            padding: 20px;
+            border-radius: 6px;
+            background: #fafafa;
+            margin-bottom: 25px;
+        }
+
+        .receipt-box p {
+            margin: 8px 0;
+        }
+
+        .label {
+            font-weight: bold;
+            color: #444;
+        }
+
+        hr {
+            margin: 25px 0;
+        }
+
+        .footer {
+            text-align: center;
+            font-size: 12px;
+            margin-top: 30px;
+            color: #777;
+        }

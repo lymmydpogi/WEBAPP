@@ -1,0 +1,551 @@
+/* General Styles */
+* {
+    box-sizing: border-box;
+}
+
+body {
+    background: #f5f7fa;
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+}
+
+/* Hero Section */
+.hero-section {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    padding: 48px 32px;
+    border-radius: 16px;
+    margin-bottom: 32px;
+    box-shadow: 0 10px 30px rgba(99, 102, 241, 0.2);
+    text-align: center;
+}
+
+.hero-section h1 {
+    font-size: 36px;
+    font-weight: 700;
+    color: #ffffff;
+    margin: 0 0 12px 0;
+    letter-spacing: -0.5px;
+}
+
+.hero-section p {
+    font-size: 16px;
+    color: rgba(255, 255, 255, 0.9);
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+/* Section Title */
+.section-title {
+    font-size: 24px;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 24px;
+}
+
+/* Buttons */
+.btn-create {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 28px;
+    background: #6366f1;
+    color: #ffffff;
+    text-decoration: none;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.btn-create:hover {
+    background: #4f46e5;
+    transform: translateY(-2px);
+}
+
+.btn-delete {
+    display: inline-block;
+    padding: 7px 16px;
+    margin-right: 6px;
+    background: #f87171;
+    color: white;
+    border: 1px solid #f87171;
+    border-radius: 6px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.btn-delete:hover {
+    background: #ef4444;
+    border-color: #ef4444;
+    color: white;
+}
+
+.btn-container {
+    text-align: right;
+    margin-top: 20px;
+    margin-bottom: 16px;
+}
+
+@media (max-width: 768px) {
+    .btn-container {
+        text-align: center;
+        margin-bottom: 16px;
+    }
+}
+
+/* Table Container */
+.table-container {
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    border: 1px solid #e5e7eb;
+    overflow: hidden;
+}
+
+/* DataTables Wrapper */
+.dataTables_wrapper {
+    padding: 20px;
+}
+
+.dataTables_wrapper .dataTables_length,
+.dataTables_wrapper .dataTables_filter {
+    margin-bottom: 20px;
+}
+
+.dataTables_wrapper .dataTables_filter input {
+    padding: 8px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    width: 250px;
+}
+
+.dataTables_wrapper .dataTables_length select {
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid #d1d5db;
+}
+
+.dataTables_wrapper .dataTables_filter input:focus {
+    outline: none;
+    border-color: #6366f1;
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+}
+
+/* Pagination Fix & Styling */
+.dataTables_wrapper .dataTables_paginate {
+    margin-top: 20px;
+}
+
+.dataTables_wrapper .dataTables_paginate .pagination {
+    display: flex !important;
+    justify-content: center;
+    flex-wrap: nowrap;
+    gap: 0.25rem;
+    padding-left: 0;
+    list-style: none;
+}
+
+.dataTables_wrapper .dataTables_paginate .pagination li {
+    display: list-item !important;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button {
+    padding: 0.35rem 0.75rem !important;
+    margin: 0;
+    border-radius: 6px;
+    border: 1px solid #d1d5db;
+    color: #374151 !important;
+    background-color: #ffffff !important;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button.current {
+    background-color: #6366f1 !important;
+    color: #fff !important;
+    border: none !important;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+    background-color: #4f46e5 !important;
+    color: #fff !important;
+}
+
+/* Table Styling */
+.table {
+    width: 100% !important;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.table thead {
+    background: linear-gradient(180deg, #f9fafb 0%, #f3f4f6 100%);
+}
+
+.table thead th {
+    color: #374151;
+    padding: 16px 20px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    border-bottom: 2px solid #e5e7eb;
+    white-space: nowrap;
+}
+
+.table tbody tr {
+    border-bottom: 1px solid #f3f4f6;
+    transition: all 0.2s ease;
+}
+
+.table tbody tr:hover {
+    background: #f9fafb;
+}
+
+.table tbody td {
+    padding: 16px 20px;
+    color: #6b7280;
+    font-size: 14px;
+}
+
+.table tbody td:first-child {
+    font-weight: 700;
+    color: #111827;
+}
+
+/* Action Links */
+.table tbody td a {
+    display: inline-block;
+    padding: 7px 16px;
+    margin-right: 6px;
+    background: #f9fafb;
+    color: #374151;
+    text-decoration: none;
+    border-radius: 6px;
+    border: 1px solid #e5e7eb;
+    font-size: 13px;
+    transition: 0.2s;
+}
+
+.table tbody td a:hover {
+    background: #6366f1;
+    color: white;
+    border-color: #6366f1;
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #9ca3af;
+    font-size: 15px;
+}
+
+/* Responsive Table */
+@media (max-width: 768px) {
+    .table thead {
+        display: none;
+    }
+    .table tbody td {
+        display: flex;
+        justify-content: space-between;
+        padding: 12px 16px;
+    }
+    .table tbody tr {
+        display: block;
+        margin-bottom: 12px;
+        border-bottom: 1px solid #e5e7eb;
+    }
+}
+/* -------------------------------------------------- */
+/* REPORTS SECTION */
+/* -------------------------------------------------- */
+
+.reports-section {
+    background: #ffffff;
+    padding: 32px;
+    border-radius: 16px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    margin-bottom: 40px;
+}
+
+.reports-section h2 {
+    font-size: 24px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 24px;
+}
+
+.report-form {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr auto;
+    gap: 16px;
+    align-items: end;
+    margin-bottom: 24px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 8px;
+}
+
+.form-group select,
+.form-group input[type="date"] {
+    padding: 10px 14px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: 'Inter', sans-serif;
+    transition: all 0.2s ease;
+}
+
+.form-group select:focus,
+.form-group input[type="date"]:focus {
+    outline: none;
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.btn {
+    padding: 10px 24px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    display: inline-block;
+    text-align: center;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    color: white;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+.btn-export {
+    background: #f3f4f6;
+    color: #374151;
+    border: 1px solid #d1d5db;
+}
+
+.btn-export:hover {
+    background: #e5e7eb;
+    transform: translateY(-2px);
+}
+
+.export-options {
+    margin-bottom: 24px;
+}
+
+.export-options h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin-bottom: 16px;
+}
+
+.export-buttons {
+    display: flex;
+    gap: 12px;
+}
+
+/* -------------------------------------------------- */
+/* REPORT TABLE */
+/* -------------------------------------------------- */
+
+.report-table-section {
+    margin-top: 32px;
+}
+
+.report-table-section h3 {
+    font-size: 20px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 16px;
+}
+
+.table-responsive {
+    overflow-x: auto;
+}
+
+.report-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.report-table thead {
+    background: #f9fafb;
+}
+
+.report-table th {
+    padding: 12px 16px;
+    text-align: left;
+    font-weight: 600;
+    color: #374151;
+    border-bottom: 2px solid #e5e7eb;
+}
+
+.report-table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid #e5e7eb;
+    color: #1f2937;
+}
+
+.report-table tbody tr:hover {
+    background: #f9fafb;
+}
+
+/* -------------------------------------------------- */
+/* ACTIVITY LOGS SECTION */
+/* -------------------------------------------------- */
+
+.activity-logs-section {
+    background: #ffffff;
+    padding: 32px;
+    border-radius: 16px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    margin-bottom: 40px;
+}
+
+.activity-logs-section h2 {
+    font-size: 24px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 24px;
+}
+
+.logs-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.logs-table thead {
+    background: #f9fafb;
+}
+
+.logs-table th {
+    padding: 12px 16px;
+    text-align: left;
+    font-weight: 600;
+    color: #374151;
+    border-bottom: 2px solid #e5e7eb;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.logs-table td {
+    padding: 10px 16px;
+    border-bottom: 1px solid #f3f4f6;
+    color: #1f2937;
+}
+
+.logs-table tbody tr:hover {
+    background: #f9fafb;
+}
+
+.badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.badge-role {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.badge-action {
+    background: #f3f4f6;
+    color: #374151;
+}
+
+.badge-login {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.badge-logout {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.badge-create {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.badge-update {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.badge-delete {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.no-data {
+    text-align: center;
+    color: #9ca3af;
+    padding: 40px;
+    font-size: 14px;
+}
+
+/* -------------------------------------------------- */
+/* RESPONSIVE */
+/* -------------------------------------------------- */
+
+@media (max-width: 1024px) {
+    .report-form {
+        grid-template-columns: 1fr;
+    }
+
+    .export-buttons {
+        flex-direction: column;
+    }
+
+    .btn-export {
+        width: 100%;
+    }
+}
+
+@media (max-width: 768px) {
+    .reports-section,
+    .activity-logs-section {
+        padding: 20px;
+    }
+
+    .logs-table {
+        font-size: 11px;
+    }
+
+    .logs-table th,
+    .logs-table td {
+        padding: 8px 10px;
+    }
+}

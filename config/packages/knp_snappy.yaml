@@ -1,0 +1,9 @@
+knp_snappy:
+    pdf:
+        enabled: true
+        binary: 'C:/receipts/bin/wkhtmltopdf.exe'
+        options:
+            no-outline: true
+            page-size: A4
+            encoding: UTF-8
+            enable-local-file-access: true

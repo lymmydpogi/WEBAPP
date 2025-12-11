@@ -78,7 +78,7 @@ class HomeController extends AbstractController
         $pendingOrdersTrend = $pendingOrders > $prevPendingOrders ? 'up' : ($pendingOrders < $prevPendingOrders ? 'down' : 'neutral');
 
         // ────────── Render Template ──────────
-        return $this->render('home/index.html.twig', [
+        return $this->render('ADMIN/home/index.html.twig', [
             'form' => $form->createView(),
             'services' => $servicesRepository->findAll(),
             'activeServices' => $activeServices,

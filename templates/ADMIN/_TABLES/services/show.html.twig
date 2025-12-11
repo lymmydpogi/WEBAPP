@@ -1,0 +1,87 @@
+{% extends 'ADMIN/base.html.twig' %}
+
+{% block title %}Service Details{% endblock %}
+{% block page_title %}Service Details{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('style/css/SERVICE/service-show.css') }}">
+{% endblock %}
+
+{% block body %}
+<div class="page-wrapper">
+    <div class="content-container">
+
+        <!-- Header -->
+        <div class="header-section">
+            <h1>{{ service.name }}</h1>
+            <p>Complete details of this service</p>
+        </div>
+
+        <!-- Details Card -->
+        <div class="service-card">
+
+            <table class="table">
+                <tbody>
+                    <tr>
+                        <th>Service Name</th>
+                        <td>{{ service.name }}</td>
+                    </tr>
+                    <tr>
+                        <th>Description</th>
+                        <td>{{ service.description }}</td>
+                    </tr>
+                    <tr>
+                        <th>Category</th>
+                        <td>{{ service.category }}</td>
+                    </tr>
+                    <tr>
+                        <th>Status</th>
+                        <td>
+                            <span class="status-badge {{ service.status|lower }}">
+                                {{ service.status }}
+                            </span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="info-grid">
+                <div class="info-card">
+                    <div class="info-label">Price</div>
+                    <div class="info-value">{{ service.price }}</div>
+                </div>
+
+                <div class="info-card">
+                    <div class="info-label">Pricing Model</div>
+                    <div class="info-value">{{ service.pricingModel }}</div>
+                </div>
+
+                <div class="info-card">
+                    <div class="info-label">Delivery Time</div>
+                    <div class="info-value">{{ service.deliveryTime }}</div>
+                </div>
+
+                <div class="info-card">
+                    <div class="info-label">Revision Limit</div>
+                    <div class="info-value">{{ service.revisionLimit }}</div>
+                </div>
+
+                <div class="info-card full-width">
+                    <div class="info-label">Tools Used</div>
+                    <div class="info-value">
+                        {{ service.toolsUsed }}
+                    </div>
+                </div>
+
+
+        </div>
+
+        <!-- Back Button -->
+        <div class="action-buttons">
+            <a href="{{ path('app_services_index') }}" class="btn btn-back">← Back to Services</a>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

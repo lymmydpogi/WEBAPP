@@ -7,6 +7,7 @@ use App\Repository\OrderRepository;
 use App\Repository\ServicesRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\Request;
 
 class ReportsDataController extends AbstractController
 {
@@ -16,6 +17,9 @@ class ReportsDataController extends AbstractController
         private ServicesRepository $serviceRepository,
     ) {}
 
+    /**
+     * Generate dynamic report for the dashboard
+     */
     public function generateReport(string $reportType, ?\DateTime $from, ?\DateTime $to): Response
     {
         $reportsData = [];
@@ -30,14 +34,32 @@ class ReportsDataController extends AbstractController
             default => null,
         };
 
-        return $this->render('reports/index.html.twig', [
+        // Dashboard stats
+        $totalClients = $this->userRepository->countAllClients();
+        $activeClients = $this->userRepository->countActiveClients();
+        $suspendedClients = $this->userRepository->countSuspendedClients();
+        $totalOrders = $this->orderRepository->count();
+        $totalRevenue = $this->orderRepository->getTotalRevenue() ?? 0;
+        $activeServices = $this->serviceRepository->count(['is_active' => true]);
+
+
+        return $this->render('ADMIN/reports/index.html.twig', [
             'reports_data' => $reportsData,
             'table_headers' => $tableHeaders,
             'report_title' => $reportTitle,
             'report_type' => $reportType,
+            'totalClients' => $totalClients,
+            'activeClients' => $activeClients,
+            'suspendedClients' => $suspendedClients,
+            'totalOrders' => $totalOrders,
+            'totalRevenue' => $totalRevenue,
+            'activeServices' => $activeServices,
         ]);
     }
 
+    /**
+     * Export report to PDF or Excel
+     */
     public function exportReport(string $format, string $type, ?string $fromDate, ?string $toDate): Response
     {
         $from = $fromDate ? \DateTime::createFromFormat('Y-m-d', $fromDate) : null;
@@ -62,24 +84,47 @@ class ReportsDataController extends AbstractController
         };
     }
 
+    public function generateReportForAnalytics(string $reportType, ?\DateTime $from, ?\DateTime $to): Response
+    {
+        $reportsData = [];
+        $tableHeaders = [];
+        $reportTitle = '';
+
+        match ($reportType) {
+            'users' => $this->generateUsersReport($from, $to, $reportsData, $tableHeaders, $reportTitle),
+            'orders' => $this->generateOrdersReport($from, $to, $reportsData, $tableHeaders, $reportTitle),
+            'services' => $this->generateServicesReport($from, $to, $reportsData, $tableHeaders, $reportTitle),
+            'revenue' => $this->generateRevenueReport($from, $to, $reportsData, $tableHeaders, $reportTitle),
+            default => null,
+        };
+
+        // Use the AnalyticsController's index method but with report data
+        return $this->forward('App\Controller\AnalyticsController::indexWithReport', [
+            'reports_data' => $reportsData,
+            'table_headers' => $tableHeaders,
+            'report_title' => $reportTitle,
+            'report_type' => $reportType,
+        ]);
+    }
+
     /** ---- REPORT GENERATORS ---- **/
     private function generateUsersReport(?\DateTime $from, ?\DateTime $to, &$reportsData, &$tableHeaders, &$reportTitle): void
     {
         $tableHeaders = ['User ID', 'Name', 'Email', 'Phone', 'Total Orders', 'Joined Date'];
         $reportTitle = 'Users Report';
 
-        $queryBuilder = $this->userRepository->createQueryBuilder('u');
+        $qb = $this->userRepository->createQueryBuilder('u');
 
-        if ($from) $queryBuilder->andWhere('u.createdAt >= :from')->setParameter('from', $from);
+        if ($from) $qb->andWhere('u.createdAt >= :from')->setParameter('from', $from);
         if ($to) {
             $to->modify('+1 day');
-            $queryBuilder->andWhere('u.createdAt < :to')->setParameter('to', $to);
+            $qb->andWhere('u.createdAt < :to')->setParameter('to', $to);
         }
 
-        $users = $queryBuilder->orderBy('u.createdAt', 'DESC')->getQuery()->getResult();
+        $users = $qb->orderBy('u.createdAt', 'DESC')->getQuery()->getResult();
 
         foreach ($users as $user) {
-            $ordersCount = $this->orderRepository->count(['client' => $user]);
+            $ordersCount = $this->orderRepository->count(['user' => $user]);
             $reportsData[] = [
                 $user->getId(),
                 $user->getName(),
@@ -92,92 +137,90 @@ class ReportsDataController extends AbstractController
     }
 
     private function generateOrdersReport(?\DateTime $from, ?\DateTime $to, &$reportsData, &$tableHeaders, &$reportTitle): void
-    {
-        $tableHeaders = ['Order ID', 'User', 'Service', 'Status', 'Amount', 'Date'];
-        $reportTitle = 'Orders Report';
+{
+    $tableHeaders = ['Order ID', 'User', 'Service', 'Status', 'Amount', 'Date'];
+    $reportTitle = 'Orders Report';
 
-        $queryBuilder = $this->orderRepository->createQueryBuilder('o')
-            ->leftJoin('o.client', 'u')
-            ->leftJoin('o.service', 's')
-            ->addSelect('u', 's');
+    $qb = $this->orderRepository->createQueryBuilder('o')
+        ->leftJoin('o.user', 'u')
+        ->leftJoin('o.service', 's')
+        ->addSelect('u', 's');
 
-        if ($from) $queryBuilder->andWhere('o.createdAt >= :from')->setParameter('from', $from);
-        if ($to) {
-            $to->modify('+1 day');
-            $queryBuilder->andWhere('o.createdAt < :to')->setParameter('to', $to);
-        }
-
-        $orders = $queryBuilder->orderBy('o.createdAt', 'DESC')->getQuery()->getResult();
-
-        foreach ($orders as $order) {
-            $reportsData[] = [
-                $order->getId(),
-                $order->getClient()?->getName() ?? 'N/A',
-                $order->getService()?->getName() ?? 'N/A',
-                ucfirst($order->getStatus() ?? 'pending'),
-                '₱' . number_format($order->getAmount() ?? 0, 2),
-                $order->getCreatedAt()?->format('Y-m-d') ?? 'N/A',
-            ];
-        }
+    if ($from) $qb->andWhere('o.orderDate >= :from')->setParameter('from', $from); // Changed to orderDate
+    if ($to) {
+        $to->modify('+1 day');
+        $qb->andWhere('o.orderDate < :to')->setParameter('to', $to); // Changed to orderDate
     }
 
-    private function generateServicesReport(?\DateTime $from, ?\DateTime $to, &$reportsData, &$tableHeaders, &$reportTitle): void
-    {
-        $tableHeaders = ['Service ID', 'Name', 'Description', 'Price', 'Status', 'Created Date'];
-        $reportTitle = 'Services Report';
+    $orders = $qb->orderBy('o.orderDate', 'DESC')->getQuery()->getResult(); // Changed to orderDate
 
-        $queryBuilder = $this->serviceRepository->createQueryBuilder('s');
-
-        if ($from) $queryBuilder->andWhere('s.createdAt >= :from')->setParameter('from', $from);
-        if ($to) {
-            $to->modify('+1 day');
-            $queryBuilder->andWhere('s.createdAt < :to')->setParameter('to', $to);
-        }
-
-        $services = $queryBuilder->orderBy('s.createdAt', 'DESC')->getQuery()->getResult();
-
-        foreach ($services as $service) {
-            $reportsData[] = [
-                $service->getId(),
-                $service->getName(),
-                substr($service->getDescription() ?? '', 0, 50) . (strlen($service->getDescription() ?? '') > 50 ? '...' : ''),
-                '₱' . number_format($service->getPrice() ?? 0, 2),
-                $service->isActive() ? 'Active' : 'Inactive',
-                $service->getCreatedAt()?->format('Y-m-d') ?? 'N/A',
-            ];
-        }
+    foreach ($orders as $order) {
+        $reportsData[] = [
+            $order->getId(),
+            $order->getUser()?->getName() ?? 'N/A',
+            $order->getService()?->getName() ?? 'N/A',
+            ucfirst($order->getStatus() ?? 'pending'),
+            '₱' . number_format($order->getTotalPrice() ?? 0, 2),
+            $order->getOrderDate()?->format('Y-m-d') ?? 'N/A', // Changed to getOrderDate()
+        ];
     }
 
+    }private function generateServicesReport(?\DateTime $from, ?\DateTime $to, &$reportsData, &$tableHeaders, &$reportTitle): void
+{
+    $tableHeaders = ['Service ID', 'Name', 'Description', 'Price', 'Status'];
+    $reportTitle = 'Services Report';
+
+    $qb = $this->serviceRepository->createQueryBuilder('s');
+
+    // Remove date filtering since Services doesn't have createdAt
+    // if ($from) $qb->andWhere('s.createdAt >= :from')->setParameter('from', $from);
+    // if ($to) {
+    //     $to->modify('+1 day');
+    //     $qb->andWhere('s.createdAt < :to')->setParameter('to', $to);
+    // }
+
+    $services = $qb->orderBy('s.id', 'DESC')->getQuery()->getResult(); // Changed to order by id
+
+    foreach ($services as $service) {
+        $reportsData[] = [
+            $service->getId(),
+            $service->getName(),
+            substr($service->getDescription() ?? '', 0, 50) . (strlen($service->getDescription() ?? '') > 50 ? '...' : ''),
+            '₱' . number_format($service->getPrice() ?? 0, 2),
+            $service->isActive() ? 'Active' : 'Inactive',
+            // Removed created date column since it doesn't exist
+        ];
+    }
+}
     private function generateRevenueReport(?\DateTime $from, ?\DateTime $to, &$reportsData, &$tableHeaders, &$reportTitle): void
     {
         $tableHeaders = ['Date', 'Service', 'Orders Count', 'Total Revenue', 'Avg Amount'];
         $reportTitle = 'Revenue Report';
 
-        $queryBuilder = $this->orderRepository->createQueryBuilder('o')
+        $qb = $this->orderRepository->createQueryBuilder('o')
             ->leftJoin('o.service', 's')
             ->addSelect('s')
-            ->select('DATE(o.createdAt) as orderDate', 's.name as serviceName', 'COUNT(o.id) as orderCount', 'SUM(o.amount) as totalRevenue', 'AVG(o.amount) as avgAmount')
+            ->select('DATE(o.orderDate) as orderDate', 's.name as serviceName', 'COUNT(o.id) as orderCount', 'SUM(o.amount) as totalRevenue', 'AVG(o.amount) as avgAmount') // Changed to orderDate
             ->groupBy('orderDate', 's.name');
 
-        if ($from) $queryBuilder->andWhere('o.createdAt >= :from')->setParameter('from', $from);
+        if ($from) $qb->andWhere('o.orderDate >= :from')->setParameter('from', $from); // Changed to orderDate
         if ($to) {
             $to->modify('+1 day');
-            $queryBuilder->andWhere('o.createdAt < :to')->setParameter('to', $to);
+            $qb->andWhere('o.orderDate < :to')->setParameter('to', $to); // Changed to orderDate
         }
 
-        $results = $queryBuilder->orderBy('orderDate', 'DESC')->getQuery()->getResult();
+        $results = $qb->orderBy('orderDate', 'DESC')->getQuery()->getResult();
 
         foreach ($results as $row) {
             $reportsData[] = [
                 $row['orderDate'],
                 $row['serviceName'] ?? 'N/A',
                 $row['orderCount'] ?? 0,
-                '₱' . number_format($row['totalRevenue'] ?? 0, 2),
-                '₱' . number_format($row['avgAmount'] ?? 0, 2),
+                '₱' . number_format($row['TotalPrice'] ?? 0, 2),
+                '₱' . number_format($row['TotalPrice'] ?? 0, 2),
             ];
         }
     }
-
     /** ---- EXPORT HELPERS ---- **/
     private function exportPdf(string $title, array $headers, array $data): Response
     {

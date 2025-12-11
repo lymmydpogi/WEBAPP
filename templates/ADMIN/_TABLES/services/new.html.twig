@@ -1,0 +1,131 @@
+{% extends 'ADMIN/base.html.twig' %}
+
+{% block title %}New Service{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('style/css/SERVICE/service-new.css') }}">
+{% endblock %}
+
+{% block body %}
+<div class="page-wrapper">
+    <div class="content-container">
+
+        <!-- Header Section -->
+        <div class="header-section">
+            <h1>Create New Service</h1>
+            <p>Fill out the details to add a new service</p>
+        </div>
+
+        <!-- Form Card -->
+        <div class="form-card">
+            {{ form_start(form, {'attr': {'class': 'service-form'}}) }}
+            <div class="form-grid">
+
+                <!-- Service Name -->
+                <div class="form-group">
+                    <label>Service Name</label>
+                    {{ form_widget(form.name) }}
+                    {{ form_errors(form.name) }}
+                </div>
+
+                <!-- Category -->
+                <div class="form-group">
+                    <label>Category</label>
+                    {{ form_widget(form.category) }}
+                    {{ form_errors(form.category) }}
+                </div>
+
+                <!-- Price -->
+                <div class="form-group">
+                    <label>Price</label>
+                    {{ form_widget(form.price) }}
+                    {{ form_errors(form.price) }}
+                </div>
+
+                <!-- Pricing Model -->
+                <div class="form-group">
+                    <label>Pricing Model</label>
+                    {{ form_widget(form.pricingModel) }}
+                    {{ form_errors(form.pricingModel) }}
+                </div>
+
+                <!-- Pricing Unit -->
+                <div class="form-group">
+                    <label>Pricing Unit</label>
+                    {{ form_widget(form.pricingUnit) }}
+                    {{ form_errors(form.pricingUnit) }}
+                </div>
+
+                <!-- Delivery Time -->
+                <div class="form-group">
+                    <label>Delivery Time (Days)</label>
+                    {{ form_widget(form.deliveryTime) }}
+                    {{ form_errors(form.deliveryTime) }}
+                </div>
+
+                <!-- Tools Used -->
+                <div class="form-group">
+                    <label>Tools Used</label>
+                    {{ form_widget(form.toolsUsed) }}
+                    {{ form_errors(form.toolsUsed) }}
+                </div>
+
+                <!-- Revision Limit -->
+                <div class="form-group">
+                    <label>Revision Limit</label>
+                    {{ form_widget(form.revisionLimit) }}
+                    {{ form_errors(form.revisionLimit) }}
+                </div>
+
+                <!-- Description -->
+                <div class="form-group" style="grid-column: span 2;">
+                    <label>Description</label>
+                    {{ form_widget(form.description) }}
+                    {{ form_errors(form.description) }}
+                </div>
+
+            </div>
+
+            <!-- Form Actions -->
+            <div class="form-actions">
+                <a href="{{ path('app_services_index') }}" class="btn-back">← Cancel</a>
+                <button type="submit" class="btn-submit">Create Service</button>
+            </div>
+
+            {{ form_end(form) }}
+        </div>
+
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const pricingModel = document.querySelector("[name$='[pricingModel]']");
+    const pricingUnit = document.querySelector("[name$='[pricingUnit]']");
+
+    function filterUnits() {
+        const selectedModel = pricingModel.value;
+
+        Array.from(pricingUnit.options).forEach(option => {
+            const group = option.dataset.group;
+
+            if (!selectedModel || group === selectedModel) {
+                option.hidden = false;
+            } else {
+                option.hidden = true;
+            }
+        });
+
+        // Reset invalid selection
+        if (pricingUnit.selectedOptions.length &&
+            pricingUnit.selectedOptions[0].hidden) {
+            pricingUnit.value = "";
+        }
+    }
+
+    pricingModel.addEventListener("change", filterUnits);
+    filterUnits(); // Run on load
+});
+</script>
+{% endblock %}

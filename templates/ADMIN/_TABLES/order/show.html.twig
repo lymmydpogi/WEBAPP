@@ -1,0 +1,85 @@
+{% extends 'ADMIN/base.html.twig' %}
+
+{% block title %}Order Details{% endblock %}
+{% block page_title %}Order Details{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('style/css/ORDER/order-show.css') }}">
+{% endblock %}
+
+{% block body %}
+<div class="page-wrapper">
+    <div class="content-container">
+
+        <!-- Header -->
+        <div class="header-section">
+            <h1>Order #{{ order.id }}</h1>
+            <p>Complete order information and summary</p>
+        </div>
+
+        <!-- Order Details Card -->
+        <div class="details-card">
+            <table class="table">
+                <tbody>
+                    <tr>
+                        <th>Client Name</th>
+                        <td>{{ order.clientName|default('N/A') }}</td>
+                    </tr>
+                    <tr>
+                        <th>Client Email</th>
+                        <td>{{ order.clientEmail|default('N/A') }}</td>
+                    </tr>
+                    <tr>
+                        <th>Order Date</th>
+                        <td>{{ order.orderDate ? order.orderDate|date('Y-m-d H:i:s') : 'N/A' }}</td>
+                    </tr>
+                    <tr>
+                        <th>Status</th>
+                        <td>
+                            <span class="status-badge {{ order.status|lower|replace({' ': '-'}) }}">
+                                {{ order.status|default('N/A') }}
+                            </span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Total Price</th>
+                        <td>₱{{ order.totalPrice|number_format(2, '.', ',') }}</td>
+                    </tr>
+                    <tr>
+                        <th>Delivery Date</th>
+                        <td>{{ order.deliveryDate ? order.deliveryDate|date('Y-m-d H:i:s') : 'N/A' }}</td>
+                    </tr>
+                    <tr>
+                        <th>Notes</th>
+                        <td>{{ order.notes|default('None') }}</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- Info Cards -->
+            <div class="info-grid">
+                <div class="info-card">
+                    <div class="info-label">Payment Status</div>
+                  <div class="info-value">{{ order.paymentStatus is not empty ? order.paymentStatus : 'N/A' }}</div>
+                </div>
+
+                <div class="info-card">
+                    <div class="info-label">Payment Method</div>
+                 
+<div class="info-value">{{ order.paymentMethod is not empty ? order.paymentMethod : 'N/A' }}</div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- Back Button -->
+        <div class="action-buttons">
+            <a href="{{ path('app_order_index') }}" class="btn btn-back">
+                ← Back to Orders
+            </a>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

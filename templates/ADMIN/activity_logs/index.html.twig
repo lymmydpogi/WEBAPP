@@ -1,0 +1,94 @@
+{% extends 'ADMIN/base.html.twig' %}
+
+{% block title %}Activity Logs{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('style/css/DASHBOARD/activity_logs.css') }}">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css"/>
+{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+
+    <!-- Hero Section -->
+    <div class="hero-section mb-4">
+        <h1>Activity Logs</h1>
+        <p>View all user actions including logins, logouts, and CRUD operations.</p>
+    </div>
+
+    <!-- Table -->
+    <div class="table-container table-responsive">
+        <table id="activityLogs" class="table table-striped table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>User ID</th>
+                    <th>User</th>
+                    <th>Role</th>
+                    <th>Action</th>
+                    <th>Details</th>
+                    <th>Date / Time</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if logs is empty %}
+                    <tr class="empty-state">
+                        <td colspan="6" class="text-center">No activity logs found.</td>
+                    </tr>
+                {% else %}
+                    {% for log in logs %}
+                        <tr>
+                            <td>{{ log.userId }}</td>
+                            <td>{{ log.userEmail }}</td>
+                            <td>{{ log.role }}</td>
+                            <td>{{ log.action }}</td>
+                            <td>{{ log.actionDetails ?: '-' }}</td>
+                            <td nowrap>{{ log.createdAt|date('Y-m-d H:i:s') }}</td>
+                        </tr>
+                    {% endfor %}
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+    <script>
+       $(document).ready(function() {
+    $('#activityLogs').DataTable({
+        pagingType: "simple_numbers", // or "numbers" for only numbers
+        paging: true,
+        searching: true,
+        info: true,
+        ordering: true,
+        pageLength: 10,
+        lengthChange: false,
+        responsive: true,
+        language: {
+            search: "_INPUT_",
+            searchPlaceholder: "Search logs...",
+            paginate: {
+                previous: "Previous", // nicer arrow
+                next: "Next"
+            },
+            info: "Showing _START_ to _END_ of _TOTAL_ logs",
+            infoEmpty: "No logs available",
+            zeroRecords: "No matching logs found"
+        },
+        columnDefs: [
+            { orderable: true, targets: '_all' }
+        ]
+    });
+
+    // Add spacing for pagination
+    $('.dataTables_paginate').addClass('mt-3 mb-3 d-flex justify-content-center');
+});
+
+           
+    </script>
+{% endblock %}

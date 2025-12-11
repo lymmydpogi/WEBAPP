@@ -1,96 +1,170 @@
-/* Table styling */
+/* Page Wrapper */
+.page-wrapper {
+    margin-left: 100px;
+    margin-top: 50px;
+    padding: 30px 40px 40px 30px;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    min-height: calc(100vh - 50px);
+}
+
+.content-container {
+    max-width: 1100px;
+}
+
+/* Header Section */
+.header-section {
+    background: #ffffff;
+    padding: 28px 32px;
+    border-radius: 12px;
+    margin-bottom: 28px;
+    border-left: 4px solid #8b5cf6;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+
+.header-section h1 {
+    font-size: 28px;
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 6px;
+}
+
+.header-section p {
+    font-size: 14px;
+    color: #6b7280;
+}
+
+/* Card */
+.details-card {
+    background: #ffffff;
+    padding: 32px;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
+
+/* Table Design */
 .table {
     width: 100%;
     border-collapse: collapse;
-    margin-top: 20px;
+    margin-bottom: 24px;
 }
 
 .table th,
 .table td {
-    padding: 12px 15px;
+    padding: 14px 18px;
     border: 1px solid #e5e7eb;
     text-align: left;
 }
 
 .table th {
-    background-color: #f3f4f6;
+    background: #f3f4f6;
+    text-transform: uppercase;
+    font-size: 12px;
     font-weight: 600;
-    color: #1a1a1a;
+    color: #374151;
+    letter-spacing: 0.5px;
 }
 
 .table td {
-    color: #374151;
+    font-size: 14px;
+    color: #1f2937;
+}
+
+/* Status Badge */
+.status-badge {
+    padding: 6px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.status-badge.completed {
+    background: #dcfce7;
+    color: #16a34a;
+}
+
+.status-badge.pending {
+    background: #fef9c3;
+    color: #ca8a04;
+}
+
+.status-badge.cancelled {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+/* Info Cards */
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+}
+
+.info-card {
+    background: #ffffff;
+    padding: 18px;
+    border-radius: 10px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    transition: 0.2s ease;
+}
+
+.info-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.info-label {
+    font-size: 12px;
+    text-transform: uppercase;
+    font-weight: 600;
+    color: #6b7280;
+    margin-bottom: 3px;
+}
+
+.info-value {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1f2937;
 }
 
 /* Buttons */
-.actions {
+.action-buttons {
     margin-top: 20px;
-    display: flex;
-    gap: 12px;
-    flex-wrap: wrap;
 }
 
 .btn {
-    padding: 10px 20px;
+    padding: 12px 28px;
     border-radius: 8px;
     font-size: 14px;
     font-weight: 600;
     text-decoration: none;
-    cursor: pointer;
     display: inline-flex;
     align-items: center;
-    transition: all 0.2s ease;
-    border: none;
+    border: 1px solid transparent;
+    transition: 0.2s ease;
 }
 
-.btn:hover {
-    transform: translateY(-1px);
+.btn-back {
+    background: #ffffff;
+    color: #374151;
+    border: 1.5px solid #d1d5db;
 }
 
-.btn-secondary {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 10px 20px;
-    color: #6b7280;
-    text-decoration: none;
-    font-size: 14px;
-    font-weight: 500;
-    transition: all 0.2s ease;
-    border-radius: 8px;
-    border: 1px solid #e5e7eb;
-}
-
-.btn-secondary:hover {
-    text-decoration: underline;
-}
-
-.btn-primary {
-    background-color: #8b5cf6;
-    color: #ffffff;
-}
-
-.btn-primary:hover {
-    background-color: #7c3aed;
-}
-
-.btn-danger {
-    background-color: #ef4444;
-    color: #ffffff;
-}
-
-.btn-danger:hover {
-    background-color: #dc2626;
+.btn-back:hover {
+    background: #f9fafb;
+    border-color: #9ca3af;
 }
 
 /* Responsive */
 @media (max-width: 768px) {
-    .actions {
-        flex-direction: column;
+    .page-wrapper {
+        margin-left: 0;
+        padding: 20px;
     }
 
-    .btn {
-        width: 100%;
-        justify-content: center;
+    .details-card {
+        padding: 24px;
     }
 }

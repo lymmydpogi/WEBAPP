@@ -9,6 +9,7 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 use App\Entity\Order;
+use App\Entity\User;
 
 #[ORM\Entity(repositoryClass: ServicesRepository::class)]
 class Services
@@ -19,76 +20,116 @@ class Services
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Assert\NotBlank(message: "Service name cannot be empty.")]
-    #[Assert\Length(max: 255, maxMessage: "Service name cannot exceed {{ limit }} characters.")]
+    #[Assert\NotBlank(message: "Service name is required.")]
+    #[Assert\Length(
+        min: 3,
+        max: 255,
+        minMessage: "Service name must be at least {{ limit }} characters long",
+        maxMessage: "Service name cannot exceed {{ limit }} characters"
+    )]
     private ?string $name = null;
 
     #[ORM\Column(type: Types::TEXT)]
     #[Assert\NotBlank(message: "Description is required.")]
+    #[Assert\Length(
+        min: 10,
+        max: 2000,
+        minMessage: "Description must be at least {{ limit }} characters long",
+        
+    )]
     private ?string $description = null;
 
-    #[ORM\Column]
+    #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2)]
     #[Assert\NotBlank(message: "Price is required.")]
-    #[Assert\Positive(message: "Price must be a positive number.")]
+    #[Assert\Positive(message: "Price must be greater than 0.")]
+    #[Assert\Range(
+        min: 0.01,
+        max: 999999.99,
+        notInRangeMessage: "Price must be between {{ min }} and {{ max }}"
+    )]
     private ?float $price = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 20)]
     #[Assert\NotBlank(message: "Status is required.")]
-    private ?string $status = null;
-
-    #[ORM\Column]
-    #[Assert\NotBlank(message: "Pricing model is required.")]
-    #[Assert\Positive(message: "Pricing model must be a positive number.")]
-    private ?float $pricingModel = null;
-
-    #[ORM\Column(length: 255, nullable: true)]
     #[Assert\Choice(
-        choices: ['per minute', 'per hour', 'per project', 'per video', 'per design'],
-        message: "Invalid pricing unit. Choose a valid option."
+        choices: ['active', 'inactive'],
+        message: "Status must be either 'active' or 'inactive'."
+    )]
+    private string $status = 'active';
+
+    #[ORM\Column(length: 50)]
+    #[Assert\NotBlank(message: "Pricing model is required.")]
+    #[Assert\Choice(
+        choices: ['fixed', 'hourly', 'milestone'],
+        message: "Choose a valid pricing model."
+    )]
+    private ?string $pricingModel = null;
+
+    #[ORM\Column(length: 50)]
+    #[Assert\NotBlank(message: "Pricing unit is required.")]
+    #[Assert\Choice(
+        choices: [
+            'project', 'package', 'deliverable', 'hour', 'day', 'week',
+            'milestone', 'phase', 'stage'
+        ],
+        message: "Invalid pricing unit."
     )]
     private ?string $pricingUnit = null;
 
-    #[ORM\Column]
+    #[ORM\Column(type: Types::INTEGER)]
     #[Assert\NotBlank(message: "Delivery time is required.")]
-    #[Assert\Positive(message: "Delivery time must be a positive number.")]
-    private ?float $deliveryTime = null;
+    #[Assert\Positive(message: "Delivery time must be greater than 0.")]
+    #[Assert\Range(
+        min: 1,
+        max: 365,
+        notInRangeMessage: "Delivery time must be between {{ min }} and {{ max }} days"
+    )]
+    private ?int $deliveryTime = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 100)]
     #[Assert\NotBlank(message: "Category is required.")]
+    #[Assert\Length(
+        min: 2,
+        max: 100,
+        minMessage: "Category must be at least {{ limit }} characters long",
+        maxMessage: "Category cannot exceed {{ limit }} characters"
+    )]
     private ?string $category = null;
 
-    #[ORM\Column(length: 255)]
-    #[Assert\NotBlank(message: "Tools used field cannot be empty.")]
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Assert\Length(
+        max: 255,
+        maxMessage: "Tools used cannot exceed {{ limit }} characters"
+    )]
     private ?string $toolsUsed = null;
 
-    #[ORM\Column(type: Types::TEXT)]
-    #[Assert\NotBlank(message: "Revision limit is required.")]
+    #[ORM\Column(length: 50, nullable: true)]
+    #[Assert\Length(
+        max: 50,
+        maxMessage: "Revision limit cannot exceed {{ limit }} characters"
+    )]
     private ?string $revisionLimit = null;
 
-    #[ORM\Column(type: 'boolean')]
-    private ?bool $isActive = true;
+    #[ORM\Column(type: 'boolean', options: ['default' => true])]
+    private bool $is_active = true;
 
     #[ORM\OneToMany(mappedBy: 'service', targetEntity: Order::class)]
     private Collection $orders;
 
+    # NEW FIELD — WHO CREATED THIS SERVICE
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?User $createdBy = null;
+
     public function __construct()
     {
         $this->orders = new ArrayCollection();
-    }
-
-    // ──────────────── Active Status ────────────────
-    public function isActive(): ?bool
-    {
-        return $this->isActive;
-    }
-
-    public function setIsActive(bool $isActive): static
-    {
-        $this->isActive = $isActive;
-        return $this;
+        $this->status = 'active';
+        $this->is_active = true;
     }
 
     // ──────────────── Getters & Setters ────────────────
+
     public function getId(): ?int
     {
         return $this->id;
@@ -127,7 +168,7 @@ class Services
         return $this;
     }
 
-    public function getStatus(): ?string
+    public function getStatus(): string
     {
         return $this->status;
     }
@@ -138,12 +179,12 @@ class Services
         return $this;
     }
 
-    public function getPricingModel(): ?float
+    public function getPricingModel(): ?string
     {
         return $this->pricingModel;
     }
 
-    public function setPricingModel(float $pricingModel): static
+    public function setPricingModel(string $pricingModel): static
     {
         $this->pricingModel = $pricingModel;
         return $this;
@@ -154,18 +195,18 @@ class Services
         return $this->pricingUnit;
     }
 
-    public function setPricingUnit(?string $pricingUnit): static
+    public function setPricingUnit(string $pricingUnit): static
     {
         $this->pricingUnit = $pricingUnit;
         return $this;
     }
 
-    public function getDeliveryTime(): ?float
+    public function getDeliveryTime(): ?int
     {
         return $this->deliveryTime;
     }
 
-    public function setDeliveryTime(float $deliveryTime): static
+    public function setDeliveryTime(int $deliveryTime): static
     {
         $this->deliveryTime = $deliveryTime;
         return $this;
@@ -187,7 +228,7 @@ class Services
         return $this->toolsUsed;
     }
 
-    public function setToolsUsed(string $toolsUsed): static
+    public function setToolsUsed(?string $toolsUsed): static
     {
         $this->toolsUsed = $toolsUsed;
         return $this;
@@ -198,16 +239,25 @@ class Services
         return $this->revisionLimit;
     }
 
-    public function setRevisionLimit(string $revisionLimit): static
+    public function setRevisionLimit(?string $revisionLimit): static
     {
         $this->revisionLimit = $revisionLimit;
         return $this;
     }
 
+    public function isActive(): bool
+    {
+        return $this->is_active;
+    }
+
+    public function setIsActive(bool $isActive): static
+    {
+        $this->is_active = $isActive;
+        return $this;
+    }
+
     // ──────────────── Orders Relationship ────────────────
-    /**
-     * @return Collection<int, Order>
-     */
+
     public function getOrders(): Collection
     {
         return $this->orders;
@@ -229,6 +279,19 @@ class Services
                 $order->setService(null);
             }
         }
+        return $this;
+    }
+
+    // ──────────────── NEW: Created By ────────────────
+
+    public function getCreatedBy(): ?User
+    {
+        return $this->createdBy;
+    }
+
+    public function setCreatedBy(User $user): static
+    {
+        $this->createdBy = $user;
         return $this;
     }
 }

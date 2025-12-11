@@ -1,0 +1,117 @@
+{% extends 'ADMIN/base.html.twig' %}
+
+{% block title %}Reports{% endblock %}
+{% block page_title %}Reports Dashboard{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css"/>
+    <link rel="stylesheet" href="{{ asset('style/css/DASHBOARD/reports.css') }}">
+{% endblock %}
+
+{% block body %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <h1>Reports Dashboard</h1>
+    <p>Monitor users, orders, services, and revenue from a single, organized interface.</p>
+</section>
+
+<!-- Stats Section -->
+<section class="stats-section">
+    <h2 class="section-title">Overview</h2>
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-value">{{ totalClients }}</div>
+            <div class="stat-label">Total Clients</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ totalOrders }}</div>
+            <div class="stat-label">Total Orders</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">₱{{ totalRevenue|number_format(2, '.', ',') }}</div>
+            <div class="stat-label">Revenue</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ activeServices }}</div>
+            <div class="stat-label">Active Services</div>
+        </div>
+    </div>
+</section>
+
+<!-- Reports Table Section -->
+<section class="reports-table-section">
+    <h2 class="section-title">{{ report_title ?? 'All Reports' }}</h2>
+
+    <div class="table-container">
+        <table class="table" id="reportsTable">
+            <thead>
+                <tr>
+                    {% if table_headers is defined %}
+                        {% for header in table_headers %}
+                            <th>{{ header }}</th>
+                        {% endfor %}
+                    {% else %}
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Orders</th>
+                        <th>Joined Date</th>
+                    {% endif %}
+                </tr>
+            </thead>
+            <tbody>
+                {% if reports_data is defined and reports_data|length > 0 %}
+                    {% for row in reports_data %}
+                        <tr>
+                            {% for cell in row %}
+                                <td>{{ cell }}</td>
+                            {% endfor %}
+                        </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="{{ table_headers|length|default(6) }}" class="empty-state">No data available.</td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('#reportsTable').DataTable({
+                paging: true,
+                searching: true,
+                ordering: true,
+                info: true,
+                pageLength: 10,
+                lengthMenu: [5, 10, 20, 50],
+                order: [[0, 'desc']],
+                columnDefs: [
+                    { orderable: false, targets: -1 }
+                ],
+                language: {
+                    search: "Search:",
+                    lengthMenu: "Show _MENU_ entries",
+                    info: "Showing _START_ to _END_ of _TOTAL_ entries",
+                    infoEmpty: "Showing 0 to 0 of 0 entries",
+                    infoFiltered: "(filtered from _MAX_ total entries)",
+                    paginate: {
+                        first: "First",
+                        last: "Last",
+                        next: "Next",
+                        previous: "Previous"
+                    }
+                }
+            });
+        });
+    </script>
+{% endblock %}

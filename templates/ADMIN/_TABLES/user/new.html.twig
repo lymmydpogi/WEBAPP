@@ -1,0 +1,87 @@
+{% extends 'ADMIN/base.html.twig' %}
+
+{% block title %}Add New User{% endblock %}
+{% block page_title %}Add New User{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('style/css/CLIENT/client-new.css') }}">
+{% endblock %}
+
+{% block body %}
+<div class="page-wrapper">
+    <div class="content-container">
+
+        <!-- Header Section -->
+        <div class="header-section">
+            <h1>Add New User</h1>
+            <p>Fill in the details below to create a new user account.</p>
+        </div>
+
+        <!-- Form Card -->
+        <div class="form-card">
+            {{ form_start(form) }}
+
+            <div class="form-grid">
+
+                <!-- Name -->
+                <div class="form-group">
+                    {{ form_label(form.name) }}
+                    {{ form_widget(form.name) }}
+                    {{ form_errors(form.name) }}
+                </div>
+
+                <!-- Email -->
+                <div class="form-group">
+                    {{ form_label(form.email) }}
+                    {{ form_widget(form.email) }}
+                    {{ form_errors(form.email) }}
+                </div>
+
+                <!-- Phone -->
+                <div class="form-group">
+                    {{ form_label(form.phone) }}
+                    {{ form_widget(form.phone) }}
+                    {{ form_errors(form.phone) }}
+                </div>
+
+                <!-- Roles -->
+                <div class="form-group">
+                    {{ form_label(form.roles) }}
+                    {{ form_widget(form.roles) }}
+                    {{ form_errors(form.roles) }}
+                </div>
+
+                <!-- Address -->
+                <div class="form-group">
+                    {{ form_label(form.address) }}
+                    {{ form_widget(form.address) }}
+                    {{ form_errors(form.address) }}
+                </div>
+
+                <!-- Password -->
+                {% if form.password is defined %}
+                <div class="form-group">
+                    {{ form_label(form.password) }}
+                    {{ form_widget(form.password) }}
+                    {{ form_errors(form.password) }}
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Form Footer Buttons -->
+            <div class="form-actions">
+                <a href="{{ path('app_user_index') }}" class="btn-back">← Back</a>
+                <button type="submit" class="btn-submit">Create User</button>
+            </div>
+
+            {{ form_end(form) }}
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+{% endblock %}

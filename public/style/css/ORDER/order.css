@@ -52,10 +52,48 @@ body {
     transform: translateY(-2px);
 }
 
-/* Button container */
+.btn-receipt {
+    margin-left: 6px;
+    color: #3a6df0;
+    font-weight: 600;
+}
+.btn-receipt:hover {
+    text-decoration: underline;
+}
+
+
+/* Delete Button */
+.btn-delete {
+    display: inline-block;
+    padding: 7px 16px;
+    margin-right: 6px;
+    background: #f87171; /* red-400 */
+    color: white;
+    border: 1px solid #f87171;
+    border-radius: 6px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.btn-delete:hover {
+    background: #ef4444; /* red-500 */
+    border-color: #ef4444;
+    color: white;
+}
+
+/* Button container (for Create New Order) */
 .btn-container {
     text-align: right;
     margin-top: 20px;
+    margin-bottom: 20px; /* increased spacing below button */
+}
+
+@media (max-width: 768px) {
+    .btn-container {
+        text-align: center;
+        margin-bottom: 32px; /* spacing for mobile */
+    }
 }
 
 /* Section Title */
@@ -166,10 +204,4 @@ body {
     padding: 60px 20px;
     color: #9ca3af;
     font-size: 15px;
-}
-
-@media (max-width: 768px) {
-    .btn-container {
-        text-align: center;
-    }
 }
