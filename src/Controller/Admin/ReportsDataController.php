@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Controller;
+namespace App\Controller\Admin;
 
 use App\Repository\UserRepository;
 use App\Repository\OrderRepository;
@@ -84,7 +84,7 @@ class ReportsDataController extends AbstractController
         };
     }
 
-    public function generateReportForAnalytics(string $reportType, ?\DateTime $from, ?\DateTime $to): Response
+    public function generateReportForAnalytics(string $reportType, ?\DateTime $from, ?\DateTime $to, Request $request): Response
     {
         $reportsData = [];
         $tableHeaders = [];
@@ -99,7 +99,8 @@ class ReportsDataController extends AbstractController
         };
 
         // Use the AnalyticsController's index method but with report data
-        return $this->forward('App\Controller\AnalyticsController::indexWithReport', [
+        return $this->forward('App\Controller\Admin\AnalyticsController::index', [
+            'request' => $request,
             'reports_data' => $reportsData,
             'table_headers' => $tableHeaders,
             'report_title' => $reportTitle,
@@ -237,7 +238,7 @@ class ReportsDataController extends AbstractController
         $html .= '<h1>' . htmlspecialchars($title) . '</h1><p>Generated on ' . date('Y-m-d H:i:s') . '</p><table border="1" cellspacing="0" cellpadding="5">';
         $html .= '<thead><tr>' . implode('', array_map(fn($h) => "<th>$h</th>", $headers)) . '</tr></thead><tbody>';
         foreach ($data as $row) {
-            $html .= '<tr>' . implode('', array_map(fn($c) => "<td>$c</td>", $row)) . '</tr>';
+            $html .= '<tr>' . implode('', array_map(fn($c) => "<td>$c</td>", $c)) . '</tr>';
         }
         $html .= '</tbody></table></body></html>';
         return $html;
@@ -250,9 +251,12 @@ class ReportsDataController extends AbstractController
             $csv .= implode(',', array_map(fn($cell) => '"' . str_replace('"', '""', $cell) . '"', $row)) . "\n";
         }
 
-        return new Response($csv, 200, [
-            'Content-Type' => 'text/csv; charset=utf-8',
-            'Content-Disposition' => 'attachment; filename="report_' . date('Y-m-d_H-i-s') . '.csv"',
+        return $this->forward('App\Controller\Admin\ReportsDataController::exportReport', [
+            'format' => $format,
+            'type' => $type,
+            'fromDate' => $fromDate,
+            'toDate' => $toDate,
         ]);
     }
 }
+

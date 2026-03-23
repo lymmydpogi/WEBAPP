@@ -1,0 +1,24 @@
+{% extends 'client/base.html.twig' %}
+
+{% block title %}Services{% endblock %}
+
+{% block body %}
+    <section class="card">
+        <div class="section-title">
+            <h1>Services</h1>
+            <small>Choose what you need, then log in when you’re ready to book.</small>
+        </div>
+        <p>These are the core services I offer. Each one can be customized to match your budget, timeline, and brand style.</p>
+        <div class="grid">
+            {% for service in services %}
+                <article>
+                    <h3>{{ service.name }}</h3>
+                    <p class="service-pill">Digital service · {{ service.slug|replace({'-':' '})|title }}</p>
+                    <p>Short description for {{ service.name|lower }}. Replace this with deliverables, formats, and revisions.</p>
+                    <p><a href="{{ path('client_service_show', { slug: service.slug }) }}">Learn more</a></p>
+                </article>
+            {% endfor %}
+        </div>
+    </section>
+{% endblock %}
+

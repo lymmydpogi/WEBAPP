@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Controller;
+namespace App\Controller\Admin;
 
 use App\Entity\Services;
 use App\Entity\Order;
@@ -89,3 +89,4 @@ class HomeController extends AbstractController
         ]);
     }
 }
+

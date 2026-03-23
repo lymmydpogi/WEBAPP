@@ -1,32 +1,50 @@
+# config/packages/security.yaml
 security:
+    # Password hashing
     password_hashers:
         Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface: 'auto'
 
+    # Roles hierarchy
     role_hierarchy:
         ROLE_ADMIN: ROLE_STAFF
-     
+
+    # User providers
     providers:
         app_user_provider:
             entity:
                 class: App\Entity\User
                 property: email
 
+    # Firewalls
     firewalls:
+        # Dev toolbar / profiler
         dev:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
             security: false
 
+    
+        api_platform:
+            pattern: ^/api
+            stateless: true
+            provider: app_user_provider
+            json_login:
+                check_path: /api/login
+                username_path: username
+                password_path: password
+                success_handler: lexik_jwt_authentication.handler.authentication_success
+                failure_handler: lexik_jwt_authentication.handler.authentication_failure
+            jwt: ~
+
+      
         main:
             lazy: true
             provider: app_user_provider
             custom_authenticator: App\Security\LoginFormAuthenticator
-            
-            # Use the full service ID reference
-            access_denied_handler: 'App\Security\AccessDeniedHandler'
-            
+            access_denied_handler: App\Security\AccessDeniedHandler
+
             logout:
                 path: app_logout
-                target: app_login_index
+                target: client_landing
 
             remember_me:
                 secret: '%kernel.secret%'
@@ -34,15 +52,37 @@ security:
                 path: /
                 always_remember_me: true
 
+    # Access control rules
     access_control:
+        # Public routes
+        - { path: ^/logout, roles: PUBLIC_ACCESS }
+        - { path: ^/verify-email, roles: PUBLIC_ACCESS }
+        - { path: ^/client/profile, roles: ROLE_CLIENT }
+        - { path: ^/client, roles: PUBLIC_ACCESS }
         - { path: ^/login, roles: PUBLIC_ACCESS }
         - { path: ^/register, roles: PUBLIC_ACCESS }
+        - { path: ^/api/login, roles: PUBLIC_ACCESS } # JWT login
+        - { path: ^/api/register, roles: PUBLIC_ACCESS }
+        - { path: ^/api/verify-email, roles: PUBLIC_ACCESS }
+        - { path: ^/api/me, roles: IS_AUTHENTICATED_FULLY }
+        - { path: ^/connect/google, roles: PUBLIC_ACCESS }
+
+        # Admin-only routes
         - { path: ^/activity-logs, roles: ROLE_ADMIN }
         - { path: ^/reports, roles: ROLE_ADMIN }
         - { path: ^/user, roles: ROLE_ADMIN }
-        - { path: ^/analytics, roles: ROLE_ADMIN}
+        - { path: ^/analytics, roles: ROLE_ADMIN }
         - { path: ^/home, roles: ROLE_ADMIN }
+
+        # Admin or staff routes
         - { path: ^/orders, roles: [ROLE_ADMIN, ROLE_STAFF] }
         - { path: ^/services, roles: [ROLE_ADMIN, ROLE_STAFF] }
         - { path: ^/settings, roles: [ROLE_ADMIN, ROLE_STAFF] }
+
+        # JWT-protected API routes
+        - { path: ^/api/orders, roles: [ROLE_ADMIN, ROLE_STAFF] }
+        - { path: ^/api/users, roles: ROLE_ADMIN }
+        - { path: ^/api, roles: IS_AUTHENTICATED_FULLY }
+
+        # Default catch-all for staff
         - { path: ^/, roles: ROLE_STAFF }

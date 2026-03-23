@@ -36,14 +36,22 @@
 
         <!-- Navigation -->
         <nav class="sidebar-nav">
-            {% set navItems = [
-                { path: 'app_services_index', label: 'Services', icon: '' },
-                { path: 'app_order_index', label: 'Orders', icon: '' },
-                { path: 'app_user_index', label: 'User', icon: '' },
-                { path: 'app_analytics_index', label: 'Analytics/Reports', icon: '' },
-                { path: 'admin_activity_logs_index', label: 'Activity Logs', icon: '' },
-                { path: 'app_settings_index', label: 'Settings', icon: '' },
-            ] %}
+            {% if 'ROLE_ADMIN' in app.user.roles %}
+                {% set navItems = [
+                    { path: 'app_services_index', label: 'Services', icon: '' },
+                    { path: 'app_order_index', label: 'Orders', icon: '' },
+                    { path: 'app_user_index', label: 'User', icon: '' },
+                    { path: 'app_analytics_index', label: 'Analytics/Reports', icon: '' },
+                    { path: 'admin_activity_logs_index', label: 'Activity Logs', icon: '' },
+                    { path: 'app_settings_index', label: 'Settings', icon: '' },
+                ] %}
+            {% else %}
+                {% set navItems = [
+                    { path: 'app_services_index', label: 'Services', icon: '' },
+                    { path: 'app_order_index', label: 'Orders', icon: '' },
+                    { path: 'app_settings_index', label: 'Settings', icon: '' },
+                ] %}
+            {% endif %}
 
             {% for item in navItems %}
                 {% set isActive = app.request.attributes.get('_route') starts with item.path %}
@@ -96,10 +104,17 @@
             {% block page_title %}Dashboard{% endblock %}
         </div>
         <div class="navbar-actions">
-            <a href="{{ path('app_home_index') }}"
-               class="nav-btn {{ app.request.attributes.get('_route') == 'app_home_index' ? 'active' : '' }}">
-                Home
-            </a>
+            {% if 'ROLE_ADMIN' in app.user.roles %}
+                <a href="{{ path('app_home_index') }}"
+                   class="nav-btn {{ app.request.attributes.get('_route') == 'app_home_index' ? 'active' : '' }}">
+                    Home
+                </a>
+            {% else %}
+                <a href="{{ path('app_services_index') }}"
+                   class="nav-btn {{ app.request.attributes.get('_route') starts with 'app_services_' ? 'active' : '' }}">
+                    Services
+                </a>
+            {% endif %}
             <a href="{{ path('app_logout') }}" class="nav-btn logout">
                 Logout
             </a>

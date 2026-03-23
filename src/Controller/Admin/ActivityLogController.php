@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Controller;
+namespace App\Controller\Admin;
 
 use App\Repository\ActivityLogRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -24,5 +24,6 @@ class ActivityLogController extends AbstractController
         ]);
     }
 }
+
 
 

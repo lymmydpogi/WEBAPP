@@ -1,9 +1,10 @@
 <?php
 
-namespace App\Controller;
+namespace App\Controller\Admin;
 
 use App\Entity\User;
 use App\Form\RegistrationFormType;
+use App\Service\EmailVerificationService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Bundle\SecurityBundle\Security;
@@ -11,6 +12,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 class RegistrationController extends AbstractController
 {
@@ -19,7 +21,8 @@ class RegistrationController extends AbstractController
         Request $request,
         UserPasswordHasherInterface $passwordHasher,
         Security $security,
-        EntityManagerInterface $entityManager
+        EntityManagerInterface $entityManager,
+        EmailVerificationService $emailVerificationService
     ): Response
     {
         // Redirect already logged-in users
@@ -58,6 +61,19 @@ class RegistrationController extends AbstractController
             $entityManager->persist($user);
             $entityManager->flush();
 
+            // Generate + send verification email
+            $verificationToken = $emailVerificationService->generateVerificationToken();
+            $user->setVerificationToken($verificationToken);
+            $user->setIsVerified(false);
+            $entityManager->flush();
+
+            $verificationUrl = $this->generateUrl(
+                'app_verify_email',
+                ['token' => $verificationToken],
+                UrlGeneratorInterface::ABSOLUTE_URL
+            );
+            $emailVerificationService->sendVerificationEmail($user, $verificationUrl);
+
             // Redirect to login (NO auto login)
             $this->addFlash('success', 'Account created successfully! Please log in.');
             return $this->redirectToRoute('app_login_index');
@@ -68,3 +84,4 @@ class RegistrationController extends AbstractController
         ]);
     }
 }
+

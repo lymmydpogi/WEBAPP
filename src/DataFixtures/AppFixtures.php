@@ -20,14 +20,14 @@ class AppFixtures extends Fixture
     {
         // Create Admin User
         $admin = new User();
-        $admin->setEmail('lymwelangelhocampana@gmail.com'); // Change to your desired admin email
-        $admin ->setName('Lymwel Angelho Campama');
+        $admin->setEmail('ying@gmail.com'); // Change to your desired admin email
+        $admin ->setName('ngolai');
         $admin->setRoles(['ROLE_ADMIN']);      // Admin role
         $admin->setStatus('active');           // optional
         $admin->setPassword(
             $this->passwordHasher->hashPassword(
                 $admin,
-                'password11' // Change to a secure password
+                'admin123' // Change to a secure password
             )
         );
 

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Controller;
+namespace App\Controller\Admin;
 
 use App\Repository\UserRepository;
 use App\Repository\OrderRepository;
@@ -90,7 +90,7 @@ public function generate(Request $request, ReportsDataController $reportsDataCon
         $toDate = $request->query->get('to');
 
         // Forward to ReportsDataController export
-        return $this->forward('App\Controller\ReportsDataController::exportReport', [
+        return $this->forward('App\Controller\Admin\ReportsDataController::exportReport', [
             'format' => $format,
             'type' => $type,
             'fromDate' => $fromDate,
@@ -98,3 +98,4 @@ public function generate(Request $request, ReportsDataController $reportsDataCon
         ]);
     }
 }
+

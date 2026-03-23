@@ -49,6 +49,12 @@ class LoginFormAuthenticator extends AbstractLoginFormAuthenticator
             return new RedirectResponse($this->urlGenerator->generate(self::LOGIN_ROUTE));
         }
 
+        // If the user clicked "Log in" from a client page, we redirect them back.
+        $next = $request->request->get('next') ?? $request->query->get('next');
+        if (in_array('ROLE_CLIENT', $user->getRoles(), true) && is_string($next) && $next !== '' && str_starts_with($next, '/client')) {
+            return new RedirectResponse($next);
+        }
+
         // ───────────── Log login activity ─────────────
         $log = new ActivityLog();
         $log->setUser($user);
@@ -84,6 +90,12 @@ class LoginFormAuthenticator extends AbstractLoginFormAuthenticator
 
     protected function getLoginUrl(Request $request): string
     {
+        // If login was initiated from the client side (modal posts with from_client=1),
+        // send the user back to the client landing page instead of the admin login screen.
+        if ($request->query->getBoolean('from_client') || $request->request->getBoolean('from_client')) {
+            return $this->urlGenerator->generate('client_landing');
+        }
+
         return $this->urlGenerator->generate(self::LOGIN_ROUTE);
     }
 }

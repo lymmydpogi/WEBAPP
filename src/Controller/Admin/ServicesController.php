@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Controller;
+namespace App\Controller\Admin;
 
 use App\Entity\Services;
 use App\Form\ServicesType;
@@ -131,3 +131,4 @@ public function edit(
         return $this->redirectToRoute('app_services_index', [], Response::HTTP_SEE_OTHER);
     }
 }
+

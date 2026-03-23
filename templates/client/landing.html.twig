@@ -1,0 +1,244 @@
+{% extends 'client/base.html.twig' %}
+
+{% block title %}Your one-stop creative studio{% endblock %}
+
+{% block body %}
+    <section class="hero">
+        <div class="hero-text">
+            <div class="hero-tag">
+                <span>Portfolio &amp; Services</span>
+            </div>
+            <h1>Your one–stop digital creative studio.</h1>
+            <p>
+                From bold logos to clean web layouts, I help brands and small businesses
+                look premium online — without the agency overhead.
+            </p>
+            <div class="hero-actions">
+                <a href="{{ path('client_services') }}" class="btn btn-primary">Browse services</a>
+                <a href="{{ path('client_contact') }}" class="btn btn-ghost">Start a project</a>
+            </div>
+            <div class="hero-meta">
+                <span class="hero-badge">Fast turnaround</span>
+                <span class="hero-badge">Flexible packages</span>
+                <span class="hero-badge">Friendly support</span>
+            </div>
+        </div>
+
+        <div class="hero-visual">
+            <div class="hero-orbit">
+                <div class="hero-panel-top">
+                    <span class="hero-panel-dots">● ● ●</span>
+                    <span>Deliverables</span>
+                </div>
+                <div class="hero-panel-body">
+                    <div class="pill hero-panel-item">
+                        <strong>Logo &amp; Branding</strong>
+                        <small>Clean, modern identities</small>
+                    </div>
+                    <div class="pill hero-panel-item">
+                        <strong>Web / App Screens</strong>
+                        <small>Responsive &amp; user–friendly</small>
+                    </div>
+                    <div class="pill hero-panel-item">
+                        <strong>Social Content</strong>
+                        <small>Templates that convert</small>
+                    </div>
+                    <div class="pill hero-panel-item">
+                        <strong>Landing Pages</strong>
+                        <small>Minimal, high impact</small>
+                    </div>
+                    <div class="progress-shell" style="margin-top:0.2rem;">
+                        <div class="progress-label">
+                            <span class="subtle">Availability</span>
+                            <span class="subtle">Open for 2 projects</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-bar-fill"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="card">
+        <div class="section-title">
+            <h2>Selected work</h2>
+            <small>Minimal layouts. Strong typography. Clean polish.</small>
+        </div>
+        <div class="work-grid">
+            <article class="work-card">
+                <div class="work-card-thumb"></div>
+                <h3>Brand refresh</h3>
+                <p>Identity system + social kit for a small business.</p>
+            </article>
+            <article class="work-card">
+                <div class="work-card-thumb"></div>
+                <h3>Landing page</h3>
+                <p>Conversion-focused hero, sections, and clear CTA.</p>
+            </article>
+            <article class="work-card">
+                <div class="work-card-thumb"></div>
+                <h3>UI screens</h3>
+                <p>Mobile-first screens with consistent component rhythm.</p>
+            </article>
+        </div>
+    </section>
+
+    <section class="card">
+        <div class="section-title">
+            <h2>Services</h2>
+            <small>Pick one, or combine into a simple package.</small>
+        </div>
+        <div class="service-grid">
+            <article class="service-card">
+                <h3>Logo &amp; branding</h3>
+                <div class="service-meta">
+                    <span class="pill-small">Popular</span>
+                    <span class="pill-small">Visual identity</span>
+                </div>
+                <ul>
+                    <li>Logo concepts + refinements</li>
+                    <li>Color + type system</li>
+                    <li>Mini brand guide</li>
+                </ul>
+                <a href="{{ path('client_service_show', { slug: 'logo-making' }) }}" class="btn btn-ghost">Request this</a>
+            </article>
+            <article class="service-card">
+                <h3>Web / App screens</h3>
+                <div class="service-meta">
+                    <span class="pill-small">High impact</span>
+                    <span class="pill-small">Responsive</span>
+                </div>
+                <ul>
+                    <li>Hero + benefits + CTA flow</li>
+                    <li>Desktop &amp; mobile layouts</li>
+                    <li>Basic component system</li>
+                </ul>
+                <a href="{{ path('client_service_show', { slug: 'web-app-development' }) }}" class="btn btn-ghost">Request this</a>
+            </article>
+            <article class="service-card">
+                <h3>Social content</h3>
+                <div class="service-meta">
+                    <span class="pill-small">Fast</span>
+                    <span class="pill-small">On-brand</span>
+                </div>
+                <ul>
+                    <li>Templates + post system</li>
+                    <li>Story &amp; feed layouts</li>
+                    <li>On-brand consistency</li>
+                </ul>
+                <a href="{{ path('client_service_show', { slug: 'graphic-design' }) }}" class="btn btn-ghost">Request this</a>
+            </article>
+        </div>
+    </section>
+
+    <section class="card">
+        <div class="section-title">
+            <h2>Process &amp; project brief</h2>
+            <small>Simple, calm, and clear — you always know what’s next.</small>
+        </div>
+        <div class="brief-layout">
+            <div>
+                <div class="process-grid">
+                    <div class="process-step">
+                        <div class="process-step-number">01</div>
+                        <strong>Brief</strong>
+                        <span class="subtle">Share your goal, references, and deadline.</span>
+                    </div>
+                    <div class="process-step">
+                        <div class="process-step-number">02</div>
+                        <strong>Create</strong>
+                        <span class="subtle">I design, refine, and keep you updated.</span>
+                    </div>
+                    <div class="process-step">
+                        <div class="process-step-number">03</div>
+                        <strong>Deliver</strong>
+                        <span class="subtle">Get polished files and clear handoff.</span>
+                    </div>
+                </div>
+                <div class="stat-pills">
+                    <div class="stat-pill">
+                        Typical reply
+                        <span>Within 24 hours</span>
+                    </div>
+                    <div class="stat-pill">
+                        Style
+                        <span>Minimal, modern, bold</span>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <form method="post" action="{{ path('client_contact') }}">
+                    <div class="grid" style="margin-bottom: 0.75rem;">
+                        <div>
+                            <label for="brief_name">Name</label>
+                            <input
+                                id="brief_name"
+                                name="name"
+                                type="text"
+                                placeholder="Your name"
+                                value="{% if app.user is defined and app.user %}{{ app.user.name ?? '' }}{% endif %}"
+                            >
+                        </div>
+                        <div>
+                            <label for="brief_email">Email</label>
+                            <input
+                                id="brief_email"
+                                name="email"
+                                type="email"
+                                placeholder="you@example.com"
+                                value="{% if app.user is defined and app.user %}{{ app.user.email }}{% endif %}"
+                            >
+                        </div>
+                    </div>
+                    <div style="margin-bottom: 0.75rem;">
+                        <label for="brief_subject">Service</label>
+                        <input id="brief_subject" name="subject" type="text" placeholder="Logo, website, editing…">
+                    </div>
+                    <div style="margin-bottom: 0.9rem%;">
+                        <label for="brief_message">Project brief</label>
+                        <textarea id="brief_message" name="message" rows="4" placeholder="Tell me your goal, deadline, and any references..."></textarea>
+                    </div>
+                    <div class="progress-shell">
+                        <div class="progress-label">
+                            <span class="subtle">Availability</span>
+                            <span class="subtle">Open for 2 projects</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-bar-fill"></div>
+                        </div>
+                    </div>
+                    <div style="margin-top: 1rem;">
+                        <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center;">Send brief</button>
+                        <p class="subtle" style="margin-top: 0.6rem;">
+                            By submitting, you agree to be contacted about your project.
+                        </p>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <section class="card">
+        <div class="section-title">
+            <h2>Client voices</h2>
+            <small>What people usually notice first.</small>
+        </div>
+        <div class="work-grid">
+            <article class="work-card">
+                <h3>Fast and clear updates</h3>
+                <p>“Every step was explained in plain language, and I always knew what was happening.”</p>
+            </article>
+            <article class="work-card">
+                <h3>Polished final output</h3>
+                <p>“The deliverables looked premium and were easy to use right away.”</p>
+            </article>
+            <article class="work-card">
+                <h3>Design that converts</h3>
+                <p>“The layout and messaging felt focused, not generic.”</p>
+            </article>
+        </div>
+    </section>
+{% endblock %}
+

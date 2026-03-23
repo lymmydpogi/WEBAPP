@@ -2,13 +2,13 @@
 body {
     margin: 0;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    background: linear-gradient(135deg, #1f1c2c 0%, #928dab 100%);
+    background: linear-gradient(135deg, #0f0f1a 0%, #1f1c2c 45%, #4c4768 100%);
     color: #fff;
     min-height: 100vh;
     display: flex;
     align-items: flex-start;
     justify-content: flex-start;
-    padding: 60px;
+    padding: clamp(24px, 5vw, 60px);
 }
 
 /* ===== Flex layout: logo + form ===== */
@@ -35,11 +35,100 @@ body {
     transform: scale(1.08);
 }
 
-/* Push form all the way to the right */
+/* Form card */
 .login-form {
     margin-top: 50px;
-    margin-left: 300px; /* pushes form to the right edge */
-    max-width: 400px;
+    margin-left: clamp(24px, 12vw, 300px);
+    max-width: 420px;
+}
+
+.login-card {
+    padding: 2rem 2rem 1.75rem;
+    border-radius: 16px;
+    background: rgba(15, 15, 26, 0.55);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 24px 48px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.04) inset;
+    backdrop-filter: blur(12px);
+}
+
+.login-subtitle {
+    color: #c4c4d4;
+    font-size: 15px;
+    margin-bottom: 1.5rem;
+    line-height: 1.45;
+}
+
+.login-alert {
+    margin-bottom: 1rem;
+    padding: 0.75rem 1rem;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+.login-alert--error {
+    border: 1px solid rgba(248, 113, 113, 0.4);
+    background: rgba(127, 29, 29, 0.35);
+    color: #fecaca;
+}
+
+.login-alert--success {
+    border: 1px solid rgba(52, 211, 153, 0.45);
+    background: rgba(6, 78, 59, 0.35);
+    color: #a7f3d0;
+}
+
+.login-signup-prompt {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-top: 1.25rem;
+    gap: 0.5rem 0.75rem;
+    font-size: 14px;
+    color: #c4c4d4;
+}
+
+.btn-signup {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem 1rem;
+    font-size: 14px;
+    font-weight: 600;
+    color: #e0e7ff;
+    background: rgba(99, 102, 241, 0.2);
+    border: 1px solid rgba(129, 140, 248, 0.5);
+    border-radius: 8px;
+    text-decoration: none;
+    transition: background 0.2s ease, transform 0.15s ease;
+}
+
+.btn-signup:hover {
+    background: rgba(99, 102, 241, 0.35);
+    transform: translateY(-1px);
+}
+
+.login-divider {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 1.25rem 0 0.75rem;
+    color: #9ca3af;
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.login-divider::before,
+.login-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.login-divider span {
+    opacity: 0.85;
 }
 
 /* Form header */
@@ -142,4 +231,80 @@ body {
 
 .create-account a:hover {
     opacity: 0.8;
+}
+
+/* Google sign-in button */
+.btn-google {
+    width: 100%;
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: #0b1220;
+    color: #e5e7eb;
+    padding: 12px 14px;
+    font-size: 15px;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    margin-top: 0;
+    transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.btn-google:hover {
+    background: #111827;
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.btn-google__icon {
+    flex-shrink: 0;
+}
+
+/* Symfony form validation (registration, etc.) */
+.form-error,
+ul.form-error {
+    list-style: none;
+    margin: 0 0 0.75rem;
+    padding: 0.65rem 0.85rem;
+    border-radius: 8px;
+    border: 1px solid rgba(248, 113, 113, 0.4);
+    background: rgba(127, 29, 29, 0.35);
+    color: #fecaca;
+    font-size: 0.88rem;
+}
+
+.form-group ul {
+    list-style: none;
+    margin: 0.35rem 0 0;
+    padding: 0;
+}
+
+.form-group .form-error li,
+.form-group ul li {
+    color: #fecaca;
+    font-size: 0.88rem;
+}
+
+.form-error--global {
+    margin-bottom: 1rem;
+}
+
+@media (max-width: 900px) {
+    .login-body {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .login-logo .logo-img {
+        margin-left: 0;
+        max-width: min(90vw, 320px);
+    }
+
+    .login-form {
+        margin-left: 0;
+        width: 100%;
+    }
 }

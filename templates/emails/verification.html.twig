@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+    <body>
+        {% if verified is defined and verified %}
+            <p>Your email has been verified.</p>
+            {% if user is defined and user %}
+                <p>Thanks, {{ user.name ?? user.email }}.</p>
+            {% endif %}
+            <p>
+                <a href="{{ path('app_login_index') }}">Go to login</a>
+            </p>
+        {% else %}
+            <h1>Verify your email</h1>
+            <p>
+                Click the button below to verify your email address.
+            </p>
+            {% if verificationUrl is defined and verificationUrl %}
+                <p>
+                    <a href="{{ verificationUrl }}">Verify email</a>
+                </p>
+            {% else %}
+                <p>{{ error|default('Invalid or expired verification token.') }}</p>
+                <p>
+                    <a href="{{ path('app_login_index') }}">Go to login</a>
+                </p>
+            {% endif %}
+        {% endif %}
+    </body>
+</html>

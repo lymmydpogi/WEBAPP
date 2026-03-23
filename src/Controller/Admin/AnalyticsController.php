@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Controller;
+namespace App\Controller\Admin;
 
 use App\Entity\Order;
 use App\Repository\OrderRepository;
@@ -132,7 +132,7 @@ final class AnalyticsController extends AbstractController
     }
 
     private function generateRevenueReport(OrderRepository $orderRepository, ?\DateTime $from, ?\DateTime $to, &$reportsData, &$tableHeaders, &$reportTitle): void
-{
+    {
     $tableHeaders = ['Date', 'Service', 'Orders Count', 'Total Revenue', 'Avg Amount'];
     $reportTitle = 'Revenue Report';
 
@@ -360,3 +360,4 @@ final class AnalyticsController extends AbstractController
         ]);
     }
 }
+

@@ -1,0 +1,28 @@
+{% extends 'client/base.html.twig' %}
+
+{% block title %}Your profile{% endblock %}
+
+{% block body %}
+    <section class="card">
+        <h1>Your profile</h1>
+        <p class="subtle">Basic details for your client account.</p>
+
+        <div style="margin-top:1rem; display:grid; gap:0.75rem; max-width:420px;">
+            <div>
+                <label>Email</label>
+                <div>{{ user.email }}</div>
+            </div>
+            {% if user.name %}
+                <div>
+                    <label>Name</label>
+                    <div>{{ user.name }}</div>
+                </div>
+            {% endif %}
+            <div>
+                <label>Joined</label>
+                <div>{{ user.createdAt ? user.createdAt|date('M d, Y') : '—' }}</div>
+            </div>
+        </div>
+    </section>
+{% endblock %}
+

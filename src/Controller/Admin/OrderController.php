@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Controller;
+namespace App\Controller\Admin;
 
 use App\Entity\Order;
 use App\Form\OrderType;
@@ -176,3 +176,4 @@ final class OrderController extends AbstractController
         $entityManager->flush();
     }
 }
+

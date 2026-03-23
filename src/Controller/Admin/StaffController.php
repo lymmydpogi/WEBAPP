@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Controller;
+namespace App\Controller\Admin;
 
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
@@ -16,3 +16,4 @@ class StaffController extends AbstractController
         return $this->redirectToRoute('app_services_index'); // make sure this route exists
     }
 }
+
