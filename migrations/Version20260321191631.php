@@ -19,11 +19,7 @@ final class Version20260321191631 extends AbstractMigration
 
     public function up(Schema $schema): void
     {
-        // this up() migration is auto-generated, please modify it to your needs
-        $this->addSql('CREATE TABLE client_contact_message (id INT AUTO_INCREMENT NOT NULL, name VARCHAR(150) NOT NULL, email VARCHAR(180) NOT NULL, subject VARCHAR(200) NOT NULL, message LONGTEXT NOT NULL, created_at DATETIME NOT NULL COMMENT \'(DC2Type:datetime_immutable)\', PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');
-        $this->addSql('ALTER TABLE services CHANGE created_by_id created_by_id INT NOT NULL, CHANGE price price NUMERIC(10, 2) NOT NULL, CHANGE status status VARCHAR(20) NOT NULL, CHANGE delivery_time delivery_time INT NOT NULL, CHANGE category category VARCHAR(100) NOT NULL, CHANGE tools_used tools_used VARCHAR(255) DEFAULT NULL, CHANGE revision_limit revision_limit VARCHAR(50) DEFAULT NULL, CHANGE is_active is_active TINYINT(1) DEFAULT 1 NOT NULL, CHANGE pricing_unit pricing_unit VARCHAR(50) NOT NULL');
-        $this->addSql('ALTER TABLE user CHANGE phone phone VARCHAR(25) DEFAULT NULL, CHANGE is_verified is_verified TINYINT(1) NOT NULL');
-        $this->addSql('ALTER TABLE user RENAME INDEX uniq_identifier_email TO UNIQ_8D93D649E7927C74');
+        // Superseded by safe/idempotent migrations; intentionally left as no-op.
     }
 
     public function down(Schema $schema): void
