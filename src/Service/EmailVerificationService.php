@@ -5,6 +5,7 @@ namespace App\Service;
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Address;
 
@@ -12,7 +13,9 @@ class EmailVerificationService
 {
     public function __construct(
         private EntityManagerInterface $entityManager,
-        private MailerInterface $mailer
+        private MailerInterface $mailer,
+        #[Autowire(env: 'MAILER_FROM_ADDRESS')] private string $fromAddress,
+        #[Autowire(env: 'MAILER_FROM_NAME')] private string $fromName,
     ) {}
 
     /**
@@ -29,7 +32,7 @@ class EmailVerificationService
     public function sendVerificationEmail(User $user, string $verificationUrl): void
     {
         $email = (new TemplatedEmail())
-            ->from(new Address('arielbensing22@gmail.com', 'Symfony Project Test')) // Change this to verified sender
+            ->from(new Address($this->fromAddress, $this->fromName))
             ->to(new Address($user->getEmail()))
             ->subject('Please verify your email address')
             ->htmlTemplate('emails/verification.html.twig')
@@ -42,7 +45,28 @@ class EmailVerificationService
     }
 
     /**
-     * Verify a token and mark user as verified
+     * Optional confirmation after Google sign-in (user is already logged in).
+     */
+    public function sendGoogleSignInEmail(User $user, string $continueUrl, bool $isNewAccount): void
+    {
+        $email = (new TemplatedEmail())
+            ->from(new Address($this->fromAddress, $this->fromName))
+            ->to(new Address($user->getEmail()))
+            ->subject($isNewAccount
+                ? 'Welcome to Campana Designs'
+                : 'Signed in with Google — Campana Designs')
+            ->htmlTemplate('emails/google_signin.html.twig')
+            ->context([
+                'user' => $user,
+                'continueUrl' => $continueUrl,
+                'isNewAccount' => $isNewAccount,
+            ]);
+
+        $this->mailer->send($email);
+    }
+
+    /**
+     * Verify a token: is_verified = true, verification_token = null.
      */
     public function verifyToken(string $token): ?User
     {
@@ -54,9 +78,7 @@ class EmailVerificationService
             return null;
         }
 
-        // Mark user as verified
-        $user->setIsVerified(true);
-        $user->setVerificationToken(null); // Clear the token
+        $user->markEmailAsVerified();
 
         $this->entityManager->flush();
 

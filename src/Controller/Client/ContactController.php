@@ -3,6 +3,7 @@
 namespace App\Controller\Client;
 
 use App\Entity\Client\ContactMessage;
+use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -24,6 +25,23 @@ class ContactController extends AbstractController
         ];
 
         $errors = [];
+
+        if (!$request->isMethod('POST')) {
+            $user = $this->getUser();
+            if ($user instanceof User) {
+                if ($data['email'] === '') {
+                    $data['email'] = (string) $user->getEmail();
+                }
+                if ($data['name'] === '') {
+                    $fullName = trim(sprintf(
+                        '%s %s',
+                        $user->getFirstName() ?? '',
+                        $user->getLastName() ?? ''
+                    ));
+                    $data['name'] = $fullName !== '' ? $fullName : (string) ($user->getName() ?? '');
+                }
+            }
+        }
 
         if ($request->isMethod('POST')) {
             if ($data['name'] === '') {
@@ -51,7 +69,7 @@ class ContactController extends AbstractController
 
                 // Third-party submission via configured Mailer provider (Brevo SMTP).
                 try {
-                    $receiver = $_ENV['MAILER_FROM_ADDRESS'] ?? 'yinggu.qt@gmail.com';
+                    $receiver = $_ENV['MAILER_FROM_ADDRESS'] ?? 'lcampana.student@asiancollege.edu.ph';
                     $mailer->send(
                         (new Email())
                             ->from($receiver)

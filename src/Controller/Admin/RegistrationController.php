@@ -63,8 +63,7 @@ class RegistrationController extends AbstractController
 
             // Generate + send verification email
             $verificationToken = $emailVerificationService->generateVerificationToken();
-            $user->setVerificationToken($verificationToken);
-            $user->setIsVerified(false);
+            $user->markEmailAsPendingVerification($verificationToken);
             $entityManager->flush();
 
             $verificationUrl = $this->generateUrl(

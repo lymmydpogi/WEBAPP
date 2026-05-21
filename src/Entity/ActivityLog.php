@@ -34,7 +34,7 @@ class ActivityLog
 
     // The user who performed the action
     #[ORM\ManyToOne(targetEntity: User::class)]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private ?User $user = null;
 
     // Role of the user (Admin, Staff, etc.)

@@ -43,6 +43,10 @@
                         </td>
                     </tr>
                     <tr>
+                        <th>Quantity</th>
+                        <td>{{ order.quantity }}</td>
+                    </tr>
+                    <tr>
                         <th>Total Price</th>
                         <td>₱{{ order.totalPrice|number_format(2, '.', ',') }}</td>
                     </tr>

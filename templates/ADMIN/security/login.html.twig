@@ -23,6 +23,10 @@
             <div class="login-alert login-alert--success" role="status">{{ message }}</div>
         {% endfor %}
 
+        {% for message in app.flashes('error') %}
+            <div class="login-alert login-alert--error" role="alert">{{ message }}</div>
+        {% endfor %}
+
         {% if error %}
             <div class="login-alert login-alert--error" role="alert">
                 Wrong email or password. Please try again.

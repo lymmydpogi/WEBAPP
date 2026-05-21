@@ -1,5 +1,6 @@
 parameters:
     avatars_directory: '%kernel.project_dir%/public/uploads/avatars'
+    oauth_google_redirect_uri: ''
 
 services:
     _defaults:

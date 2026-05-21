@@ -166,7 +166,12 @@ final class OrderController extends AbstractController
         $hasActiveOrder = false;
 
         foreach ($user->getOrders() as $order) {
-            if (in_array($order->getStatus(), [Order::STATUS_PENDING, Order::STATUS_COMPLETED], true)) {
+            if (in_array($order->getStatus(), [
+                Order::STATUS_PENDING,
+                Order::STATUS_APPROVED,
+                Order::STATUS_IN_PROGRESS,
+                Order::STATUS_COMPLETED,
+            ], true)) {
                 $hasActiveOrder = true;
                 break;
             }

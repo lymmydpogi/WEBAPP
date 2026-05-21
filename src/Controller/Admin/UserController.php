@@ -4,8 +4,11 @@ namespace App\Controller\Admin;
 
 use App\Entity\User;
 use App\Form\UserType;
-use App\Repository\UserRepository;
+use App\Repository\ActivityLogRepository;
 use App\Repository\OrderRepository;
+use App\Repository\ServicesRepository;
+use App\Repository\UserRepository;
+use Doctrine\DBAL\Exception\ForeignKeyConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -119,18 +122,61 @@ class UserController extends AbstractController
     }
 
     #[Route('/{id}/delete', name: 'app_user_delete', methods: ['POST'])]
-    public function delete(int $id, Request $request, UserRepository $userRepository, EntityManagerInterface $entityManager): Response
-    {
+    public function delete(
+        int $id,
+        Request $request,
+        UserRepository $userRepository,
+        ActivityLogRepository $activityLogRepository,
+        OrderRepository $orderRepository,
+        ServicesRepository $servicesRepository,
+        EntityManagerInterface $entityManager,
+    ): Response {
         $user = $userRepository->find($id);
         if (!$user) {
             $this->addFlash('error', 'User not found.');
             return $this->redirectToRoute('app_user_index');
         }
 
-        if ($this->isCsrfTokenValid('delete'.$user->getId(), $request->request->get('_token'))) {
+        if (!$this->isCsrfTokenValid('delete'.$user->getId(), $request->request->get('_token'))) {
+            return $this->redirectToRoute('app_user_index');
+        }
+
+        $currentUser = $this->getUser();
+        if ($currentUser instanceof User && $currentUser->getId() === $user->getId()) {
+            $this->addFlash('error', 'You cannot delete your own account.');
+            return $this->redirectToRoute('app_user_index');
+        }
+
+        $orderCount = $orderRepository->count(['user' => $user]);
+        $ordersCreatedCount = $orderRepository->count(['createdBy' => $user]);
+        if ($orderCount > 0 || $ordersCreatedCount > 0) {
+            $this->addFlash('error', sprintf(
+                'Cannot delete this user: %d order(s) as client and %d as creator are still linked. Remove or reassign those orders first.',
+                $orderCount,
+                $ordersCreatedCount
+            ));
+            return $this->redirectToRoute('app_user_index');
+        }
+
+        $servicesCreated = $servicesRepository->count(['createdBy' => $user]);
+        if ($servicesCreated > 0) {
+            $this->addFlash('error', sprintf(
+                'Cannot delete this user: they created %d service(s). Reassign or delete those services first.',
+                $servicesCreated
+            ));
+            return $this->redirectToRoute('app_user_index');
+        }
+
+        try {
+            $logsRemoved = $activityLogRepository->deleteByUser($user);
             $entityManager->remove($user);
             $entityManager->flush();
-            $this->addFlash('success', 'User deleted successfully!');
+
+            $this->addFlash('success', $logsRemoved > 0
+                ? sprintf('User deleted successfully (%d activity log(s) removed).', $logsRemoved)
+                : 'User deleted successfully!');
+        } catch (ForeignKeyConstraintViolationException) {
+            $this->addFlash('error', 'Cannot delete this user: other records still reference this account (orders, services, or activity logs).');
         }
 
         return $this->redirectToRoute('app_user_index');

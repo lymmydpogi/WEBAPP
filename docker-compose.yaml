@@ -24,7 +24,7 @@ services:
       PMA_USER: ${MYSQL_USER}
       PMA_PASSWORD: ${MYSQL_PASSWORD}
     ports:
-      - "8080:80"
+      - "8086:80"
     depends_on:
       - mysql
     networks:

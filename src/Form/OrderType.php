@@ -67,7 +67,13 @@ class OrderType extends AbstractType
                 },
             ])
 
-            // ───────────── Total price (readonly) ─────────────
+            ->add('quantity', NumberType::class, [
+                'label' => 'Quantity',
+                'html5' => true,
+                'scale' => 0,
+            ])
+
+            // ───────────── Total price (readonly, calculated server-side) ─────────────
             ->add('totalPrice', NumberType::class, [
                 'attr' => ['readonly' => true],
                 'label' => 'Total Price (PHP)',
@@ -87,7 +93,7 @@ class OrderType extends AbstractType
         if ($showStatus) {
             $builder
                 ->add('status', ChoiceType::class, [
-                    'choices' => array_combine(Order::STATUSES, Order::STATUSES),
+                    'choices' => array_combine(Order::ADMIN_STATUSES, Order::ADMIN_STATUSES),
                     'label' => 'Order Status',
                 ])
                 ->add('paymentStatus', ChoiceType::class, [
@@ -111,9 +117,14 @@ class OrderType extends AbstractType
                 }
             }
 
-            // Auto-calc total price
-            if ($order->getService()) {
-                $order->setTotalPrice($order->getService()->getPrice());
+            if ($order->getQuantity() <= 0) {
+                $form->get('quantity')->addError(
+                    new FormError('Quantity must be greater than zero.')
+                );
+            }
+
+            if ($order->getService() && $order->getQuantity() > 0) {
+                $order->recalculateTotalFromService();
             }
         });
     }

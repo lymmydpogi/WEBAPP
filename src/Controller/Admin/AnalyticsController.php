@@ -234,7 +234,7 @@ final class AnalyticsController extends AbstractController
         $statuses = [
             Order::STATUS_PENDING,
             Order::STATUS_COMPLETED,
-            Order::STATUS_CANCELED,
+            Order::STATUS_CANCELLED,
         ];
         $orderStatusData = ['labels' => $statuses, 'values' => []];
 

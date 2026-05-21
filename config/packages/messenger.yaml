@@ -27,3 +27,12 @@ framework:
 
             # Route your messages to the transports
             # 'App\Message\YourMessage': async
+
+when@dev:
+    framework:
+        messenger:
+            transports:
+                sync: 'sync://'
+            routing:
+                # Send mail immediately in dev (no worker / messenger_messages table required)
+                Symfony\Component\Mailer\Messenger\SendEmailMessage: sync
