@@ -69,8 +69,27 @@ if [ "${RUN_FIXTURES:-0}" = "1" ]; then
         INITIAL_ADMIN_EMAIL="${INITIAL_ADMIN_EMAIL:-${ADMIN_EMAIL:-}}" \
         INITIAL_ADMIN_PASSWORD="${INITIAL_ADMIN_PASSWORD:-${ADMIN_PASSWORD:-}}" \
         INITIAL_ADMIN_NAME="${INITIAL_ADMIN_NAME:-${ADMIN_NAME:-Admin}}" \
+        SYNC_INITIAL_ADMIN_PASSWORD="${SYNC_INITIAL_ADMIN_PASSWORD:-}" \
+        PROMOTE_INITIAL_ADMIN="${PROMOTE_INITIAL_ADMIN:-}" \
         php bin/console doctrine:fixtures:load --append --no-interaction --env=prod --no-debug
     echo "Fixtures finished. Remove RUN_FIXTURES=1 from Railway after verifying seed data." >&2
+fi
+
+if [ "${SYNC_INITIAL_ADMIN_PASSWORD:-0}" = "1" ] || [ "${PROMOTE_INITIAL_ADMIN:-0}" = "1" ]; then
+    echo "Running initial admin sync..." >&2
+    SYNC_PROMOTE_ARG=""
+    if [ "${PROMOTE_INITIAL_ADMIN:-0}" = "1" ]; then
+        SYNC_PROMOTE_ARG="--promote"
+    fi
+    env APP_ENV="${APP_ENV}" APP_DEBUG="${APP_DEBUG}" \
+        INITIAL_ADMIN_EMAIL="${INITIAL_ADMIN_EMAIL:-}" \
+        INITIAL_ADMIN_PASSWORD="${INITIAL_ADMIN_PASSWORD:-}" \
+        INITIAL_ADMIN_NAME="${INITIAL_ADMIN_NAME:-Admin}" \
+        SYNC_INITIAL_ADMIN_PASSWORD="${SYNC_INITIAL_ADMIN_PASSWORD:-}" \
+        PROMOTE_INITIAL_ADMIN="${PROMOTE_INITIAL_ADMIN:-}" \
+        php bin/console app:sync-initial-admin --env=prod --no-debug ${SYNC_PROMOTE_ARG}
+    echo "Initial admin sync finished." >&2
+    echo "Remove SYNC_INITIAL_ADMIN_PASSWORD and PROMOTE_INITIAL_ADMIN from Railway after login works." >&2
 fi
 
 echo "Starting PHP server on 0.0.0.0:${PORT:-8080} (APP_ENV=${APP_ENV})" >&2
