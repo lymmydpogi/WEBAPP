@@ -3,13 +3,7 @@
 
 FROM composer:2 AS vendor
 WORKDIR /app
-RUN apk add --no-cache \
-        git \
-        unzip \
-        icu-dev \
-        libzip-dev \
-        oniguruma-dev \
-    && docker-php-ext-install intl zip
+RUN apk add --no-cache git unzip
 COPY composer.json composer.lock symfony.lock ./
 RUN composer install --no-dev --no-scripts --prefer-dist --no-interaction
 COPY . .
