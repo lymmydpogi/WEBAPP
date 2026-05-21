@@ -3,6 +3,15 @@ set -e
 
 cd /app
 
+# Production defaults before any Symfony/PHP boot
+export APP_ENV="${APP_ENV:-prod}"
+export APP_DEBUG="${APP_DEBUG:-0}"
+# No .env in the image — dev mode would fail; force prod if Railway left APP_ENV=dev
+if [ "$APP_ENV" = "dev" ] && [ ! -f /app/.env ]; then
+    export APP_ENV=prod
+    export APP_DEBUG=0
+fi
+
 # ── Railway MySQL: build DATABASE_URL from MYSQL* when not preset (URL-encode credentials) ──
 if [ -z "$DATABASE_URL" ] && [ -n "$MYSQLHOST" ]; then
     export DATABASE_URL="$(php -r 'echo sprintf(
@@ -36,14 +45,14 @@ fi
 export JWT_SECRET_KEY="${JWT_SECRET_KEY:-/app/config/jwt/private.pem}"
 export JWT_PUBLIC_KEY="${JWT_PUBLIC_KEY:-/app/config/jwt/public.pem}"
 
-php bin/console cache:clear --env=prod --no-warmup 2>/dev/null || true
-php bin/console cache:warmup --env=prod
+php bin/console cache:clear --env=prod --no-debug --no-warmup 2>/dev/null || true
+php bin/console cache:warmup --env=prod --no-debug
 
 if [ "${RUN_MIGRATIONS:-0}" = "1" ]; then
     echo "Running database migrations..." >&2
-    php bin/console doctrine:migrations:migrate --no-interaction --env=prod
+    php bin/console doctrine:migrations:migrate --no-interaction --env=prod --no-debug
 fi
 
 PORT="${PORT:-8080}"
-echo "Starting PHP server on 0.0.0.0:${PORT}" >&2
-exec php -S "0.0.0.0:${PORT}" -t public
+echo "Starting PHP server on 0.0.0.0:${PORT} (APP_ENV=${APP_ENV})" >&2
+exec env APP_ENV="${APP_ENV}" APP_DEBUG="${APP_DEBUG}" php -S "0.0.0.0:${PORT}" -t public

@@ -41,9 +41,9 @@ RUN chmod +x /entrypoint.sh \
     && mkdir -p var/cache var/log public/uploads/avatars config/jwt \
     && chown -R www-data:www-data var public/uploads config/jwt
 
-ENV APP_ENV=prod \
-    APP_DEBUG=0 \
-    PORT=8080
+ENV APP_ENV=prod
+ENV APP_DEBUG=0
+ENV PORT=8080
 
 USER www-data
 
