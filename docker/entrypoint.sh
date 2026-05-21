@@ -1,20 +1,23 @@
 #!/bin/sh
 set -e
 
-cd /app
-
-# Production defaults before any Symfony/PHP boot
 export APP_ENV="${APP_ENV:-prod}"
 export APP_DEBUG="${APP_DEBUG:-0}"
-# No .env in the image — dev mode would fail; force prod if Railway left APP_ENV=dev
-if [ "$APP_ENV" = "dev" ] && [ ! -f /app/.env ]; then
+
+echo "Starting with APP_ENV=$APP_ENV APP_DEBUG=$APP_DEBUG" >&2
+
+# Railway may set APP_ENV=dev; production image has no real .env — force prod
+if [ "$APP_ENV" = "dev" ] || [ "$APP_ENV" = "development" ]; then
     export APP_ENV=prod
     export APP_DEBUG=0
+    echo "Overriding APP_ENV to prod (production container)." >&2
 fi
+
+cd /app
 
 # ── Railway MySQL: build DATABASE_URL from MYSQL* when not preset (URL-encode credentials) ──
 if [ -z "$DATABASE_URL" ] && [ -n "$MYSQLHOST" ]; then
-    export DATABASE_URL="$(php -r 'echo sprintf(
+    export DATABASE_URL="$(env APP_ENV="${APP_ENV}" APP_DEBUG="${APP_DEBUG}" php -r 'echo sprintf(
         "mysql://%s:%s@%s:%s/%s?serverVersion=%s&charset=utf8mb4",
         rawurlencode(getenv("MYSQLUSER") ?: ""),
         rawurlencode(getenv("MYSQLPASSWORD") ?: ""),
@@ -48,14 +51,18 @@ fi
 export JWT_SECRET_KEY="${JWT_SECRET_KEY:-/app/config/jwt/private.pem}"
 export JWT_PUBLIC_KEY="${JWT_PUBLIC_KEY:-/app/config/jwt/public.pem}"
 
-php bin/console cache:clear --env=prod --no-debug --no-warmup 2>/dev/null || true
-php bin/console cache:warmup --env=prod --no-debug
+env APP_ENV="${APP_ENV}" APP_DEBUG="${APP_DEBUG}" \
+    php bin/console cache:clear --env=prod --no-debug --no-warmup 2>/dev/null || true
+
+env APP_ENV="${APP_ENV}" APP_DEBUG="${APP_DEBUG}" \
+    php bin/console cache:warmup --env=prod --no-debug
 
 if [ "${RUN_MIGRATIONS:-0}" = "1" ]; then
     echo "Running database migrations..." >&2
-    php bin/console doctrine:migrations:migrate --no-interaction --env=prod --no-debug
+    env APP_ENV="${APP_ENV}" APP_DEBUG="${APP_DEBUG}" \
+        php bin/console doctrine:migrations:migrate --no-interaction --env=prod --no-debug
 fi
 
-PORT="${PORT:-8080}"
-echo "Starting PHP server on 0.0.0.0:${PORT} (APP_ENV=${APP_ENV})" >&2
-exec env APP_ENV="${APP_ENV}" APP_DEBUG="${APP_DEBUG}" php -S "0.0.0.0:${PORT}" -t public
+echo "Starting PHP server on 0.0.0.0:${PORT:-8080} (APP_ENV=${APP_ENV})" >&2
+exec env APP_ENV="${APP_ENV}" APP_DEBUG="${APP_DEBUG}" \
+    php -S "0.0.0.0:${PORT:-8080}" -t public
