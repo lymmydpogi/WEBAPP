@@ -30,16 +30,19 @@ if [ -z "$DATABASE_URL" ]; then
     exit 1
 fi
 
-# ── JWT key files (Lexik) ──
+# ── JWT key files (Lexik) — baked in at image build; override via Railway base64 vars ──
 mkdir -p config/jwt
 
 if [ -n "$JWT_PRIVATE_KEY_BASE64" ] && [ -n "$JWT_PUBLIC_KEY_BASE64" ]; then
+    echo "Loading JWT keys from Railway variables..." >&2
     echo "$JWT_PRIVATE_KEY_BASE64" | base64 -d > config/jwt/private.pem
     echo "$JWT_PUBLIC_KEY_BASE64" | base64 -d > config/jwt/public.pem
+    chmod 600 config/jwt/private.pem 2>/dev/null || true
 elif [ ! -f config/jwt/private.pem ] || [ ! -f config/jwt/public.pem ]; then
-    echo "Generating JWT key pair (set JWT_*_BASE64 in Railway to persist across deploys)..." >&2
-    openssl genpkey -algorithm RSA -out config/jwt/private.pem -pkeyopt rsa_keygen_bits:4096
-    openssl pkey -in config/jwt/private.pem -pubout -out config/jwt/public.pem
+    echo "Generating JWT key pair (quiet; set JWT_*_BASE64 in Railway to persist across deploys)..." >&2
+    openssl genrsa -out config/jwt/private.pem 2048 2>/dev/null
+    openssl rsa -in config/jwt/private.pem -pubout -out config/jwt/public.pem 2>/dev/null
+    chmod 600 config/jwt/private.pem 2>/dev/null || true
 fi
 
 export JWT_SECRET_KEY="${JWT_SECRET_KEY:-/app/config/jwt/private.pem}"

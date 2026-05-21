@@ -20,6 +20,7 @@ RUN npm run build
 
 FROM php:8.2-cli-bookworm AS runtime
 RUN apt-get update && apt-get install -y --no-install-recommends \
+        openssl \
         libicu-dev \
         libzip-dev \
         libonig-dev \
@@ -39,6 +40,9 @@ COPY docker/entrypoint.sh /entrypoint.sh
 
 RUN chmod +x /entrypoint.sh \
     && mkdir -p var/cache var/log public/uploads/avatars config/jwt \
+    && openssl genrsa -out config/jwt/private.pem 2048 2>/dev/null \
+    && openssl rsa -in config/jwt/private.pem -pubout -out config/jwt/public.pem 2>/dev/null \
+    && chmod 600 config/jwt/private.pem \
     && chown -R www-data:www-data var public/uploads config/jwt
 
 ENV APP_ENV=prod
