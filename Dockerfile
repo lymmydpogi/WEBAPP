@@ -3,10 +3,13 @@
 
 FROM composer:2 AS vendor
 WORKDIR /app
-RUN apt-get update && apt-get install -y --no-install-recommends \
-        git unzip libicu-dev libzip-dev \
-    && docker-php-ext-install intl zip \
-    && rm -rf /var/lib/apt/lists/*
+RUN apk add --no-cache \
+        git \
+        unzip \
+        icu-dev \
+        libzip-dev \
+        oniguruma-dev \
+    && docker-php-ext-install intl zip
 COPY composer.json composer.lock symfony.lock ./
 RUN composer install --no-dev --no-scripts --prefer-dist --no-interaction
 COPY . .
@@ -15,9 +18,7 @@ RUN composer dump-autoload --classmap-authoritative --no-dev
 FROM node:20-alpine AS assets
 WORKDIR /app
 COPY package.json package-lock.json ./
-RUN npm ci
-ENV npm_config_audit=false
-ENV npm_config_fund=false
+RUN npm ci --no-audit --no-fund
 COPY --from=vendor /app/vendor ./vendor
 COPY webpack.config.js postcss.config.js tailwind.config.js ./
 COPY assets ./assets
