@@ -19,11 +19,11 @@ use ApiPlatform\Metadata\Delete;
 
 #[ApiResource(
     operations: [
-        new Get(),
-        new GetCollection(),
-        new Post(),
-        new Put(),
-        new Delete()
+        new Get(security: "is_granted('ROLE_ADMIN')"),
+        new GetCollection(security: "is_granted('ROLE_ADMIN')"),
+        new Post(security: "is_granted('ROLE_ADMIN')"),
+        new Put(security: "is_granted('ROLE_ADMIN')"),
+        new Delete(security: "is_granted('ROLE_ADMIN')"),
     ]
 )]
 
@@ -47,6 +47,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $name = null;
+
+    #[ORM\Column(length: 100, nullable: true)]
+    private ?string $firstName = null;
+
+    #[ORM\Column(length: 100, nullable: true)]
+    private ?string $lastName = null;
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $avatar = null;
@@ -92,8 +98,29 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setPassword(string $password): static { $this->password = $password; return $this; }
     public function eraseCredentials(): void {}
 
-    public function getName(): ?string { return $this->name; }
-    public function setName(?string $name): static { $this->name = $name; return $this; }
+    public function getName(): ?string
+    {
+        if ($this->name !== null && trim($this->name) !== '') {
+            return $this->name;
+        }
+
+        $fullName = trim(($this->firstName ?? '') . ' ' . ($this->lastName ?? ''));
+
+        return $fullName !== '' ? $fullName : null;
+    }
+
+    public function setName(?string $name): static
+    {
+        $this->name = $name;
+
+        return $this;
+    }
+
+    public function getFirstName(): ?string { return $this->firstName; }
+    public function setFirstName(?string $firstName): static { $this->firstName = $firstName; return $this; }
+
+    public function getLastName(): ?string { return $this->lastName; }
+    public function setLastName(?string $lastName): static { $this->lastName = $lastName; return $this; }
 
     public function getAvatar(): ?string { return $this->avatar; }
     public function setAvatar(?string $avatar): static { $this->avatar = $avatar; return $this; }
@@ -115,6 +142,24 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function getVerificationToken(): ?string { return $this->verificationToken; }
     public function setVerificationToken(?string $verificationToken): static { $this->verificationToken = $verificationToken; return $this; }
 
+    /** Verified users must not keep a pending token. */
+    public function markEmailAsVerified(): static
+    {
+        $this->isVerified = true;
+        $this->verificationToken = null;
+
+        return $this;
+    }
+
+    /** Awaiting email verification link click. */
+    public function markEmailAsPendingVerification(string $token): static
+    {
+        $this->isVerified = false;
+        $this->verificationToken = $token;
+
+        return $this;
+    }
+
     // ──────────────── Orders ────────────────
     public function getOrders(): Collection { return $this->orders; }
     public function addOrder(Order $order): static { if (!$this->orders->contains($order)) { $this->orders->add($order); $order->setUser($this); } return $this; }
@@ -122,4 +167,21 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function isAdmin(): bool { return in_array('ROLE_ADMIN', $this->getRoles(), true); }
     public function isStaff(): bool { return in_array('ROLE_STAFF', $this->getRoles(), true); }
+
+    public function isAccountActive(): bool
+    {
+        return ($this->status ?? 'active') === 'active';
+    }
+
+    /** Client/mobile app user (ROLE_CLIENT or ROLE_USER, not staff/admin). */
+    public function isMobileAppUser(): bool
+    {
+        if ($this->isAdmin() || $this->isStaff()) {
+            return false;
+        }
+
+        $roles = $this->getRoles();
+
+        return in_array('ROLE_CLIENT', $roles, true) || in_array('ROLE_USER', $roles, true);
+    }
 }

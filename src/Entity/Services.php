@@ -20,17 +20,19 @@ use ApiPlatform\Metadata\Delete;
 
 #[ApiResource(
     operations: [
-        new Get(),
-        new GetCollection(),
-        new Post(),
-        new Put(),
-        new Delete()
+        new Get(security: "is_granted('ROLE_ADMIN') or is_granted('ROLE_STAFF')"),
+        new GetCollection(security: "is_granted('ROLE_ADMIN') or is_granted('ROLE_STAFF')"),
+        new Post(security: "is_granted('ROLE_ADMIN') or is_granted('ROLE_STAFF')"),
+        new Put(security: "is_granted('ROLE_ADMIN') or is_granted('ROLE_STAFF')"),
+        new Delete(security: "is_granted('ROLE_ADMIN') or is_granted('ROLE_STAFF')"),
     ]
 )]
 
 #[ORM\Entity(repositoryClass: ServicesRepository::class)]
 class Services
 {
+    public const STATUS_ACTIVE = 'active';
+    public const STATUS_INACTIVE = 'inactive';
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -193,7 +195,20 @@ class Services
     public function setStatus(string $status): static
     {
         $this->status = $status;
+        $this->is_active = $status === self::STATUS_ACTIVE;
+
         return $this;
+    }
+
+    public function getStatusLabel(): string
+    {
+        return $this->isOrderable() ? 'Active' : 'Inactive';
+    }
+
+    /** Whether new orders may be placed for this service. */
+    public function isOrderable(): bool
+    {
+        return $this->status === self::STATUS_ACTIVE && $this->is_active;
     }
 
     public function getPricingModel(): ?string
@@ -264,12 +279,14 @@ class Services
 
     public function isActive(): bool
     {
-        return $this->is_active;
+        return $this->isOrderable();
     }
 
     public function setIsActive(bool $isActive): static
     {
         $this->is_active = $isActive;
+        $this->status = $isActive ? self::STATUS_ACTIVE : self::STATUS_INACTIVE;
+
         return $this;
     }
 

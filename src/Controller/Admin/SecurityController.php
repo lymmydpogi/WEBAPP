@@ -2,7 +2,10 @@
 
 namespace App\Controller\Admin;
 
+use App\Entity\User;
+use App\Exception\MobileAccessDeniedException;
 use App\Repository\UserRepository;
+use App\Service\MobileAppAccessService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -14,6 +17,11 @@ use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 
 class SecurityController extends AbstractController
 {
+    public function __construct(
+        private readonly MobileAppAccessService $mobileAppAccess,
+    ) {
+    }
+
     private function apiSuccess(string $message, array $data = [], int $status = Response::HTTP_OK): JsonResponse
     {
         return new JsonResponse([
@@ -80,21 +88,38 @@ class SecurityController extends AbstractController
             );
         }
 
-        $user = $userRepository->findOneBy(['email' => $data['email']]);
+        $email = trim((string) $data['email']);
+        $user = $userRepository->findOneBy(['email' => $email]);
 
-        if (!$user || !$passwordHasher->isPasswordValid($user, $data['password'])) {
-            return $this->apiError('Invalid credentials.', Response::HTTP_UNAUTHORIZED);
+        if (!$user instanceof User || !$passwordHasher->isPasswordValid($user, $data['password'])) {
+            return $this->apiError(MobileAppAccessService::MSG_INVALID_CREDENTIALS, Response::HTTP_UNAUTHORIZED);
+        }
+
+        try {
+            $this->mobileAppAccess->assertCanUseMobileApp($user);
+        } catch (MobileAccessDeniedException $e) {
+            return $this->apiError($e->getMessage(), $e->getHttpStatus());
         }
 
         $token = $jwtManager->create($user);
+
+        $avatarUrl = null;
+        if ($user->getAvatar()) {
+            $avatarUrl = $request->getSchemeAndHttpHost() . '/uploads/avatars/' . $user->getAvatar();
+        }
 
         return $this->apiSuccess('Login successful.', [
             'token' => $token,
             'user' => [
                 'id' => $user->getId(),
                 'email' => $user->getEmail(),
+                'name' => $user->getName(),
+                'firstName' => $user->getFirstName(),
+                'lastName' => $user->getLastName(),
                 'roles' => $user->getRoles(),
                 'isVerified' => $user->isVerified(),
+                'avatarUrl' => $avatarUrl,
+                'createdAt' => $user->getCreatedAt()?->format(\DateTimeInterface::ATOM),
             ],
         ]);
     }

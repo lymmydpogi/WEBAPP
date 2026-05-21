@@ -9,6 +9,7 @@ use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 
 class OrderVoter extends Voter
 {
+    use UserOwnershipTrait;
     public const EDIT = 'ORDER_EDIT';
     public const DELETE = 'ORDER_DELETE';
 
@@ -33,8 +34,8 @@ class OrderVoter extends Voter
 
         // Staff only allowed if they created the order
         return match ($attribute) {
-            self::EDIT => $order->getCreatedBy() === $user,
-            self::DELETE => $order->getCreatedBy() === $user,
+            self::EDIT => $this->isSameUser($order->getCreatedBy(), $user),
+            self::DELETE => $this->isSameUser($order->getCreatedBy(), $user),
             default => false
         };
     }

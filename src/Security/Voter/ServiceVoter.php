@@ -9,6 +9,7 @@ use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 
 class ServiceVoter extends Voter
 {
+    use UserOwnershipTrait;
     public const EDIT = 'SERVICE_EDIT';
     public const DELETE = 'SERVICE_DELETE';
 
@@ -33,8 +34,8 @@ class ServiceVoter extends Voter
 
         // Staff can only modify services they created
         return match ($attribute) {
-            self::EDIT => $service->getCreatedBy() === $user,
-            self::DELETE => $service->getCreatedBy() === $user,
+            self::EDIT => $this->isSameUser($service->getCreatedBy(), $user),
+            self::DELETE => $this->isSameUser($service->getCreatedBy(), $user),
             default => false
         };
     }

@@ -15,13 +15,17 @@ use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
 use ApiPlatform\Metadata\Delete;
 
+/**
+ * One order row = one service + one transaction (notes, status, dates are per order).
+ * The same user may order the same service many times; each submission is a new row.
+ */
 #[ApiResource(
     operations: [
-        new Get(),
-        new GetCollection(),
-        new Post(),
-        new Put(),
-        new Delete()
+        new Get(security: "is_granted('ROLE_ADMIN') or is_granted('ROLE_STAFF')"),
+        new GetCollection(security: "is_granted('ROLE_ADMIN') or is_granted('ROLE_STAFF')"),
+        new Post(security: "is_granted('ROLE_ADMIN') or is_granted('ROLE_STAFF')"),
+        new Put(security: "is_granted('ROLE_ADMIN') or is_granted('ROLE_STAFF')"),
+        new Delete(security: "is_granted('ROLE_ADMIN') or is_granted('ROLE_STAFF')"),
     ]
 )]
 
@@ -31,14 +35,25 @@ class Order
 {
     // ───────────── Order Status ─────────────
     public const STATUS_PENDING = 'Pending';
+    public const STATUS_APPROVED = 'Approved';
+    public const STATUS_IN_PROGRESS = 'In Progress';
     public const STATUS_COMPLETED = 'Completed';
-    public const STATUS_CANCELED = 'Canceled';
+    public const STATUS_CANCELLED = 'Cancelled';
+    public const STATUS_REJECTED = 'Rejected';
+
+    /** @deprecated Use STATUS_CANCELLED */
+    public const STATUS_CANCELED = self::STATUS_CANCELLED;
 
     public const STATUSES = [
         self::STATUS_PENDING,
+        self::STATUS_APPROVED,
+        self::STATUS_IN_PROGRESS,
         self::STATUS_COMPLETED,
-        self::STATUS_CANCELED,
+        self::STATUS_CANCELLED,
+        self::STATUS_REJECTED,
     ];
+
+    public const ADMIN_STATUSES = self::STATUSES;
 
     // ───────────── Payment Method ─────────────
     public const PAYMENT_CASH = 'Cash';
@@ -93,6 +108,9 @@ class Order
     #[ORM\Column(nullable: true)]
     private ?float $totalPrice = 0.0;
 
+    #[ORM\Column(type: Types::INTEGER, options: ['default' => 1])]
+    private int $quantity = 1;
+
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $notes = null;
 
@@ -115,8 +133,28 @@ class Order
         $this->orderDate = new \DateTimeImmutable();
         $this->status = self::STATUS_PENDING;
         $this->totalPrice = 0.0;
+        $this->quantity = 1;
         $this->paymentMethod = self::PAYMENT_CASH;
         $this->paymentStatus = self::PAYMENT_STATUS_PENDING;
+    }
+
+    public function isPending(): bool
+    {
+        return $this->getStatus() === self::STATUS_PENDING;
+    }
+
+    public function canBeModifiedByClient(): bool
+    {
+        return $this->isPending();
+    }
+
+    public static function calculateTotalFromService(?Services $service, int $quantity): float
+    {
+        if (!$service || $quantity <= 0) {
+            return 0.0;
+        }
+
+        return round((float) $service->getPrice() * $quantity, 2);
     }
 
     // ───────────── Getters & Setters ─────────────
@@ -188,6 +226,10 @@ class Order
 
     public function getStatus(): string
     {
+        if ($this->status === 'Canceled') {
+            return self::STATUS_CANCELLED;
+        }
+
         return $this->status;
     }
 
@@ -208,6 +250,26 @@ class Order
     public function setTotalPrice(?float $totalPrice): static
     {
         $this->totalPrice = $totalPrice ?? 0.0;
+        return $this;
+    }
+
+    public function getQuantity(): int
+    {
+        return $this->quantity;
+    }
+
+    public function setQuantity(int $quantity): static
+    {
+        if ($quantity < 1) {
+            throw new \InvalidArgumentException('Quantity must be at least 1.');
+        }
+        $this->quantity = $quantity;
+        return $this;
+    }
+
+    public function recalculateTotalFromService(): static
+    {
+        $this->totalPrice = self::calculateTotalFromService($this->service, $this->quantity);
         return $this;
     }
 
