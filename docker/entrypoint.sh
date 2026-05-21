@@ -63,6 +63,16 @@ if [ "${RUN_MIGRATIONS:-0}" = "1" ]; then
         php bin/console doctrine:migrations:migrate --no-interaction --env=prod --no-debug
 fi
 
+if [ "${RUN_FIXTURES:-0}" = "1" ]; then
+    echo "Loading fixtures (append only — idempotent seed)..." >&2
+    env APP_ENV="${APP_ENV}" APP_DEBUG="${APP_DEBUG}" \
+        INITIAL_ADMIN_EMAIL="${INITIAL_ADMIN_EMAIL:-}" \
+        INITIAL_ADMIN_PASSWORD="${INITIAL_ADMIN_PASSWORD:-}" \
+        INITIAL_ADMIN_NAME="${INITIAL_ADMIN_NAME:-Admin}" \
+        php bin/console doctrine:fixtures:load --append --no-interaction --env=prod --no-debug
+    echo "Fixtures finished. Remove RUN_FIXTURES=1 from Railway after verifying seed data." >&2
+fi
+
 echo "Starting PHP server on 0.0.0.0:${PORT:-8080} (APP_ENV=${APP_ENV})" >&2
 exec env APP_ENV="${APP_ENV}" APP_DEBUG="${APP_DEBUG}" \
     php -S "0.0.0.0:${PORT:-8080}" -t public
