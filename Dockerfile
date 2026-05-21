@@ -18,12 +18,18 @@ COPY webpack.config.js postcss.config.js tailwind.config.js ./
 COPY assets ./assets
 RUN npm run build
 
-FROM php:8.2-cli-alpine AS runtime
-RUN apk add --no-cache \
-        icu-dev libzip-dev oniguruma-dev \
-        wkhtmltopdf ttf-freefont \
+FROM php:8.2-cli-bookworm AS runtime
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        libicu-dev \
+        libzip-dev \
+        libonig-dev \
+        wkhtmltopdf \
+        fontconfig \
+        xfonts-base \
+        xfonts-75dpi \
     && docker-php-ext-install -j"$(nproc)" pdo_mysql intl opcache zip \
-    && apk del icu-dev libzip-dev oniguruma-dev
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
