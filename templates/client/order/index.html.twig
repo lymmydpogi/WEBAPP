@@ -10,7 +10,12 @@
         </div>
 
         {% if orders is empty %}
-            <p class="subtle">You have no orders yet. <a href="{{ path('client_services') }}">Browse services</a> to start a project.</p>
+            <div class="orders-empty">
+                <div class="orders-empty__icon" aria-hidden="true">📋</div>
+                <h2>No orders yet</h2>
+                <p>When you submit a project brief from a service page, your request will show up here so you can track status and updates.</p>
+                <a href="{{ path('client_services') }}" class="btn btn-primary">Browse services</a>
+            </div>
         {% else %}
             <div class="order-list">
                 {% for order in orders %}
@@ -19,7 +24,6 @@
                             <strong>#{{ order.id }} — {{ order.service ? order.service.name : 'Service' }}</strong>
                             <p class="subtle">
                                 {{ order.orderDate ? order.orderDate|date('M d, Y') : '' }}
-                                · Qty {{ order.quantity }}
                                 · ₱{{ order.totalPrice|number_format(2) }}
                             </p>
                             <span class="pill-small order-status order-status--{{ order.status|lower|replace({' ': '-'}) }}">{{ order.status }}</span>
@@ -37,6 +41,23 @@
     </section>
 
     <style>
+        .orders-empty {
+            margin-top: 1.25rem;
+            padding: 2.5rem 1.75rem;
+            text-align: center;
+            border-radius: 1rem;
+            border: 1px dashed rgba(56, 189, 248, 0.35);
+            background: linear-gradient(160deg, rgba(15, 23, 42, 0.9), rgba(30, 27, 75, 0.55));
+        }
+        .orders-empty__icon { font-size: 2.5rem; margin-bottom: 0.75rem; opacity: 0.85; }
+        .orders-empty h2 { margin: 0 0 0.5rem; font-size: 1.35rem; color: #f9fafb; }
+        .orders-empty p {
+            margin: 0 auto 1.25rem;
+            max-width: 42ch;
+            color: #9ca3af;
+            font-size: 0.95rem;
+            line-height: 1.55;
+        }
         .order-list { display: flex; flex-direction: column; gap: 0.85rem; margin-top: 1rem; }
         .order-list-item {
             display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 0.75rem;

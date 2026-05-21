@@ -147,14 +147,6 @@
         <form method="post" action="{{ path('client_service_show', { slug: slug }) }}#project-brief" class="service-brief-form contact-form-card">
             <input type="hidden" name="_token" value="{{ csrf_token('client_service_order_' ~ slug) }}">
             <div class="form-group">
-                <label for="quantity">Quantity</label>
-                <input type="number" id="quantity" name="quantity" min="1" value="{{ quantity|default(1) }}" required>
-                {% if errors.quantity is defined %}
-                    <p class="form-error">{{ errors.quantity }}</p>
-                {% endif %}
-            </div>
-
-            <div class="form-group">
                 <label for="project_brief">Project brief</label>
                 <textarea
                     id="project_brief"

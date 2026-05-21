@@ -77,7 +77,6 @@ final class OrderController extends AbstractController
             try {
                 $clientOrderService->updatePendingOrder($client, $id, [
                     'serviceId' => $order->getService()?->getId(),
-                    'quantity' => $order->getQuantity(),
                     'notes' => $order->getNotes() ?? '',
                 ]);
                 $this->addFlash('success', 'Order updated successfully.');

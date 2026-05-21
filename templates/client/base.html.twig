@@ -17,7 +17,7 @@
                 #020617;
             color: #e5e7eb;
         }
-        header, footer {
+        header, .site-footer {
             padding: 1.1rem 2rem;
             background: linear-gradient(to bottom, rgba(15,23,42,0.96), rgba(15,23,42,0.82));
             backdrop-filter: blur(22px);
@@ -727,7 +727,65 @@
         .error { color: #f97373; font-size: 0.8rem; margin-top: 0.25rem; }
         .flash-success { background: #166534; border-radius: 0.6rem; padding: 0.75rem 1rem; margin-bottom: 1rem; font-size: 0.9rem; border: 1px solid #14532d; }
         .flash-error { background: rgba(185, 28, 28, 0.25); border-radius: 0.6rem; padding: 0.75rem 1rem; margin-bottom: 1rem; font-size: 0.9rem; border: 1px solid rgba(248, 113, 113, 0.35); }
-        footer { font-size: 0.8rem; color: #6b7280; text-align: center; border-top: 1px solid #111827; }
+        .site-footer {
+            margin-top: 3rem;
+            padding: 2.5rem 2rem 2rem;
+            border-top: 1px solid rgba(148, 163, 184, 0.12);
+            background: linear-gradient(180deg, transparent, rgba(2, 6, 23, 0.85));
+        }
+        .site-footer__inner {
+            max-width: 1120px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1.4fr repeat(2, minmax(0, 1fr));
+            gap: 2rem 2.5rem;
+        }
+        .site-footer__brand p {
+            margin: 0.65rem 0 0;
+            max-width: 32ch;
+            font-size: 0.88rem;
+            line-height: 1.55;
+            color: #9ca3af;
+        }
+        .site-footer__title {
+            margin: 0 0 0.85rem;
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: #94a3b8;
+        }
+        .site-footer__links {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 0.45rem;
+        }
+        .site-footer__links a {
+            color: #cbd5e1;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.15s ease;
+        }
+        .site-footer__links a:hover { color: #38bdf8; }
+        .site-footer__bottom {
+            max-width: 1120px;
+            margin: 2rem auto 0;
+            padding-top: 1.25rem;
+            border-top: 1px solid rgba(148, 163, 184, 0.1);
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 0.8rem;
+            color: #64748b;
+        }
+        @media (max-width: 768px) {
+            .site-footer__inner { grid-template-columns: 1fr; gap: 1.5rem; }
+        }
         @media (max-width: 768px) {
             .hero { grid-template-columns: minmax(0, 1fr); }
             .hero-visual { min-height: 280px; }
@@ -751,7 +809,7 @@
             .profile-layout { grid-template-columns: 1fr; }
             .profile-form-grid { grid-template-columns: 1fr; }
             .profile-header h1 { font-size: 1.85rem; }
-            header, footer { padding-inline: 1.25rem; }
+            header, .site-footer { padding-inline: 1.25rem; }
             main { padding-inline: 1.25rem; }
             nav { flex-wrap: wrap; gap: 0.8rem; }
             .nav-left { width: 100%; justify-content: space-between; }
@@ -804,14 +862,38 @@
     {% block body %}{% endblock %}
 </main>
 
-<footer>
-    <div style="max-width: 1120px; margin: 0 auto; display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:0.75rem;">
-        <small>&copy; {{ "now"|date("Y") }} Your Creative Studio. All rights reserved.</small>
-        <div style="font-size:0.8rem; display:flex; gap:0.75rem;">
-            <a href="{{ path('client_services') }}">Services</a>
-            <a href="{{ path('client_contact') }}">Contact</a>
-            <span style="color:#4b5563;">Portfolio crafted in Symfony.</span>
+<footer class="site-footer">
+    <div class="site-footer__inner">
+        <div class="site-footer__brand">
+            <div class="logo" style="justify-content: flex-start;">
+                <img src="{{ asset('images/client-logo.png') }}" alt="Campana Designs" class="client-logo" style="height: 36px;">
+            </div>
+            <p>Creative studio for branding, design, and digital projects. Submit a brief, track your order, and we will follow up with you.</p>
         </div>
+        <div>
+            <p class="site-footer__title">Explore</p>
+            <ul class="site-footer__links">
+                <li><a href="{{ path('client_landing') }}">Home</a></li>
+                <li><a href="{{ path('client_services') }}">Services</a></li>
+                <li><a href="{{ path('client_about') }}">About</a></li>
+            </ul>
+        </div>
+        <div>
+            <p class="site-footer__title">Account</p>
+            <ul class="site-footer__links">
+                <li><a href="{{ path('client_contact') }}">Contact</a></li>
+                {% if app.user is not null and 'ROLE_CLIENT' in app.user.roles %}
+                    <li><a href="{{ path('client_orders') }}">My orders</a></li>
+                    <li><a href="{{ path('client_profile') }}">Profile</a></li>
+                {% else %}
+                    <li><a href="{{ path('app_login_index') }}">Log in</a></li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+    <div class="site-footer__bottom">
+        <small>&copy; {{ "now"|date("Y") }} Campana Designs. All rights reserved.</small>
+        <small>Built for clients who want clear project requests and updates.</small>
     </div>
 </footer>
 

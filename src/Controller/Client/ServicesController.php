@@ -84,8 +84,6 @@ class ServicesController extends AbstractController
 
         $projectBrief = trim((string) $request->request->get('project_brief', ''));
 
-        $quantity = (int) $request->request->get('quantity', 1);
-
         $errors = [];
 
 
@@ -143,7 +141,7 @@ class ServicesController extends AbstractController
 
                     try {
 
-                        $order = $clientOrderService->createFromServiceBrief($service, $client, $projectBrief, $quantity);
+                        $order = $clientOrderService->createFromServiceBrief($service, $client, $projectBrief);
 
 
 
@@ -192,8 +190,6 @@ class ServicesController extends AbstractController
             'status_label' => $service->getStatusLabel(),
 
             'project_brief' => $projectBrief,
-
-            'quantity' => $quantity > 0 ? $quantity : 1,
 
             'errors' => $errors,
 

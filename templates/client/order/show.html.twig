@@ -11,7 +11,6 @@
 
         <dl class="order-detail-grid">
             <div><dt>Status</dt><dd><span class="pill-small">{{ order.status }}</span></dd></div>
-            <div><dt>Quantity</dt><dd>{{ order.quantity }}</dd></div>
             <div><dt>Total</dt><dd>₱{{ order.totalPrice|number_format(2) }}</dd></div>
             <div><dt>Order date</dt><dd>{{ order.orderDate ? order.orderDate|date('M d, Y H:i') : '—' }}</dd></div>
             <div class="order-detail-notes"><dt>Project brief</dt><dd>{{ order.notes|default('—')|nl2br }}</dd></div>
