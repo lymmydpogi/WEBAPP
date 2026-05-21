@@ -75,8 +75,10 @@ class AppFixtures extends Fixture
     {
         // INITIAL_ADMIN_* (documented); ADMIN_* accepted for Railway convenience
         $email = trim((string) ($this->env('INITIAL_ADMIN_EMAIL') ?? $this->env('ADMIN_EMAIL') ?? ''));
-        $password = (string) ($this->env('INITIAL_ADMIN_PASSWORD') ?? $this->env('ADMIN_PASSWORD') ?? '');
+        $password = trim((string) ($this->env('INITIAL_ADMIN_PASSWORD') ?? $this->env('ADMIN_PASSWORD') ?? ''));
         $name = trim((string) ($this->env('INITIAL_ADMIN_NAME') ?? $this->env('ADMIN_NAME') ?? 'Admin'));
+        $syncPassword = ($this->env('SYNC_INITIAL_ADMIN_PASSWORD') ?? '') === '1';
+        $promote = ($this->env('PROMOTE_INITIAL_ADMIN') ?? '') === '1';
 
         if ($email === '' || $password === '') {
             $this->log('Skipping admin seed: INITIAL_ADMIN_EMAIL and INITIAL_ADMIN_PASSWORD must both be set.');
@@ -84,21 +86,36 @@ class AppFixtures extends Fixture
             return null;
         }
 
+        /** @var \App\Repository\UserRepository $repo */
         $repo = $manager->getRepository(User::class);
-        $existing = $repo->findOneBy(['email' => $email]);
+        $existing = $repo->findOneByEmail($email);
 
         if ($existing instanceof User) {
             if ($existing->isAdmin()) {
-                $this->log(sprintf('Admin already exists, skipping: %s', $email));
+                if ($syncPassword) {
+                    $existing->setPassword($this->passwordHasher->hashPassword($existing, $password));
+                    $this->log(sprintf('Admin already exists; password synced from env: %s', $email));
+                } else {
+                    $this->log(sprintf('Admin already exists, skipping (set SYNC_INITIAL_ADMIN_PASSWORD=1 to update password): %s', $email));
+                }
+            } elseif ($promote) {
+                $existing->setRoles(['ROLE_ADMIN']);
+                $existing->setStatus('active');
+                $existing->markEmailAsVerified();
+                $existing->setPassword($this->passwordHasher->hashPassword($existing, $password));
+                $this->log(sprintf('Promoted existing user to admin and set password: %s', $email));
             } else {
-                $this->log(sprintf('User with email %s already exists (not admin); admin not created.', $email));
+                $this->log(sprintf(
+                    'User with email %s already exists (not admin). Login uses that account\'s password, not Railway ADMIN_PASSWORD. Set PROMOTE_INITIAL_ADMIN=1 or run: php bin/console app:sync-initial-admin --promote',
+                    $email
+                ));
             }
 
             return $existing->isAdmin() ? $existing : null;
         }
 
         $admin = new User();
-        $admin->setEmail($email);
+        $admin->setEmail(mb_strtolower($email));
         $admin->setName($name !== '' ? $name : 'Admin');
         $admin->setRoles(['ROLE_ADMIN']);
         $admin->setStatus('active');

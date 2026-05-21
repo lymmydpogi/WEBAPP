@@ -2,9 +2,9 @@
 
 namespace App\Security;
 
-use App\Entity\ActivityLog;
 use App\Entity\User;
-use Doctrine\ORM\EntityManagerInterface;
+use App\Repository\UserRepository;
+use Symfony\Component\Security\Core\Exception\UserNotFoundException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
@@ -22,16 +22,23 @@ class LoginFormAuthenticator extends AbstractLoginFormAuthenticator
 
     public function __construct(
         private UrlGeneratorInterface $urlGenerator,
-        private EntityManagerInterface $entityManager
+        private UserRepository $userRepository,
     ) {}
 
     public function authenticate(Request $request): Passport
     {
-        $email = $request->request->get('_username', '');
+        $email = mb_strtolower(trim((string) $request->request->get('_username', '')));
         $request->getSession()->set('_security.last_username', $email);
 
         return new Passport(
-            new UserBadge($email),
+            new UserBadge($email, function (string $userIdentifier): User {
+                $user = $this->userRepository->findOneByEmail($userIdentifier);
+                if (!$user instanceof User) {
+                    throw new UserNotFoundException(sprintf('User "%s" not found.', $userIdentifier));
+                }
+
+                return $user;
+            }),
             new PasswordCredentials($request->request->get('_password', '')),
             [
                 new CsrfTokenBadge('authenticate', $request->request->get('_csrf_token')),
@@ -55,16 +62,7 @@ class LoginFormAuthenticator extends AbstractLoginFormAuthenticator
             return new RedirectResponse($next);
         }
 
-        // ───────────── Log login activity ─────────────
-        $log = new ActivityLog();
-        $log->setUser($user);
-        $log->setAction('LOGIN');
-        $log->setActionDetails('User logged in');
-        $log->setTargetEntity('User');
-        $log->setTargetEntityId($user->getId());
-
-        $this->entityManager->persist($log);
-        $this->entityManager->flush();
+        // Activity logging is handled by ActivitySubscriber (LoginSuccessEvent).
 
         // ───────────── Role-based redirect ─────────────
         $roles = $user->getRoles();

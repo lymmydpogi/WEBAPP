@@ -89,7 +89,7 @@ class SecurityController extends AbstractController
         }
 
         $email = trim((string) $data['email']);
-        $user = $userRepository->findOneBy(['email' => $email]);
+        $user = $userRepository->findOneByEmail($email);
 
         if (!$user instanceof User || !$passwordHasher->isPasswordValid($user, $data['password'])) {
             return $this->apiError(MobileAppAccessService::MSG_INVALID_CREDENTIALS, Response::HTTP_UNAUTHORIZED);

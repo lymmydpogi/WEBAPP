@@ -150,7 +150,7 @@ final class GoogleAuthController extends AbstractController
         $name = $userInfo['name'] ?? null;
         $googleEmailVerified = (bool) ($userInfo['email_verified'] ?? false);
 
-        $user = $userRepository->findOneBy(['email' => $email]);
+        $user = $userRepository->findOneByEmail($email);
         $isNewUser = false;
 
         if (!$user) {

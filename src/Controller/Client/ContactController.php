@@ -8,6 +8,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
 use Symfony\Component\Routing\Annotation\Route;
@@ -15,7 +16,12 @@ use Symfony\Component\Routing\Annotation\Route;
 class ContactController extends AbstractController
 {
     #[Route('/client/contact', name: 'client_contact', methods: ['GET', 'POST'])]
-    public function contact(Request $request, EntityManagerInterface $em, MailerInterface $mailer): Response
+    public function contact(
+        Request $request,
+        EntityManagerInterface $em,
+        MailerInterface $mailer,
+        #[Autowire(env: 'MAILER_FROM_ADDRESS')] string $fromAddress,
+    ): Response
     {
         $data = [
             'name' => trim((string) $request->request->get('name', '')),
@@ -69,11 +75,10 @@ class ContactController extends AbstractController
 
                 // Third-party submission via configured Mailer provider (Brevo SMTP).
                 try {
-                    $receiver = $_ENV['MAILER_FROM_ADDRESS'] ?? 'lcampana.student@asiancollege.edu.ph';
                     $mailer->send(
                         (new Email())
-                            ->from($receiver)
-                            ->to($receiver)
+                            ->from($fromAddress)
+                            ->to($fromAddress)
                             ->replyTo($data['email'])
                             ->subject('[Client Contact] ' . $data['subject'])
                             ->text(

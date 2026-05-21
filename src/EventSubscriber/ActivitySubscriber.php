@@ -46,8 +46,12 @@ class ActivitySubscriber implements EventSubscriberInterface
         $log->setTargetEntity('User');
         $log->setTargetEntityId($user->getId());
 
-        $this->entityManager->persist($log);
-        $this->entityManager->flush();
+        try {
+            $this->entityManager->persist($log);
+            $this->entityManager->flush();
+        } catch (\Throwable) {
+            // Do not block login if activity_logs is missing or misconfigured.
+        }
     }
 
     public function onLogout(LogoutEvent $event): void
@@ -65,7 +69,11 @@ class ActivitySubscriber implements EventSubscriberInterface
         $log->setTargetEntity('User');
         $log->setTargetEntityId($user->getId());
 
-        $this->entityManager->persist($log);
-        $this->entityManager->flush();
+        try {
+            $this->entityManager->persist($log);
+            $this->entityManager->flush();
+        } catch (\Throwable) {
+            // Do not block logout if activity_logs is missing or misconfigured.
+        }
     }
 }
