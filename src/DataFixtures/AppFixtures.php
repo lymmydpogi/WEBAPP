@@ -73,9 +73,10 @@ class AppFixtures extends Fixture
 
     private function seedAdmin(ObjectManager $manager): ?User
     {
-        $email = trim((string) ($this->env('INITIAL_ADMIN_EMAIL') ?? ''));
-        $password = (string) ($this->env('INITIAL_ADMIN_PASSWORD') ?? '');
-        $name = trim((string) ($this->env('INITIAL_ADMIN_NAME') ?? 'Admin'));
+        // INITIAL_ADMIN_* (documented); ADMIN_* accepted for Railway convenience
+        $email = trim((string) ($this->env('INITIAL_ADMIN_EMAIL') ?? $this->env('ADMIN_EMAIL') ?? ''));
+        $password = (string) ($this->env('INITIAL_ADMIN_PASSWORD') ?? $this->env('ADMIN_PASSWORD') ?? '');
+        $name = trim((string) ($this->env('INITIAL_ADMIN_NAME') ?? $this->env('ADMIN_NAME') ?? 'Admin'));
 
         if ($email === '' || $password === '') {
             $this->log('Skipping admin seed: INITIAL_ADMIN_EMAIL and INITIAL_ADMIN_PASSWORD must both be set.');
