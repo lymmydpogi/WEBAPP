@@ -1,0 +1,8 @@
+knp_snappy:
+    pdf:
+        enabled: true
+        binary: '/usr/bin/wkhtmltopdf'
+        options:
+            no-outline: true
+            page-size: A4
+            encoding: UTF-8

@@ -3,10 +3,12 @@
 namespace App\EventSubscriber;
 
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
-use Symfony\Component\HttpKernel\Event\ExceptionEvent;
-use Symfony\Component\Security\Core\Exception\AccessDeniedException;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 
 class AccessDeniedSubscriber implements EventSubscriberInterface
 {
@@ -17,7 +19,17 @@ class AccessDeniedSubscriber implements EventSubscriberInterface
         $exception = $event->getThrowable();
 
         if ($exception instanceof AccessDeniedException) {
-            // Redirect back to login page with query parameter
+            if (str_starts_with($event->getRequest()->getPathInfo(), '/api')) {
+                $event->setResponse(new JsonResponse([
+                    'success' => false,
+                    'message' => 'Access denied.',
+                    'data' => null,
+                    'errors' => [],
+                ], Response::HTTP_FORBIDDEN));
+
+                return;
+            }
+
             $url = $this->router->generate('app_login_index', ['access_denied' => 1]);
             $event->setResponse(new RedirectResponse($url));
         }

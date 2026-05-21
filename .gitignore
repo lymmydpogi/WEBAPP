@@ -12,7 +12,7 @@
 /phpunit.xml
 /.phpunit.cache/
 ###< phpunit/phpunit ###
-
+/public/uploads/
 ###> symfony/webpack-encore-bundle ###
 /node_modules/
 /public/build/

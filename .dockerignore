@@ -1,0 +1,17 @@
+.git
+.gitignore
+.env
+.env.*
+!.env.example
+var/
+vendor/
+node_modules/
+public/build/
+.phpunit.cache/
+tests/
+compose*.yaml
+*.md
+terminals/
+.idea/
+.vscode/
+config/jwt/*.pem
