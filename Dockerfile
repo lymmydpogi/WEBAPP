@@ -16,6 +16,8 @@ FROM node:20-alpine AS assets
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
+ENV npm_config_audit=false 
+ENV npm_config_fund=false in terminal
 COPY --from=vendor /app/vendor ./vendor
 COPY webpack.config.js postcss.config.js tailwind.config.js ./
 COPY assets ./assets
