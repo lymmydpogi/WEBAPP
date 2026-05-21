@@ -1,26 +1,21 @@
 {% extends 'client/base.html.twig' %}
 
-{% block title %}About Campana Designs{% endblock %}
+{% block title %}About Us{% endblock %}
 
 {% block body %}
     <section class="hero">
         <div class="hero-text">
             <div class="hero-tag">
-                <span>About Campana Designs</span>
+                <span>About Us</span>
             </div>
-            <h1>Design that speaks. Experiences that convert.</h1>
+            <h1>Built through collaboration and shared expertise.</h1>
             <p>
-                Campana Designs is a one-person creative studio focused on building modern,
-                user-centered digital experiences.
+                This website was created through the collaboration of a dedicated team, each contributing their expertise to bring the idea to life.
             </p>
-            <div class="hero-actions">
-                <a href="#proof" class="btn btn-primary">View work</a>
-                <a href="{{ path('client_contact') }}" class="btn btn-ghost">Start a project</a>
-            </div>
             <div class="hero-meta">
-                <span class="hero-badge">Minimal</span>
-                <span class="hero-badge">Responsive</span>
-                <span class="hero-badge">Clean</span>
+                <span class="hero-badge">Professional</span>
+                <span class="hero-badge">Collaborative</span>
+                <span class="hero-badge">User-focused</span>
             </div>
         </div>
 
@@ -28,29 +23,20 @@
             <div class="hero-orbit">
                 <div class="hero-panel-top">
                     <span class="hero-panel-dots">● ● ●</span>
-                    <span>Studio focus</span>
+                    <span>Team Overview</span>
                 </div>
                 <div class="hero-panel-body">
                     <div class="pill hero-panel-item">
-                        <strong>UI/UX systems</strong>
-                        <small>Structured, intuitive experiences</small>
+                        <strong>Project Leadership</strong>
+                        <small>Clear direction from concept to launch</small>
                     </div>
                     <div class="pill hero-panel-item">
-                        <strong>Landing pages</strong>
-                        <small>Built to guide user action</small>
+                        <strong>Backend Development</strong>
+                        <small>Reliable logic and system functionality</small>
                     </div>
                     <div class="pill hero-panel-item">
-                        <strong>Brand direction</strong>
-                        <small>Visual consistency with purpose</small>
-                    </div>
-                    <div class="progress-shell" style="margin-top:0.2rem;">
-                        <div class="progress-label">
-                            <span class="subtle">Project pace</span>
-                            <span class="subtle">Focused + fast</span>
-                        </div>
-                        <div class="progress-bar">
-                            <div class="progress-bar-fill"></div>
-                        </div>
+                        <strong>Frontend Development</strong>
+                        <small>Clean interface and smooth user experience</small>
                     </div>
                 </div>
             </div>
@@ -59,126 +45,42 @@
 
     <section class="card">
         <div class="section-title">
-            <h2>Who I am</h2>
-            <small>Design partner for modern brands.</small>
-        </div>
-        <div class="brief-layout">
-            <div>
-                <p style="max-width: 46ch;">
-                    I'm Lymwel Campana, the creative mind behind Campana Designs, focused on crafting clean, high-impact designs for
-                    brands and businesses. I specialize in UI/UX, web design, and branding that not only looks
-                    good-but works.
-                </p>
-            </div>
-            <div class="card" style="margin:0; padding:1rem 1.1rem;">
-                <div class="service-meta" style="margin-bottom:0.75rem;">
-                    <span class="pill-small">Highlights</span>
-                    <span class="pill-small">One-person studio</span>
-                </div>
-                <div class="grid" style="grid-template-columns: repeat(2, minmax(0, 1fr)); gap:0.65rem;">
-                    <div class="pill">UI/UX focused</div>
-                    <div class="pill">Minimal, modern style</div>
-                    <div class="pill">Fast turnaround</div>
-                    <div class="pill">User-first approach</div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <section class="card">
-        <div class="section-title">
-            <h2>How I design</h2>
-            <small>Simple decisions, clear outcomes.</small>
-        </div>
-        <div class="service-grid">
-            <article class="service-card">
-                <h3>Clarity over clutter</h3>
-                <p>Simple, focused layouts that guide users.</p>
-            </article>
-            <article class="service-card">
-                <h3>Design with purpose</h3>
-                <p>Every element has a role.</p>
-            </article>
-            <article class="service-card">
-                <h3>Built to convert</h3>
-                <p>Designs that drive action, not just visuals.</p>
-            </article>
-        </div>
-    </section>
-
-    <section class="card">
-        <div class="section-title">
-            <h2>Meet the Team</h2>
-            <small>Small team, focused execution.</small>
+            <h2>Our Team</h2>
+            <small>The people behind the website.</small>
         </div>
         <div class="work-grid">
             <article class="work-card">
-                <h3>Lymwel Campana</h3>
-                <p>Creative Director</p>
+                <h3>Lymwel Angelho Campana</h3>
+                <div class="service-meta">
+                    <span class="pill-small">Project Lead / Idea Creator</span>
+                </div>
+                <p>The visionary behind the concept and overall direction of the website.</p>
             </article>
-            <article class="work-card">
-                <h3>Arielle Santos</h3>
-                <p>UI/UX Designer</p>
-            </article>
-            <article class="work-card">
-                <h3>Daniel Cruz</h3>
-                <p>Brand & Visual Designer</p>
-            </article>
-        </div>
-    </section>
 
-    <section class="card" id="proof">
-        <div class="section-title">
-            <h2>What I've worked on</h2>
-            <small>Recent direction and output.</small>
-        </div>
-        <div class="work-grid">
             <article class="work-card">
-                <div class="work-card-thumb"></div>
-                <h3>UI screens</h3>
-                <p>Flow-driven interfaces for web and mobile products.</p>
+                <h3>Rodge Vallejera</h3>
+                <div class="service-meta">
+                    <span class="pill-small">Backend Developer</span>
+                </div>
+                <p>Responsible for server-side logic, database management, and system functionality.</p>
             </article>
-            <article class="work-card">
-                <div class="work-card-thumb"></div>
-                <h3>Landing pages</h3>
-                <p>Message-first pages with clean conversion paths.</p>
-            </article>
-            <article class="work-card">
-                <div class="work-card-thumb"></div>
-                <h3>Branding projects</h3>
-                <p>Identity kits that keep visual language consistent.</p>
-            </article>
-        </div>
-    </section>
 
-    <section class="card">
-        <div class="section-title">
-            <h2>How projects work</h2>
-            <small>Clear stages. No confusion.</small>
-        </div>
-        <div class="process-grid">
-            <div class="process-step">
-                <div class="process-step-number">01</div>
-                <strong>Discover</strong>
-                <span class="subtle">Understand goals and direction.</span>
-            </div>
-            <div class="process-step">
-                <div class="process-step-number">02</div>
-                <strong>Design</strong>
-                <span class="subtle">Create clean and effective visuals.</span>
-            </div>
-            <div class="process-step">
-                <div class="process-step-number">03</div>
-                <strong>Deliver</strong>
-                <span class="subtle">Polished files ready to use.</span>
-            </div>
+            <article class="work-card">
+                <h3>Kurt Mendrick Tatoy</h3>
+                <div class="service-meta">
+                    <span class="pill-small">Frontend Developer</span>
+                </div>
+                <p>Handled the user interface and user experience, ensuring a smooth and engaging design.</p>
+            </article>
         </div>
     </section>
 
     <section class="card" style="text-align:center; padding:2rem 1.6rem;">
-        <h2 style="margin-bottom:0.55rem;">Let's build something that stands out.</h2>
-        <p style="margin-bottom:1rem;">Focused design, smooth flow, and visuals that move people to act.</p>
-        <a href="{{ path('client_contact') }}" class="btn btn-primary">Contact Me</a>
+        <h2 style="margin-bottom:0.55rem;">Working as one team</h2>
+        <p style="margin-bottom:1rem;">
+            Together, the team worked collaboratively to design and develop a functional and user-friendly website.
+        </p>
+        <a href="{{ path('client_contact') }}" class="btn btn-primary">Contact Us</a>
     </section>
 {% endblock %}
 

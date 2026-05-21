@@ -1,0 +1,59 @@
+{% extends 'client/base.html.twig' %}
+
+{% block title %}Order #{{ order.id }}{% endblock %}
+
+{% block body %}
+    <section class="card">
+        <div class="section-title">
+            <h1>Order #{{ order.id }}</h1>
+            <small>{{ order.service ? order.service.name : 'Service' }}</small>
+        </div>
+
+        <dl class="order-detail-grid">
+            <div><dt>Status</dt><dd><span class="pill-small">{{ order.status }}</span></dd></div>
+            <div><dt>Quantity</dt><dd>{{ order.quantity }}</dd></div>
+            <div><dt>Total</dt><dd>₱{{ order.totalPrice|number_format(2) }}</dd></div>
+            <div><dt>Order date</dt><dd>{{ order.orderDate ? order.orderDate|date('M d, Y H:i') : '—' }}</dd></div>
+            <div class="order-detail-notes"><dt>Project brief</dt><dd>{{ order.notes|default('—')|nl2br }}</dd></div>
+        </dl>
+
+        <div class="order-detail-actions">
+            <a href="{{ path('client_orders') }}" class="btn btn-ghost">← Back to orders</a>
+            {% if canModify %}
+                <a href="{{ path('client_order_edit', { id: order.id }) }}" class="btn btn-ghost">Edit</a>
+                <form method="post" action="{{ path('client_order_cancel', { id: order.id }) }}" class="order-cancel-form" data-confirm="Cancel this order?">
+                    <input type="hidden" name="_token" value="{{ csrf_token('cancel_order_' ~ order.id) }}">
+                    <button type="submit" class="btn btn-ghost order-action-btn" data-loading-text="Cancelling…">Cancel order</button>
+                </form>
+            {% endif %}
+        </div>
+    </section>
+
+    <style>
+        .order-detail-grid { display: grid; gap: 0.85rem; margin: 1rem 0 1.25rem; }
+        .order-detail-grid dt { font-size: 0.78rem; color: #9ca3af; margin-bottom: 0.2rem; }
+        .order-detail-grid dd { margin: 0; color: #e5e7eb; }
+        .order-detail-notes dd { white-space: pre-wrap; line-height: 1.5; }
+        .order-detail-actions { display: flex; flex-wrap: wrap; gap: 0.6rem; align-items: center; }
+        .order-cancel-form { display: inline; }
+        .order-action-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+    </style>
+
+    <script>
+        (function () {
+            document.querySelectorAll('[data-confirm]').forEach(function (form) {
+                form.addEventListener('submit', function (e) {
+                    if (!confirm(form.getAttribute('data-confirm'))) {
+                        e.preventDefault();
+                        return;
+                    }
+                    var btn = form.querySelector('.order-action-btn');
+                    if (btn) {
+                        btn.disabled = true;
+                        btn.textContent = btn.getAttribute('data-loading-text') || 'Loading…';
+                    }
+                });
+            });
+        })();
+    </script>
+{% endblock %}

@@ -1,0 +1,88 @@
+{% extends 'ADMIN/base.html.twig' %}
+
+{% block title %}Messages{% endblock %}
+{% block page_title %}Messages{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('style/css/MESSAGES/chat.css') }}">
+{% endblock %}
+
+{% block body %}
+<div class="messages-page">
+    <section class="messages-hero">
+        <h1>Client messages</h1>
+        <p>Conversations from the mobile app — open a thread to read and reply.</p>
+    </section>
+
+    {% for label, messages in app.flashes %}
+        {% for message in messages %}
+            <div class="messages-flash messages-flash--{{ label == 'success' ? 'success' : 'error' }}">{{ message }}</div>
+        {% endfor %}
+    {% endfor %}
+
+    {% if conversations is empty %}
+        <div class="chat-empty">
+            <div class="chat-empty__icon" aria-hidden="true">💬</div>
+            <h3>No messages yet</h3>
+            <p>When clients send messages from the app, their conversations will appear here.</p>
+        </div>
+    {% else %}
+        {% set totalUnread = 0 %}
+        {% for row in conversations %}
+            {% set totalUnread = totalUnread + row.unreadCount %}
+        {% endfor %}
+
+        <div class="inbox-stats">
+            <div class="inbox-stat">
+                <span>Conversations</span>
+                <strong>{{ conversations|length }}</strong>
+            </div>
+            <div class="inbox-stat">
+                <span>Unread from clients</span>
+                <strong>{{ totalUnread }}</strong>
+            </div>
+        </div>
+
+        <div class="inbox-list">
+            {% for row in conversations %}
+                {% set client = row.user %}
+                {% set latest = row.latestMessage %}
+                {% set displayName = client.name ?: client.email %}
+                {% set initial = (displayName|slice(0, 1))|upper %}
+                <a
+                    href="{{ path('admin_messages_show', { userId: client.id }) }}"
+                    class="inbox-card{{ row.unreadCount > 0 ? ' inbox-card--unread' : '' }}"
+                >
+                    <div class="inbox-card__avatar" aria-hidden="true">{{ initial }}</div>
+                    <div class="inbox-card__body">
+                        <p class="inbox-card__name">{{ displayName }}</p>
+                        <p class="inbox-card__email">{{ client.email }}</p>
+                        {% if latest %}
+                            <p class="inbox-card__preview">
+                                {% if latest.senderType == 'admin' %}
+                                    <span class="inbox-card__preview-label">You:</span>
+                                {% endif %}
+                                {{ latest.message|length > 120 ? latest.message|slice(0, 120) ~ '…' : latest.message }}
+                            </p>
+                        {% else %}
+                            <p class="inbox-card__preview" style="color:#94a3b8;">No messages</p>
+                        {% endif %}
+                    </div>
+                    <div class="inbox-card__meta">
+                        <span class="inbox-card__time">
+                            {{ latest ? latest.createdAt|date('M d, g:i A') : '—' }}
+                        </span>
+                        {% if row.unreadCount > 0 %}
+                            <span class="unread-badge">{{ row.unreadCount }} new</span>
+                        {% else %}
+                            <span class="read-badge">Read</span>
+                        {% endif %}
+                        <span class="inbox-card__open">Open chat →</span>
+                    </div>
+                </a>
+            {% endfor %}
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -3,13 +3,198 @@
 {% block title %}{{ name }}{% endblock %}
 
 {% block body %}
-    <section class="card">
+    {% set serviceContext = name|lower %}
+    {% set isLogo = 'logo' in serviceContext %}
+    {% set isVideo = 'video' in serviceContext %}
+    {% set isWeb = 'web' in serviceContext or 'site' in serviceContext %}
+    {% set isPhoto = 'photo' in serviceContext %}
+
+    <section class="card service-hero">
+        <div class="service-hero-badges">
+            <span class="pill-small">Creative Service</span>
+            {% if is_orderable %}
+                <span class="pill-small">Available</span>
+            {% else %}
+                <span class="pill-small service-status-badge--inactive">Inactive</span>
+            {% endif %}
+        </div>
         <h1>{{ name }}</h1>
-        <p>
-            This is a placeholder page for the {{ name|lower }} service.
-            Use this space to describe your process, deliverables, pricing approach,
-            and any examples or portfolio links you want to feature.
+        {% if not is_orderable %}
+            <p class="service-unavailable-banner">Currently Unavailable — this service cannot be ordered right now.</p>
+        {% endif %}
+        <p class="service-hero-tagline">
+            {% if isLogo %}
+                Shape a recognizable identity system that makes your brand feel clear, cohesive, and instantly memorable.
+            {% elseif isVideo %}
+                Transform ideas into engaging visual stories that capture attention and keep your audience connected.
+            {% elseif isWeb %}
+                Build a modern web experience designed for performance, usability, and stronger conversion outcomes.
+            {% elseif isPhoto %}
+                Present your brand with sharp, intentional imagery that elevates trust and visual impact.
+            {% else %}
+                Deliver polished creative output aligned to your goals, timeline, and brand standards.
+            {% endif %}
         </p>
     </section>
+
+    <section class="card service-section">
+        <div class="section-title">
+            <h2>What you get</h2>
+            <small>Clear deliverables from start to finish.</small>
+        </div>
+        <ul class="service-deliverables">
+            {% if isLogo %}
+                <li>Primary logo plus alternate lockups for flexible brand use.</li>
+                <li>Color and monochrome variations for print and digital channels.</li>
+                <li>Export-ready files and usage guidance for consistent rollout.</li>
+            {% elseif isVideo %}
+                <li>Full edit with narrative flow, pacing, and polished sequencing.</li>
+                <li>Cutdowns for social platforms with optimized aspect ratios.</li>
+                <li>Color grading, audio cleanup, and delivery-ready final files.</li>
+            {% elseif isWeb %}
+                <li>Responsive page structure built for mobile, tablet, and desktop.</li>
+                <li>Performance-conscious implementation for faster load times.</li>
+                <li>User-focused layout decisions that support conversion goals.</li>
+            {% elseif isPhoto %}
+                <li>Curated photo selection aligned with your brand positioning.</li>
+                <li>Professional retouching and color correction for visual consistency.</li>
+                <li>Optimized exports for web, social, and campaign use.</li>
+            {% else %}
+                <li>Strategic creative direction tailored to your project objectives.</li>
+                <li>Refined outputs delivered in practical, ready-to-use formats.</li>
+                <li>Consistent quality and communication across each project stage.</li>
+            {% endif %}
+        </ul>
+    </section>
+
+    <section class="card service-section">
+        <div class="section-title">
+            <h2>Process</h2>
+            <small>Simple steps, reliable execution.</small>
+        </div>
+        <div class="service-steps">
+            <article class="process-step">
+                <div class="process-step-number">01</div>
+                <strong>Brief</strong>
+                <span class="subtle">Define goals, audience, and project direction.</span>
+            </article>
+            <article class="process-step">
+                <div class="process-step-number">02</div>
+                <strong>Create</strong>
+                <span class="subtle">Develop the core visuals and production-ready drafts.</span>
+            </article>
+            <article class="process-step">
+                <div class="process-step-number">03</div>
+                <strong>Refine</strong>
+                <span class="subtle">Review feedback and polish key details.</span>
+            </article>
+            <article class="process-step">
+                <div class="process-step-number">04</div>
+                <strong>Deliver</strong>
+                <span class="subtle">Send finalized assets ready for immediate use.</span>
+            </article>
+        </div>
+    </section>
+
+    <section class="card service-section">
+        <div class="section-title">
+            <h2>Why choose this service</h2>
+            <small>Built around outcomes, not guesswork.</small>
+        </div>
+        <div class="service-benefits">
+            <div class="stat-pill">
+                Strategic quality
+                <span>Every decision supports brand clarity and performance.</span>
+            </div>
+            <div class="stat-pill">
+                Efficient workflow
+                <span>Clear milestones keep timelines predictable and stress low.</span>
+            </div>
+            <div class="stat-pill">
+                Polished delivery
+                <span>Final outputs are ready for launch across your channels.</span>
+            </div>
+        </div>
+    </section>
+
+    {% if service.description %}
+    <section class="card service-section">
+        <div class="section-title">
+            <h2>About this service</h2>
+        </div>
+        <p class="subtle">{{ service.description }}</p>
+        {% if service.price %}
+            <p><strong>Starting at:</strong> ₱{{ service.price|number_format(2) }}</p>
+        {% endif %}
+    </section>
+    {% endif %}
+
+    <section class="card service-cta" id="project-brief">
+        <h2>Submit your project brief</h2>
+        {% if is_orderable %}
+        <p>
+            Tell us what you need for <strong>{{ name }}</strong>. Your message is saved as the project brief
+            and creates an order in our system so we can follow up with you.
+        </p>
+
+        {% if not app.user %}
+            <p class="subtle">
+                <a href="{{ path('app_login_index', { next: path('client_service_show', { slug: slug }) }) }}">Log in</a>
+                to submit your brief and track your order.
+            </p>
+        {% endif %}
+
+        <form method="post" action="{{ path('client_service_show', { slug: slug }) }}#project-brief" class="service-brief-form contact-form-card">
+            <input type="hidden" name="_token" value="{{ csrf_token('client_service_order_' ~ slug) }}">
+            <div class="form-group">
+                <label for="quantity">Quantity</label>
+                <input type="number" id="quantity" name="quantity" min="1" value="{{ quantity|default(1) }}" required>
+                {% if errors.quantity is defined %}
+                    <p class="form-error">{{ errors.quantity }}</p>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="project_brief">Project brief</label>
+                <textarea
+                    id="project_brief"
+                    name="project_brief"
+                    rows="8"
+                    required
+                    placeholder="Describe your goals, audience, timeline, references, and any must-haves for this project."
+                >{{ project_brief|default('') }}</textarea>
+                {% if errors.project_brief is defined %}
+                    <p class="form-error">{{ errors.project_brief }}</p>
+                {% endif %}
+            </div>
+
+            <button type="submit" class="btn btn-primary order-action-btn" data-loading-text="Submitting…"{% if not app.user %} disabled title="Log in to submit"{% endif %}>
+                Send project brief
+            </button>
+        </form>
+        {% else %}
+            <p class="subtle">
+                This service is marked as <strong>{{ status_label }}</strong>. You can view the details, but new orders are not accepted.
+                Existing orders for this service are not affected.
+            </p>
+            <a href="{{ path('client_services') }}" class="btn btn-ghost">Browse other services</a>
+        {% endif %}
+    </section>
+
+    <style>
+        .service-unavailable-banner {
+            color: #fecaca;
+            font-size: 0.92rem;
+            margin: 0.5rem 0 0;
+            padding: 0.65rem 0.85rem;
+            border-radius: 0.6rem;
+            border: 1px solid rgba(248, 113, 113, 0.35);
+            background: rgba(185, 28, 28, 0.18);
+        }
+        .service-status-badge--inactive {
+            border-color: rgba(248, 113, 113, 0.45) !important;
+            color: #fecaca !important;
+        }
+    </style>
 {% endblock %}
 

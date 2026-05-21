@@ -1,24 +1,335 @@
 {% extends 'client/base.html.twig' %}
 
+
+
 {% block title %}Services{% endblock %}
 
+
+
 {% block body %}
-    <section class="card">
-        <div class="section-title">
+
+    <section class="card services-interactive">
+
+        <div class="services-header">
+
             <h1>Services</h1>
-            <small>Choose what you need, then log in when you’re ready to book.</small>
+
+            <p>Explore each offer. Inactive services are shown but cannot be ordered.</p>
+
         </div>
-        <p>These are the core services I offer. Each one can be customized to match your budget, timeline, and brand style.</p>
-        <div class="grid">
-            {% for service in services %}
-                <article>
-                    <h3>{{ service.name }}</h3>
-                    <p class="service-pill">Digital service · {{ service.slug|replace({'-':' '})|title }}</p>
-                    <p>Short description for {{ service.name|lower }}. Replace this with deliverables, formats, and revisions.</p>
-                    <p><a href="{{ path('client_service_show', { slug: service.slug }) }}">Learn more</a></p>
-                </article>
-            {% endfor %}
+
+
+
+        <div class="services-split" id="servicesInteractive">
+
+            <div class="services-carousel" role="tablist" aria-label="Service selector">
+
+                {% for service in services %}
+
+                    <button
+
+                        type="button"
+
+                        class="service-selector{{ loop.first ? ' is-active' : '' }}{{ service.isOrderable ? '' : ' is-inactive' }}"
+
+                        data-service
+
+                        data-name="{{ service.name }}"
+
+                        data-slug="{{ service.slug }}"
+
+                        data-description="{{ service.description|default('')|e('html_attr') }}"
+
+                        data-url="{{ path('client_service_show', { slug: service.slug }) }}"
+
+                        data-orderable="{{ service.isOrderable ? '1' : '0' }}"
+
+                        data-status-label="{{ service.statusLabel }}"
+
+                        aria-selected="{{ loop.first ? 'true' : 'false' }}"
+
+                    >
+
+                        <span class="service-selector-dot" aria-hidden="true"></span>
+
+                        <span class="service-selector-text">
+
+                            <strong>{{ service.name }}</strong>
+
+                            <small>
+
+                                {% if service.isOrderable %}
+
+                                    {{ service.slug|replace({'-':' '})|title }}
+
+                                {% else %}
+
+                                    Currently Unavailable
+
+                                {% endif %}
+
+                            </small>
+
+                        </span>
+
+                        {% if not service.isOrderable %}
+
+                            <span class="service-status-badge service-status-badge--inactive">Inactive</span>
+
+                        {% endif %}
+
+                    </button>
+
+                {% endfor %}
+
+            </div>
+
+
+
+            <article class="service-detail-panel" id="serviceDetailPanel">
+
+                {% if services|length > 0 %}
+
+                    <div class="service-detail-badge" id="serviceDetailBadge">Selected service</div>
+
+                    <h2 id="serviceDetailTitle">{{ services|first.name }}</h2>
+
+                    <p id="serviceDetailStatus" class="service-unavailable-label" hidden></p>
+
+                    <p id="serviceDetailDescription"></p>
+
+                    <a id="serviceDetailLink" class="service-link btn btn-primary" href="{{ path('client_service_show', { slug: services|first.slug }) }}">
+
+                        View details →
+
+                    </a>
+
+                    <p id="serviceDetailOrderNote" class="subtle" hidden>This service is currently unavailable for new orders.</p>
+
+                {% else %}
+
+                    <div class="service-detail-badge">No services available</div>
+
+                    <h2>No service found</h2>
+
+                    <p>Services will appear here once available.</p>
+
+                {% endif %}
+
+            </article>
+
         </div>
+
     </section>
+
+
+
+    <style>
+
+        .service-selector.is-inactive { opacity: 0.88; border-color: rgba(248, 113, 113, 0.35); }
+
+        .service-status-badge {
+
+            margin-left: auto;
+
+            font-size: 0.68rem;
+
+            font-weight: 700;
+
+            text-transform: uppercase;
+
+            letter-spacing: 0.04em;
+
+            padding: 0.2rem 0.5rem;
+
+            border-radius: 999px;
+
+            border: 1px solid rgba(248, 113, 113, 0.45);
+
+            color: #fecaca;
+
+            background: rgba(185, 28, 28, 0.2);
+
+            flex-shrink: 0;
+
+        }
+
+        .service-selector { display: flex; align-items: center; gap: 0.5rem; width: 100%; text-align: left; }
+
+        .service-unavailable-label {
+
+            color: #fecaca;
+
+            font-size: 0.88rem;
+
+            margin: 0.35rem 0 0.5rem;
+
+        }
+
+        #serviceDetailLink.is-disabled {
+
+            pointer-events: none;
+
+            opacity: 0.45;
+
+            filter: grayscale(0.4);
+
+        }
+
+    </style>
+
+
+
+    <script>
+
+        (function () {
+
+            const root = document.getElementById('servicesInteractive');
+
+            if (!root) return;
+
+
+
+            const items = Array.from(root.querySelectorAll('[data-service]'));
+
+            const titleEl = document.getElementById('serviceDetailTitle');
+
+            const descriptionEl = document.getElementById('serviceDetailDescription');
+
+            const linkEl = document.getElementById('serviceDetailLink');
+
+            const statusEl = document.getElementById('serviceDetailStatus');
+
+            const orderNoteEl = document.getElementById('serviceDetailOrderNote');
+
+
+
+            if (!items.length || !titleEl || !descriptionEl || !linkEl) return;
+
+
+
+            const genericDescription =
+
+                'Get a tailored creative service focused on quality execution, clear communication, and results that support your business goals.';
+
+
+
+            function getDescription(serviceName) {
+
+                const normalized = String(serviceName || '').toLowerCase();
+
+                if (normalized.includes('logo')) {
+
+                    return 'Craft a distinctive visual identity that makes your brand instantly recognizable.';
+
+                }
+
+                if (normalized.includes('photo')) {
+
+                    return 'Enhance your visuals with clean, professional edits that elevate quality and consistency.';
+
+                }
+
+                if (normalized.includes('video')) {
+
+                    return 'Turn raw footage into engaging, high-impact content.';
+
+                }
+
+                if (normalized.includes('web') || normalized.includes('app') || normalized.includes('site')) {
+
+                    return 'Build fast, modern, and responsive digital experiences tailored to your goals.';
+
+                }
+
+                return genericDescription;
+
+            }
+
+
+
+            function setActive(target) {
+
+                items.forEach((item) => {
+
+                    const isCurrent = item === target;
+
+                    item.classList.toggle('is-active', isCurrent);
+
+                    item.setAttribute('aria-selected', isCurrent ? 'true' : 'false');
+
+                });
+
+
+
+                const name = target.dataset.name || 'Service';
+
+                const url = target.dataset.url || '#';
+
+                const orderable = target.dataset.orderable === '1';
+
+                const dbDescription = (target.dataset.description || '').trim();
+
+
+
+                titleEl.textContent = name;
+
+                descriptionEl.textContent = dbDescription || getDescription(name);
+
+                linkEl.setAttribute('href', url);
+
+                linkEl.textContent = orderable ? 'View details & order →' : 'View details →';
+
+
+
+                if (statusEl) {
+
+                    if (orderable) {
+
+                        statusEl.hidden = true;
+
+                        statusEl.textContent = '';
+
+                    } else {
+
+                        statusEl.hidden = false;
+
+                        statusEl.textContent = 'Currently Unavailable — this service cannot be ordered.';
+
+                    }
+
+                }
+
+                if (orderNoteEl) {
+
+                    orderNoteEl.hidden = orderable;
+
+                }
+
+            }
+
+
+
+            items.forEach((item) => {
+
+                item.addEventListener('click', function () {
+
+                    setActive(item);
+
+                });
+
+            });
+
+
+
+            const initiallyActive = items.find((item) => item.classList.contains('is-active')) || items[0];
+
+            setActive(initiallyActive);
+
+        })();
+
+    </script>
+
 {% endblock %}
+
 

@@ -3,52 +3,81 @@
 {% block title %}Contact Me{% endblock %}
 
 {% block body %}
-    <section class="card">
-        <h1>Contact Me</h1>
-        <p>Have a project in mind? Send a message with a few details and I’ll get back to you as soon as possible.</p>
+    <section class="card contact-section">
+        <div class="contact-header">
+            <h1>Contact Me</h1>
+            <p>Have a project in mind? Share a few details and I will respond with a clear next step.</p>
+        </div>
 
-        <form method="post" action="{{ path('client_contact') }}">
-            <div style="margin-bottom: 1rem;">
-                <label for="name">Name</label>
-                <input type="text" id="name" name="name" value="{{ form_data.name|default('') }}">
+        <div class="contact-layout">
+            <form method="post" action="{{ path('client_contact') }}" class="contact-form-card">
+                <div class="form-group">
+                    <label for="name">Name</label>
+                    <input type="text" id="name" name="name" value="{{ form_data.name|default('') }}">
                 {% if errors.name is defined %}
                     <div class="error">{{ errors.name }}</div>
                 {% endif %}
-            </div>
+                </div>
 
-            <div style="margin-bottom: 1rem;">
-                <label for="email">Email</label>
-                <input type="email" id="email" name="email" value="{{ form_data.email|default('') }}">
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" value="{{ form_data.email|default('') }}">
                 {% if errors.email is defined %}
                     <div class="error">{{ errors.email }}</div>
                 {% endif %}
-            </div>
+                </div>
 
-            <div style="margin-bottom: 1rem;">
-                <label for="subject">Subject</label>
-                <input type="text" id="subject" name="subject" value="{{ form_data.subject|default('') }}">
+                <div class="form-group">
+                    <label for="subject">Subject</label>
+                    <input type="text" id="subject" name="subject" value="{{ form_data.subject|default('') }}">
                 {% if errors.subject is defined %}
                     <div class="error">{{ errors.subject }}</div>
                 {% endif %}
-            </div>
+                </div>
 
-            <div style="margin-bottom: 1rem;">
-                <label for="message">Message</label>
-                <textarea id="message" name="message" rows="5">{{ form_data.message|default('') }}</textarea>
+                <div class="form-group">
+                    <label for="message">Message</label>
+                    <textarea id="message" name="message" rows="6">{{ form_data.message|default('') }}</textarea>
                 {% if errors.message is defined %}
                     <div class="error">{{ errors.message }}</div>
                 {% endif %}
-            </div>
+                </div>
 
-            <button type="submit">Send Message</button>
-            <p class="subtle" style="margin-top: 0.55rem;">
-                Messages are delivered via our secure email provider for faster response.
-            </p>
-            <p style="margin-top: 0.75rem; font-size: 0.8rem; color: #6b7280;">
-                Already a client? You can also
-                <a href="{{ path('app_login_index', { next: app.request.pathInfo }) }}">log in</a> to track your orders.
-            </p>
-        </form>
+                <button type="submit" class="btn btn-primary contact-submit">Send Message</button>
+                <p class="contact-helper">
+                    Messages are reviewed personally, and most inquiries receive a response within 24-48 hours.
+                </p>
+                {% if app.user is null %}
+                    <p class="contact-login-note">
+                        Already a client? You can also
+                        <a href="{{ path('app_login_index', { next: app.request.pathInfo }) }}">log in</a> to track your orders.
+                    </p>
+                {% else %}
+                    <p class="contact-login-note">
+                        Manage your projects anytime from your profile dashboard.
+                    </p>
+                {% endif %}
+            </form>
+
+            <aside class="contact-info-card" aria-label="Contact details and approach">
+                <h2>Let's build something great</h2>
+                <p>
+                    Every project starts with a clear conversation about your goals, audience, and timeline.
+                </p>
+                <p>
+                    You will get practical recommendations, transparent communication, and a process you can follow confidently.
+                </p>
+                <ul class="contact-points">
+                    <li>Fast response time (24-48h)</li>
+                    <li>Custom solutions based on your needs</li>
+                    <li>Clear communication from start to delivery</li>
+                </ul>
+                <p class="contact-direct-email">
+                    Direct email:
+                    <a href="mailto:yinggu.qt@gmail.com">yinggu.qt@gmail.com</a>
+                </p>
+            </aside>
+        </div>
     </section>
 {% endblock %}
 

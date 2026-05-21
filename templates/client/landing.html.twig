@@ -66,22 +66,39 @@
             <h2>Selected work</h2>
             <small>Minimal layouts. Strong typography. Clean polish.</small>
         </div>
-        <div class="work-grid">
+        <div class="work-grid selected-work-grid">
             <article class="work-card">
-                <div class="work-card-thumb"></div>
-                <h3>Brand refresh</h3>
-                <p>Identity system + social kit for a small business.</p>
+                <div class="work-card-thumb selected-work-thumb">
+                    <img src="{{ asset('images/logo.png') }}" alt="Brand Identity logo design showcase">
+                </div>
+                <p class="service-pill">Logo Design</p>
+                <h3>Brand Identity</h3>
+                <p>A clean and timeless logo crafted for modern brand recognition.</p>
             </article>
             <article class="work-card">
-                <div class="work-card-thumb"></div>
-                <h3>Landing page</h3>
-                <p>Conversion-focused hero, sections, and clear CTA.</p>
+                <div class="work-card-thumb selected-work-thumb">
+                    <img src="{{ asset('images/landingpage.png') }}" alt="Beauty Landing Page web design showcase">
+                </div>
+                <p class="service-pill">Web Design</p>
+                <h3>Beauty Landing Page</h3>
+                <p>A conversion-focused landing page designed with premium visual storytelling.</p>
             </article>
-            <article class="work-card">
-                <div class="work-card-thumb"></div>
-                <h3>UI screens</h3>
-                <p>Mobile-first screens with consistent component rhythm.</p>
-            </article>
+            <a
+                class="work-card work-card-link video-work-card"
+                href="https://www.youtube.com/watch?v=smOeIJU32YY"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Open Video Editing Showcase on YouTube"
+            >
+                <div class="work-card-thumb selected-work-thumb selected-work-video">
+                    <div class="play-overlay" aria-hidden="true">
+                        <span class="play-icon">▶</span>
+                    </div>
+                </div>
+                <p class="service-pill">Motion &amp; Editing</p>
+                <h3>Video Editing Showcase</h3>
+                <p>Dynamic storytelling through clean cuts, pacing, and cinematic editing.</p>
+            </a>
         </div>
     </section>
 

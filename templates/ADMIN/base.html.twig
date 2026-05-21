@@ -40,6 +40,7 @@
                 {% set navItems = [
                     { path: 'app_services_index', label: 'Services', icon: '' },
                     { path: 'app_order_index', label: 'Orders', icon: '' },
+                    { path: 'admin_messages_index', label: 'Messages', icon: '' },
                     { path: 'app_user_index', label: 'User', icon: '' },
                     { path: 'app_analytics_index', label: 'Analytics/Reports', icon: '' },
                     { path: 'admin_activity_logs_index', label: 'Activity Logs', icon: '' },
@@ -54,7 +55,8 @@
             {% endif %}
 
             {% for item in navItems %}
-                {% set isActive = app.request.attributes.get('_route') starts with item.path %}
+                {% set routeName = app.request.attributes.get('_route') %}
+                {% set isActive = routeName == item.path or routeName starts with item.path ~ '_' %}
                 
                 <a href="{{ path(item.path) }}"
                    class="nav-link {{ isActive ? 'active' : '' }}">

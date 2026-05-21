@@ -1,0 +1,55 @@
+{% extends 'client/base.html.twig' %}
+
+{% block title %}My orders{% endblock %}
+
+{% block body %}
+    <section class="card">
+        <div class="section-title">
+            <h1>My orders</h1>
+            <small>Track your project requests and manage pending orders.</small>
+        </div>
+
+        {% if orders is empty %}
+            <p class="subtle">You have no orders yet. <a href="{{ path('client_services') }}">Browse services</a> to start a project.</p>
+        {% else %}
+            <div class="order-list">
+                {% for order in orders %}
+                    <article class="order-list-item">
+                        <div>
+                            <strong>#{{ order.id }} — {{ order.service ? order.service.name : 'Service' }}</strong>
+                            <p class="subtle">
+                                {{ order.orderDate ? order.orderDate|date('M d, Y') : '' }}
+                                · Qty {{ order.quantity }}
+                                · ₱{{ order.totalPrice|number_format(2) }}
+                            </p>
+                            <span class="pill-small order-status order-status--{{ order.status|lower|replace({' ': '-'}) }}">{{ order.status }}</span>
+                        </div>
+                        <div class="order-list-actions">
+                            <a href="{{ path('client_order_show', { id: order.id }) }}" class="btn btn-ghost">View</a>
+                            {% if order.status == 'Pending' %}
+                                <a href="{{ path('client_order_edit', { id: order.id }) }}" class="btn btn-ghost">Edit</a>
+                            {% endif %}
+                        </div>
+                    </article>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </section>
+
+    <style>
+        .order-list { display: flex; flex-direction: column; gap: 0.85rem; margin-top: 1rem; }
+        .order-list-item {
+            display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 0.75rem;
+            padding: 1rem 1.1rem; border-radius: 0.85rem; border: 1px solid #1f2937;
+            background: rgba(15,23,42,0.85);
+        }
+        .order-list-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+        .order-status { margin-top: 0.45rem; display: inline-block; }
+        .order-status--pending { border-color: rgba(56,189,248,0.5); color: #bae6fd; }
+        .order-status--approved { border-color: rgba(34,197,94,0.45); color: #bbf7d0; }
+        .order-status--in-progress { border-color: rgba(250,204,21,0.45); color: #fef08a; }
+        .order-status--completed { border-color: rgba(99,102,241,0.45); color: #c7d2fe; }
+        .order-status--cancelled { border-color: rgba(248,113,113,0.45); color: #fecaca; }
+        .order-status--rejected { border-color: rgba(248,113,113,0.55); color: #fca5a5; }
+    </style>
+{% endblock %}

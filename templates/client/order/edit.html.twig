@@ -1,0 +1,35 @@
+{% extends 'client/base.html.twig' %}
+
+{% block title %}Edit order #{{ order.id }}{% endblock %}
+
+{% block body %}
+    <section class="card">
+        <div class="section-title">
+            <h1>Edit order #{{ order.id }}</h1>
+            <small>Only pending orders can be updated. Price is calculated from the current service rate.</small>
+        </div>
+
+        {{ form_start(form, { attr: { class: 'contact-form-card order-edit-form', 'data-order-form': '1' } }) }}
+            <div class="form-group">{{ form_row(form.service) }}</div>
+            <div class="form-group">{{ form_row(form.quantity) }}</div>
+            <div class="form-group">{{ form_row(form.notes) }}</div>
+            <p class="subtle">Estimated total: ₱{{ order.totalPrice|number_format(2) }} (recalculated when you save)</p>
+            <button type="submit" class="btn btn-primary order-action-btn" data-loading-text="Saving…">Save changes</button>
+            <a href="{{ path('client_order_show', { id: order.id }) }}" class="btn btn-ghost" style="margin-left:0.5rem;">Cancel</a>
+        {{ form_end(form) }}
+    </section>
+
+    <script>
+        (function () {
+            var form = document.querySelector('[data-order-form]');
+            if (!form) return;
+            form.addEventListener('submit', function () {
+                var btn = form.querySelector('.order-action-btn[type="submit"]');
+                if (btn) {
+                    btn.disabled = true;
+                    btn.textContent = btn.getAttribute('data-loading-text') || 'Loading…';
+                }
+            });
+        })();
+    </script>
+{% endblock %}

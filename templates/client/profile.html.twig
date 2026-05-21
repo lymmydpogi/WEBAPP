@@ -3,26 +3,64 @@
 {% block title %}Your profile{% endblock %}
 
 {% block body %}
-    <section class="card">
-        <h1>Your profile</h1>
-        <p class="subtle">Basic details for your client account.</p>
-
-        <div style="margin-top:1rem; display:grid; gap:0.75rem; max-width:420px;">
-            <div>
-                <label>Email</label>
-                <div>{{ user.email }}</div>
-            </div>
-            {% if user.name %}
-                <div>
-                    <label>Name</label>
-                    <div>{{ user.name }}</div>
-                </div>
-            {% endif %}
-            <div>
-                <label>Joined</label>
-                <div>{{ user.createdAt ? user.createdAt|date('M d, Y') : '—' }}</div>
-            </div>
+    <section class="card profile-section">
+        <div class="profile-header">
+            <h1>Your profile</h1>
+            <p>Update your details and profile picture to keep your account information current.</p>
         </div>
+
+        {{ form_start(form, { attr: { class: 'profile-layout', enctype: 'multipart/form-data' } }) }}
+            <aside class="profile-avatar-card">
+                <div class="profile-avatar-wrap">
+                    {% if user.avatar %}
+                        <img
+                            src="{{ asset('uploads/avatars/' ~ user.avatar) }}"
+                            alt="Profile photo of {{ user.firstName ?: user.name ?: 'user' }}"
+                            class="profile-avatar-image"
+                        >
+                    {% else %}
+                        <div class="profile-avatar-fallback">
+                            {{ ((user.firstName ?: user.email)|slice(0, 1))|upper }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="profile-meta">
+                    <strong>{{ user.firstName ?: user.name ?: 'Client' }} {{ user.lastName ?: '' }}</strong>
+                    <span class="subtle">{{ user.email }}</span>
+                    <span class="subtle">Joined {{ user.createdAt ? user.createdAt|date('M d, Y') : '—' }}</span>
+                </div>
+
+                <div class="form-group">
+                    {{ form_label(form.avatarFile) }}
+                    {{ form_widget(form.avatarFile) }}
+                    {{ form_errors(form.avatarFile) }}
+                </div>
+            </aside>
+
+            <div class="profile-form-card">
+                <div class="profile-form-grid">
+                    <div class="form-group">
+                        {{ form_label(form.firstName) }}
+                        {{ form_widget(form.firstName) }}
+                        {{ form_errors(form.firstName) }}
+                    </div>
+                    <div class="form-group">
+                        {{ form_label(form.lastName) }}
+                        {{ form_widget(form.lastName) }}
+                        {{ form_errors(form.lastName) }}
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    {{ form_label(form.email) }}
+                    {{ form_widget(form.email) }}
+                    {{ form_errors(form.email) }}
+                </div>
+
+                <button type="submit" class="btn btn-primary profile-submit">Save changes</button>
+            </div>
+        {{ form_end(form) }}
     </section>
 {% endblock %}
 
