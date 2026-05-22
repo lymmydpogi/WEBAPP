@@ -20,7 +20,7 @@
 
         <!-- Form Card -->
         <div class="form-card">
-            {{ form_start(form) }}
+            {{ form_start(form, {'attr': {'data-turbo': 'false'}}) }}
 
             <div class="form-grid">
     <div class="form-group">{{ form_row(form.name) }}</div>

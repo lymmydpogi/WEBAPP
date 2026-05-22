@@ -19,7 +19,7 @@
 
         <!-- Form Card -->
         <div class="form-card">
-            {{ form_start(form, {'attr': {'class': 'service-form'}}) }}
+            {{ form_start(form, {'attr': {'class': 'service-form', 'data-turbo': 'false'}}) }}
 
             {% if form.vars.errors|length > 0 %}
                 <div class="form-alert form-alert--error" role="alert">

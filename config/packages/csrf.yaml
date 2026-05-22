@@ -1,4 +1,5 @@
-# Enable stateless CSRF protection for forms and logins/logouts
+# CSRF: admin/client forms use session-backed tokens (reliable after login + Turbo).
+# Stateless IDs only for logout (and similar) — NOT "submit" (breaks Create Service / edit forms).
 framework:
     form:
         csrf_protection:
@@ -6,6 +7,4 @@ framework:
 
     csrf_protection:
         stateless_token_ids:
-            - submit
-            # authenticate: use session-backed CSRF on /login (stateless breaks Railway/browser login)
             - logout

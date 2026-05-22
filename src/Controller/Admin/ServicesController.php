@@ -9,6 +9,7 @@ use App\Repository\ServicesRepository;
 use App\Service\ServiceCatalogService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -62,7 +63,7 @@ final class ServicesController extends AbstractController
         }
 
         if ($form->isSubmitted() && !$form->isValid()) {
-            $this->addFlash('error', 'Could not create service. Fix the highlighted fields (pricing model and unit are required).');
+            $this->addFlash('error', $this->serviceFormErrorMessage($form, true));
         }
 
         return $this->render('ADMIN/_TABLES/services/new.html.twig', [
@@ -107,7 +108,7 @@ public function edit(
         }
 
         if ($form->isSubmitted() && !$form->isValid()) {
-            $this->addFlash('error', 'Could not update service. Please check the form for errors.');
+            $this->addFlash('error', $this->serviceFormErrorMessage($form, false));
         }
 
         return $this->render('ADMIN/_TABLES/services/edit.html.twig', [
@@ -154,6 +155,19 @@ public function edit(
         }
 
         return $this->redirectToRoute('app_services_index', [], Response::HTTP_SEE_OTHER);
+    }
+
+    private function serviceFormErrorMessage(FormInterface $form, bool $isNew): string
+    {
+        foreach ($form->getErrors(true) as $error) {
+            if (str_contains($error->getMessage(), 'CSRF')) {
+                return 'Your session expired or the form timed out. Refresh this page and submit again.';
+            }
+        }
+
+        return $isNew
+            ? 'Could not create service. Fix the highlighted fields (pricing model and unit are required).'
+            : 'Could not update service. Please check the form for errors.';
     }
 }
 
