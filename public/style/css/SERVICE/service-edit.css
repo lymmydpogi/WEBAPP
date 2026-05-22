@@ -1,6 +1,6 @@
 /* Layout */
 .page-wrapper {
-    margin-left: 100px;
+    margin-left: 0;
     margin-top: 50px;
     padding: 30px 40px 40px 30px;
     background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);

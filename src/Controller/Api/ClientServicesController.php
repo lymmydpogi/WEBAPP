@@ -14,15 +14,17 @@ final class ClientServicesController extends AbstractController
     #[Route('/api/client/services', name: 'api_client_services_list', methods: ['GET'])]
     public function list(ServicesRepository $servicesRepository): JsonResponse
     {
-        $services = array_map(
-            ServicesRepository::serializeForClient(...),
-            $servicesRepository->findAllOrderedByName()
-        );
+        // All services for browsing; isOrderable / visibleInApp flags which can be ordered.
+        $entities = $servicesRepository->findAllOrderedByName();
+        $services = array_map(ServicesRepository::serializeForClient(...), $entities);
 
         return $this->json([
             'success' => true,
             'message' => 'Services loaded.',
-            'data' => ['services' => $services],
+            'data' => [
+                'services' => $services,
+                'orderableCount' => count(array_filter($services, static fn (array $s): bool => ($s['isOrderable'] ?? false) === true)),
+            ],
             'errors' => [],
         ]);
     }

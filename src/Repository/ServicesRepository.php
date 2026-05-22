@@ -75,6 +75,8 @@ class ServicesRepository extends ServiceEntityRepository
      */
     public static function serializeForClient(Services $service): array
     {
+        $orderable = $service->isOrderable();
+
         return [
             'id' => $service->getId(),
             'name' => $service->getName(),
@@ -83,8 +85,13 @@ class ServicesRepository extends ServiceEntityRepository
             'price' => $service->getPrice(),
             'status' => $service->getStatus(),
             'statusLabel' => $service->getStatusLabel(),
-            'isOrderable' => $service->isOrderable(),
-            'is_active' => $service->isOrderable(),
+            'isOrderable' => $orderable,
+            'is_active' => $orderable,
+            'visibleInApp' => $orderable,
+            'category' => $service->getCategory(),
+            'pricingModel' => $service->getPricingModel(),
+            'pricingUnit' => $service->getPricingUnit(),
+            'deliveryTime' => $service->getDeliveryTime(),
         ];
     }
 

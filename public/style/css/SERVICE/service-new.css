@@ -1,10 +1,9 @@
-/* Page Wrapper */
+/* Page Wrapper (inside admin main-content — no extra sidebar offset) */
 .page-wrapper {
-    margin-left: 100px;
-    margin-top: 50px;
-    padding: 30px 40px 40px 30px;
-    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-    min-height: calc(100vh - 50px);
+    margin: 0;
+    padding: 0;
+    background: transparent;
+    min-height: auto;
     font-family: 'Inter', sans-serif;
 }
 
@@ -33,6 +32,26 @@
 .header-section p {
     font-size: 16px;
     color: #6b7280;
+}
+
+.form-hint {
+    margin: 0 32px 1rem;
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
+    color: #4338ca;
+    background: #eef2ff;
+    border-radius: 8px;
+    border: 1px solid #c7d2fe;
+}
+
+.form-alert--error {
+    margin: 1rem 32px 0;
+    padding: 0.75rem 1rem;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 8px;
+    color: #b91c1c;
+    font-size: 0.9rem;
 }
 
 /* Form Card */

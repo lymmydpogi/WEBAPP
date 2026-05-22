@@ -20,6 +20,15 @@
         <!-- Form Card -->
         <div class="form-card">
             {{ form_start(form, {'attr': {'class': 'service-form'}}) }}
+
+            {% if form.vars.errors|length > 0 %}
+                <div class="form-alert form-alert--error" role="alert">
+                    {{ form_errors(form) }}
+                </div>
+            {% endif %}
+
+            <p class="form-hint">New services are saved as <strong>Active</strong> and appear in the mobile app when clients browse services.</p>
+
             <div class="form-grid">
 
                 <!-- Service Name -->
@@ -124,8 +133,21 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    pricingModel.addEventListener("change", filterUnits);
-    filterUnits(); // Run on load
+    function selectFirstVisibleUnit() {
+        const selectedModel = pricingModel.value;
+        if (!selectedModel) return;
+        const visible = Array.from(pricingUnit.options).filter(o => o.value && !o.hidden);
+        if (visible.length && (!pricingUnit.value || pricingUnit.selectedOptions[0]?.hidden)) {
+            pricingUnit.value = visible[0].value;
+        }
+    }
+
+    pricingModel.addEventListener("change", function () {
+        filterUnits();
+        selectFirstVisibleUnit();
+    });
+    filterUnits();
+    selectFirstVisibleUnit();
 });
 </script>
 {% endblock %}

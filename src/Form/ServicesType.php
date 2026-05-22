@@ -10,6 +10,8 @@ use Symfony\Component\Form\Extension\Core\Type\NumberType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\Form\FormEvent;
+use Symfony\Component\Form\FormEvents;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -168,7 +170,7 @@ class ServicesType extends AbstractType
             ->add('revisionLimit', TextType::class, [
                 'label' => 'Revision Limit',
                 'required' => false,
-                'attr' => ['maxlength' => 50],
+                'attr' => ['maxlength' => 50, 'placeholder' => 'e.g. 2 revisions'],
                 'constraints' => [
                     new Assert\Length([
                         'max' => 50,
@@ -176,6 +178,24 @@ class ServicesType extends AbstractType
                     ]),
                 ],
             ]);
+
+        $builder->addEventListener(FormEvents::PRE_SUBMIT, function (FormEvent $event): void {
+            $data = $event->getData();
+            if (!is_array($data)) {
+                return;
+            }
+
+            $model = $data['pricingModel'] ?? null;
+            $unit = $data['pricingUnit'] ?? null;
+            if (is_string($model) && $model !== '' && (!is_string($unit) || $unit === '')) {
+                $data['pricingUnit'] = match ($model) {
+                    'hourly' => 'hour',
+                    'milestone' => 'milestone',
+                    default => 'project',
+                };
+                $event->setData($data);
+            }
+        });
     }
 
     public function configureOptions(OptionsResolver $resolver): void
