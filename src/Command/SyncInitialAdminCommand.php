@@ -4,6 +4,7 @@ namespace App\Command;
 
 use App\Entity\User;
 use App\Repository\UserRepository;
+use App\Service\InitialAdminBootstrap;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -40,7 +41,9 @@ class SyncInitialAdminCommand extends Command
     {
         $io = new SymfonyStyle($input, $output);
 
-        $email = mb_strtolower(trim((string) ($this->env('INITIAL_ADMIN_EMAIL') ?? $this->env('ADMIN_EMAIL') ?? '')));
+        $email = InitialAdminBootstrap::normalizeEmail(
+            (string) ($this->env('INITIAL_ADMIN_EMAIL') ?? $this->env('ADMIN_EMAIL') ?? '')
+        );
         $password = trim((string) ($this->env('INITIAL_ADMIN_PASSWORD') ?? $this->env('ADMIN_PASSWORD') ?? ''));
         $name = trim((string) ($this->env('INITIAL_ADMIN_NAME') ?? $this->env('ADMIN_NAME') ?? 'Admin'));
 
@@ -74,11 +77,9 @@ class SyncInitialAdminCommand extends Command
                     return Command::SUCCESS;
                 }
 
-                $existing->setRoles(['ROLE_ADMIN']);
-                $existing->setStatus('active');
-                $existing->markEmailAsVerified();
-                $existing->setPassword($this->passwordHasher->hashPassword($existing, $password));
+                $this->bootstrapAdmin($existing, $email, $password, $name);
                 $this->userRepository->getEntityManager()->flush();
+                $this->assertStoredPasswordWorks($existing, $password, $io);
                 $io->success(sprintf('Promoted "%s" to admin and updated password.', $email));
 
                 return Command::SUCCESS;
@@ -90,8 +91,9 @@ class SyncInitialAdminCommand extends Command
                 return Command::SUCCESS;
             }
 
-            $existing->setPassword($this->passwordHasher->hashPassword($existing, $password));
+            $this->bootstrapAdmin($existing, $email, $password, $name);
             $this->userRepository->getEntityManager()->flush();
+            $this->assertStoredPasswordWorks($existing, $password, $io);
             $io->success(sprintf('Updated password for admin "%s".', $email));
 
             return Command::SUCCESS;
@@ -106,18 +108,38 @@ class SyncInitialAdminCommand extends Command
         $admin = new User();
         $admin->setEmail($email);
         $admin->setName($name !== '' ? $name : 'Admin');
-        $admin->setRoles(['ROLE_ADMIN']);
-        $admin->setStatus('active');
-        $admin->markEmailAsVerified();
-        $admin->setPassword($this->passwordHasher->hashPassword($admin, $password));
+        $this->bootstrapAdmin($admin, $email, $password, $name);
 
         $em = $this->userRepository->getEntityManager();
         $em->persist($admin);
         $em->flush();
-
+        $this->assertStoredPasswordWorks($admin, $password, $io);
         $io->success(sprintf('Created admin "%s".', $email));
 
         return Command::SUCCESS;
+    }
+
+    private function bootstrapAdmin(User $user, string $email, string $plainPassword, string $name): void
+    {
+        $user->setEmail($email);
+        if ($name !== '') {
+            $user->setName($name);
+        }
+        InitialAdminBootstrap::applyAdminState($user);
+        InitialAdminBootstrap::setPasswordFromPlain($user, $plainPassword, $this->passwordHasher);
+    }
+
+    private function assertStoredPasswordWorks(User $user, string $plainPassword, SymfonyStyle $io): void
+    {
+        $this->userRepository->getEntityManager()->refresh($user);
+
+        if (!InitialAdminBootstrap::assertPasswordValid($user, $plainPassword, $this->passwordHasher)) {
+            $io->warning('Password was saved but post-save validation failed. Check APP_SECRET / hasher config.');
+
+            return;
+        }
+
+        $io->writeln('  Password hash verified against the same hasher used by /login.');
     }
 
     private function env(string $key): ?string

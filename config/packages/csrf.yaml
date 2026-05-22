@@ -7,5 +7,5 @@ framework:
     csrf_protection:
         stateless_token_ids:
             - submit
-            - authenticate
+            # authenticate: use session-backed CSRF on /login (stateless breaks Railway/browser login)
             - logout

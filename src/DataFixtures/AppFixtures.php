@@ -4,6 +4,7 @@ namespace App\DataFixtures;
 
 use App\Entity\Services;
 use App\Entity\User;
+use App\Service\InitialAdminBootstrap;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
@@ -74,7 +75,9 @@ class AppFixtures extends Fixture
     private function seedAdmin(ObjectManager $manager): ?User
     {
         // INITIAL_ADMIN_* (documented); ADMIN_* accepted for Railway convenience
-        $email = trim((string) ($this->env('INITIAL_ADMIN_EMAIL') ?? $this->env('ADMIN_EMAIL') ?? ''));
+        $email = InitialAdminBootstrap::normalizeEmail(
+            (string) ($this->env('INITIAL_ADMIN_EMAIL') ?? $this->env('ADMIN_EMAIL') ?? '')
+        );
         $password = trim((string) ($this->env('INITIAL_ADMIN_PASSWORD') ?? $this->env('ADMIN_PASSWORD') ?? ''));
         $name = trim((string) ($this->env('INITIAL_ADMIN_NAME') ?? $this->env('ADMIN_NAME') ?? 'Admin'));
         $syncPassword = ($this->env('SYNC_INITIAL_ADMIN_PASSWORD') ?? '') === '1';
@@ -93,16 +96,16 @@ class AppFixtures extends Fixture
         if ($existing instanceof User) {
             if ($existing->isAdmin()) {
                 if ($syncPassword) {
-                    $existing->setPassword($this->passwordHasher->hashPassword($existing, $password));
+                    InitialAdminBootstrap::applyAdminState($existing);
+                    InitialAdminBootstrap::setPasswordFromPlain($existing, $password, $this->passwordHasher);
                     $this->log(sprintf('Admin already exists; password synced from env: %s', $email));
                 } else {
                     $this->log(sprintf('Admin already exists, skipping (set SYNC_INITIAL_ADMIN_PASSWORD=1 to update password): %s', $email));
                 }
             } elseif ($promote) {
-                $existing->setRoles(['ROLE_ADMIN']);
-                $existing->setStatus('active');
-                $existing->markEmailAsVerified();
-                $existing->setPassword($this->passwordHasher->hashPassword($existing, $password));
+                $existing->setEmail($email);
+                InitialAdminBootstrap::applyAdminState($existing);
+                InitialAdminBootstrap::setPasswordFromPlain($existing, $password, $this->passwordHasher);
                 $this->log(sprintf('Promoted existing user to admin and set password: %s', $email));
             } else {
                 $this->log(sprintf(
@@ -115,12 +118,10 @@ class AppFixtures extends Fixture
         }
 
         $admin = new User();
-        $admin->setEmail(mb_strtolower($email));
+        $admin->setEmail($email);
         $admin->setName($name !== '' ? $name : 'Admin');
-        $admin->setRoles(['ROLE_ADMIN']);
-        $admin->setStatus('active');
-        $admin->markEmailAsVerified();
-        $admin->setPassword($this->passwordHasher->hashPassword($admin, $password));
+        InitialAdminBootstrap::applyAdminState($admin);
+        InitialAdminBootstrap::setPasswordFromPlain($admin, $password, $this->passwordHasher);
 
         $manager->persist($admin);
         $this->log(sprintf('Created admin account: %s', $email));

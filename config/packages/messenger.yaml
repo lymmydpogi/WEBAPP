@@ -36,3 +36,12 @@ when@dev:
             routing:
                 # Send mail immediately in dev (no worker / messenger_messages table required)
                 Symfony\Component\Mailer\Messenger\SendEmailMessage: sync
+
+when@prod:
+    framework:
+        messenger:
+            transports:
+                sync: 'sync://'
+            routing:
+                # Railway/single-container deploy: no messenger worker; send SMTP in-request
+                Symfony\Component\Mailer\Messenger\SendEmailMessage: sync

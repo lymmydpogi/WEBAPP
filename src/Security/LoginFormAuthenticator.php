@@ -3,8 +3,6 @@
 namespace App\Security;
 
 use App\Entity\User;
-use App\Repository\UserRepository;
-use Symfony\Component\Security\Core\Exception\UserNotFoundException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
@@ -22,7 +20,6 @@ class LoginFormAuthenticator extends AbstractLoginFormAuthenticator
 
     public function __construct(
         private UrlGeneratorInterface $urlGenerator,
-        private UserRepository $userRepository,
     ) {}
 
     public function authenticate(Request $request): Passport
@@ -30,15 +27,9 @@ class LoginFormAuthenticator extends AbstractLoginFormAuthenticator
         $email = mb_strtolower(trim((string) $request->request->get('_username', '')));
         $request->getSession()->set('_security.last_username', $email);
 
+        // UserBadge identifier is email; AppUserProvider loads case-insensitively.
         return new Passport(
-            new UserBadge($email, function (string $userIdentifier): User {
-                $user = $this->userRepository->findOneByEmail($userIdentifier);
-                if (!$user instanceof User) {
-                    throw new UserNotFoundException(sprintf('User "%s" not found.', $userIdentifier));
-                }
-
-                return $user;
-            }),
+            new UserBadge($email),
             new PasswordCredentials($request->request->get('_password', '')),
             [
                 new CsrfTokenBadge('authenticate', $request->request->get('_csrf_token')),

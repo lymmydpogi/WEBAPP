@@ -64,9 +64,18 @@ class SecurityController extends AbstractController
             return $this->redirectToRoute('app_home_index');
         }
 
+        $errorMessage = null;
+        if ($error) {
+            $errorMessage = 'Wrong email or password. Please try again.';
+            if (str_contains($error::class, 'Csrf')) {
+                $errorMessage = 'Your session expired. Refresh the page and try again.';
+            }
+        }
+
         return $this->render('ADMIN/security/login.html.twig', [
             'last_username' => $lastUsername,
             'error' => $error,
+            'error_message' => $errorMessage,
             'access_denied' => $accessDenied
         ]);
     }
