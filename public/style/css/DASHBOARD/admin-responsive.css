@@ -1,0 +1,321 @@
+/* ============================================
+   Admin panel — phone & tablet layouts
+   Loaded after base.css
+   ============================================ */
+
+/* Tablet */
+@media (max-width: 1024px) {
+    .main-content {
+        padding: 1.5rem;
+    }
+
+    .top-navbar {
+        padding-left: 1.25rem;
+        padding-right: 1.25rem;
+    }
+}
+
+@media (max-width: 768px) {
+    /* Sidebar drawer */
+    .sidebar {
+        width: min(280px, 88vw);
+        transform: translateX(-100%);
+        box-shadow: none;
+    }
+
+    .sidebar.mobile-open {
+        transform: translateX(0);
+        box-shadow: 8px 0 32px rgba(0, 0, 0, 0.35);
+    }
+
+    .sidebar-overlay {
+        display: block;
+        position: fixed;
+        inset: 0;
+        z-index: 45;
+        background: rgba(15, 23, 42, 0.55);
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.25s ease, visibility 0.25s ease;
+        border: none;
+        padding: 0;
+        cursor: pointer;
+    }
+
+    .sidebar-overlay.is-visible {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    body.admin-nav-open {
+        overflow: hidden;
+    }
+
+    .sidebar-title {
+        font-size: 1.35rem;
+        padding: 1rem 0;
+    }
+
+    .sidebar-logo {
+        padding: 1.25rem 0 1rem;
+    }
+
+    .logo-img {
+        height: 42px;
+    }
+
+    /* Top bar */
+    .top-navbar {
+        left: 0;
+        right: 0;
+        height: auto;
+        min-height: 56px;
+        padding: 0.65rem 1rem;
+        padding-left: max(1rem, env(safe-area-inset-left));
+        padding-right: max(1rem, env(safe-area-inset-right));
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.5rem 0.75rem;
+    }
+
+    .navbar-title {
+        font-size: 1.05rem;
+        flex: 1 1 auto;
+        min-width: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        line-height: 1.3;
+    }
+
+    .navbar-actions {
+        flex: 0 1 auto;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        gap: 0.5rem;
+    }
+
+    .nav-btn {
+        padding: 0.5rem 0.875rem;
+        font-size: 0.8125rem;
+    }
+
+    /* Main area — room for top bar + menu FAB */
+    .main-content {
+        margin-left: 0;
+        margin-top: 4.75rem;
+        padding: 1rem;
+        padding-bottom: calc(5.5rem + env(safe-area-inset-bottom));
+        min-height: calc(100vh - 4.75rem);
+    }
+
+    .content-container {
+        max-width: 100%;
+    }
+
+    .mobile-menu-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        bottom: max(1.25rem, env(safe-area-inset-bottom));
+        right: max(1.25rem, env(safe-area-inset-right));
+    }
+
+    /* Tables & DataTables */
+    .table-container {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        border-radius: 10px;
+    }
+
+    .table {
+        min-width: 36rem;
+    }
+
+    .table thead th,
+    .table tbody td {
+        padding: 12px 14px;
+        font-size: 13px;
+    }
+
+    .table tbody td a,
+    .table tbody td .btn-delete,
+    .table tbody td button {
+        display: inline-block;
+        margin-bottom: 4px;
+    }
+
+    .dataTables_wrapper {
+        padding: 12px;
+    }
+
+    .dataTables_wrapper .dataTables_length,
+    .dataTables_wrapper .dataTables_filter {
+        float: none;
+        width: 100%;
+        text-align: left;
+        margin-bottom: 12px;
+    }
+
+    .dataTables_wrapper .dataTables_filter input {
+        width: 100%;
+        max-width: 100%;
+        margin-left: 0;
+    }
+
+    .dataTables_wrapper .dataTables_info,
+    .dataTables_wrapper .dataTables_paginate {
+        float: none;
+        text-align: center;
+        margin-top: 12px;
+    }
+
+    /* Shared heroes (orders, services, analytics, etc.) */
+    .hero-section,
+    .analytics-hero,
+    .messages-hero {
+        padding: 1.35rem 1rem !important;
+        margin-bottom: 1.25rem !important;
+        border-radius: 12px !important;
+    }
+
+    .hero-section h1,
+    .analytics-hero h1,
+    .messages-hero h1 {
+        font-size: 1.4rem !important;
+        line-height: 1.25 !important;
+    }
+
+    .hero-section p,
+    .analytics-hero p,
+    .messages-hero p {
+        font-size: 0.9rem !important;
+    }
+
+    .section-title {
+        font-size: 1.2rem;
+        margin-bottom: 1rem;
+    }
+
+    .btn-container {
+        text-align: stretch !important;
+    }
+
+    .btn-create,
+    .btn-primary,
+    .hero-cta .btn-primary,
+    .hero-cta .btn-secondary {
+        width: 100%;
+        justify-content: center;
+        text-align: center;
+    }
+
+    .hero-cta {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        max-width: 20rem;
+        margin-inline: auto;
+    }
+
+    /* Forms & detail pages */
+    .form-container,
+    .form-card,
+    .detail-card,
+    .page-header {
+        padding: 1rem !important;
+    }
+
+    .form-row,
+    .form-grid,
+    .profile-grid,
+    .settings-grid,
+    .reports-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .stats-grid,
+    .stats-overview,
+    .features-grid,
+    .actions-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .stat-value {
+        font-size: 1.65rem;
+    }
+
+    /* Settings / profile tabs */
+    .settings-tabs,
+    .tab-list {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    /* Charts */
+    .chart-container,
+    .analytics-chart-wrap {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    canvas {
+        max-width: 100%;
+        height: auto !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .top-navbar {
+        padding: 0.5rem 0.75rem;
+    }
+
+    .navbar-title {
+        font-size: 0.95rem;
+        flex: 1 1 100%;
+    }
+
+    .navbar-actions {
+        width: 100%;
+        justify-content: stretch;
+    }
+
+    .nav-btn {
+        flex: 1;
+        text-align: center;
+        padding: 0.5rem 0.5rem;
+        font-size: 0.75rem;
+    }
+
+    .main-content {
+        margin-top: 5.5rem;
+        padding: 0.75rem;
+    }
+
+    .sidebar-profile {
+        margin: 0.5rem;
+        padding: 1rem;
+    }
+
+    .nav-link {
+        padding: 0.75rem 1rem;
+        font-size: 0.9rem;
+    }
+
+    .table {
+        min-width: 32rem;
+    }
+
+    .table thead th,
+    .table tbody td {
+        padding: 10px 10px;
+        font-size: 12px;
+    }
+}
+
+/* Dark mode — mobile (inherits base dark rules) */
+@media (max-width: 768px) {
+    body.dark-mode .top-navbar {
+        box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2);
+    }
+}
