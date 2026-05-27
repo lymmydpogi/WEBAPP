@@ -50,9 +50,9 @@ security:
         # Public routes
         - { path: ^/logout, roles: PUBLIC_ACCESS }
         - { path: ^/verify-email, roles: PUBLIC_ACCESS }
-        - { path: ^/client/profile, roles: ROLE_CLIENT }
-        - { path: ^/client/orders, roles: ROLE_CLIENT }
-        - { path: ^/client/services/.+, methods: [POST], roles: ROLE_CLIENT }
+        - { path: ^/client/profile, roles: [ROLE_CLIENT, ROLE_USER] }
+        - { path: ^/client/orders, roles: [ROLE_CLIENT, ROLE_USER] }
+        - { path: ^/client/services/.+, methods: [POST], roles: [ROLE_CLIENT, ROLE_USER] }
         - { path: ^/client, roles: PUBLIC_ACCESS }
         - { path: ^/login, roles: PUBLIC_ACCESS }
         - { path: ^/register, roles: PUBLIC_ACCESS }

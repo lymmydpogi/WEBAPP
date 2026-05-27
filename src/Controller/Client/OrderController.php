@@ -15,14 +15,13 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/client/orders')]
-#[IsGranted('ROLE_CLIENT')]
+#[IsGranted('ROLE_USER')]
 final class OrderController extends AbstractController
 {
     #[Route('', name: 'client_orders', methods: ['GET'])]
     public function index(OrderRepository $orderRepository): Response
     {
-        /** @var User $client */
-        $client = $this->getUser();
+        $client = $this->requireClientUser();
         $orders = $orderRepository->findBy(['user' => $client], ['orderDate' => 'DESC']);
 
         return $this->render('client/order/index.html.twig', [
@@ -33,8 +32,7 @@ final class OrderController extends AbstractController
     #[Route('/{id}', name: 'client_order_show', requirements: ['id' => '\d+'], methods: ['GET'])]
     public function show(int $id, ClientOrderService $clientOrderService): Response
     {
-        /** @var User $client */
-        $client = $this->getUser();
+        $client = $this->requireClientUser();
 
         try {
             $order = $clientOrderService->getOrderForClient($client, $id);
@@ -54,8 +52,7 @@ final class OrderController extends AbstractController
         Request $request,
         ClientOrderService $clientOrderService,
     ): Response {
-        /** @var User $client */
-        $client = $this->getUser();
+        $client = $this->requireClientUser();
 
         try {
             $order = $clientOrderService->getOrderForClient($client, $id);
@@ -99,8 +96,7 @@ final class OrderController extends AbstractController
         Request $request,
         ClientOrderService $clientOrderService,
     ): Response {
-        /** @var User $client */
-        $client = $this->getUser();
+        $client = $this->requireClientUser();
 
         try {
             $order = $clientOrderService->getOrderForClient($client, $id);
@@ -125,5 +121,15 @@ final class OrderController extends AbstractController
         }
 
         return $this->redirectToRoute('client_order_show', ['id' => $id]);
+    }
+
+    private function requireClientUser(): User
+    {
+        $user = $this->getUser();
+        if (!$user instanceof User || !$user->isMobileAppUser()) {
+            throw $this->createAccessDeniedException('Client account required.');
+        }
+
+        return $user;
     }
 }

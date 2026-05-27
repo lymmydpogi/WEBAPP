@@ -184,8 +184,8 @@ class Order
         $this->user = $user;
 
         if ($user) {
-            $this->clientName = $user->getName();
-            $this->clientEmail = $user->getEmail();
+            $this->clientName = $user->getName() ?? $user->getEmail() ?? 'Client';
+            $this->clientEmail = (string) ($user->getEmail() ?? '');
         }
 
         return $this;
