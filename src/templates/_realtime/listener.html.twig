@@ -1,25 +1,16 @@
 <script>
 (function () {
     const streamUrl = '{{ path('realtime_stream') }}';
+    const pollUrl = '{{ path('realtime_events') }}';
     let source = null;
     let retryTimer = null;
+    let pollTimer = null;
     let reconnectDelayMs = 3000;
     let lastEventId = Number(localStorage.getItem('realtime_last_event_id') || 0) || 0;
 
-    const shouldAutoReload = () => {
+    const isSkippablePath = () => {
         const p = window.location.pathname;
-        return (
-            p.startsWith('/order') ||
-            p.startsWith('/orders') ||
-            p.startsWith('/services') ||
-            p.startsWith('/user') ||
-            p.startsWith('/home') ||
-            p.startsWith('/reports') ||
-            p.startsWith('/analytics') ||
-            p.startsWith('/client/orders') ||
-            p.startsWith('/client/profile') ||
-            p.startsWith('/admin/messages')
-        );
+        return p.startsWith('/login') || p.startsWith('/register') || p.startsWith('/realtime/');
     };
 
     const showRealtimeToast = (text) => {
@@ -51,6 +42,22 @@
         }, reconnectDelayMs);
     };
 
+    const applyEvent = (eventData) => {
+        const payload = typeof eventData === 'string' ? JSON.parse(eventData || '{}') : eventData;
+        const id = Number(payload.id || 0);
+        if (id > 0) {
+            lastEventId = id;
+            localStorage.setItem('realtime_last_event_id', String(id));
+        }
+
+        const summary = payload?.payload?.summary || 'App data updated.';
+        showRealtimeToast(`Realtime update: ${summary}`);
+
+        if (document.visibilityState === 'visible' && !isSkippablePath()) {
+            setTimeout(() => window.location.reload(), 700);
+        }
+    };
+
     const connect = () => {
         if (source) {
             source.close();
@@ -61,19 +68,7 @@
 
         source.addEventListener('app.action', (event) => {
             try {
-                const payload = JSON.parse(event.data || '{}');
-                const id = Number(payload.id || 0);
-                if (id > 0) {
-                    lastEventId = id;
-                    localStorage.setItem('realtime_last_event_id', String(id));
-                }
-
-                const summary = payload?.payload?.summary || 'App data updated.';
-                showRealtimeToast(`Realtime update: ${summary}`);
-
-                if (document.visibilityState === 'visible' && shouldAutoReload()) {
-                    setTimeout(() => window.location.reload(), 900);
-                }
+                applyEvent(event.data || '{}');
             } catch (_e) {
                 // Ignore malformed realtime payloads.
             }
@@ -86,9 +81,36 @@
         };
     };
 
+    const poll = async () => {
+        try {
+            const url = lastEventId > 0 ? `${pollUrl}?lastEventId=${lastEventId}` : pollUrl;
+            const res = await fetch(url, { credentials: 'include' });
+            if (!res.ok) {
+                throw new Error('realtime poll failed');
+            }
+            const json = await res.json();
+            const events = Array.isArray(json?.events) ? json.events : [];
+            for (const ev of events) {
+                try {
+                    applyEvent(ev);
+                } catch (_e) {
+                    // ignore malformed event
+                }
+            }
+        } catch (_e) {
+            // silent: will retry
+        } finally {
+            pollTimer = setTimeout(poll, reconnectDelayMs);
+        }
+    };
+
     document.addEventListener('visibilitychange', () => {
-        if (document.visibilityState === 'visible' && !source) {
-            connect();
+        if (document.visibilityState === 'visible') {
+            if (typeof EventSource !== 'undefined' && !source) {
+                connect();
+            } else if (typeof EventSource === 'undefined' && !pollTimer) {
+                poll();
+            }
         }
     });
 
@@ -97,8 +119,15 @@
         if (retryTimer) {
             clearTimeout(retryTimer);
         }
+        if (pollTimer) {
+            clearTimeout(pollTimer);
+        }
     });
 
-    connect();
+    if (typeof EventSource !== 'undefined') {
+        connect();
+    } else {
+        poll();
+    }
 })();
 </script>

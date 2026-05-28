@@ -70,6 +70,7 @@ security:
         - { path: ^/api/messages, roles: ROLE_CLIENT }
         - { path: ^/connect/google, roles: PUBLIC_ACCESS }
         - { path: ^/realtime/stream, roles: [ROLE_ADMIN, ROLE_STAFF, ROLE_CLIENT, ROLE_USER] }
+        - { path: ^/realtime/events, roles: [ROLE_ADMIN, ROLE_STAFF, ROLE_CLIENT, ROLE_USER] }
 
         # Admin-only routes
         - { path: ^/admin/messages, roles: ROLE_ADMIN }

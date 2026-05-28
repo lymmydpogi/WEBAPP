@@ -3,6 +3,7 @@
 namespace App\Controller\Realtime;
 
 use App\Service\Realtime\RealtimeEventService;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -56,5 +57,19 @@ final class RealtimeStreamController extends AbstractController
         $response->headers->set('X-Accel-Buffering', 'no');
 
         return $response;
+    }
+
+    #[Route('/realtime/events', name: 'realtime_events', methods: ['GET'])]
+    public function events(Request $request, RealtimeEventService $realtime): JsonResponse
+    {
+        if ($this->getUser() === null) {
+            return new JsonResponse(['events' => []], Response::HTTP_UNAUTHORIZED);
+        }
+
+        $lastId = (int) ($request->query->get('lastEventId') ?? 0);
+
+        return new JsonResponse([
+            'events' => $realtime->readAfterId($lastId, 200),
+        ]);
     }
 }
