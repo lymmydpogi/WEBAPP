@@ -66,13 +66,18 @@
         const url = lastEventId > 0 ? `${streamUrl}?lastEventId=${lastEventId}` : streamUrl;
         source = new EventSource(url, { withCredentials: true });
 
-        source.addEventListener('app.action', (event) => {
+        const handleSseEvent = (event) => {
             try {
                 applyEvent(event.data || '{}');
             } catch (_e) {
                 // Ignore malformed realtime payloads.
             }
-        });
+        };
+
+        // Support both names + default message events for compatibility.
+        source.addEventListener('api.action', handleSseEvent);
+        source.addEventListener('app.action', handleSseEvent);
+        source.addEventListener('message', handleSseEvent);
 
         source.onerror = () => {
             source?.close();

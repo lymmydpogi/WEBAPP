@@ -34,8 +34,9 @@ final class RealtimeStreamController extends AbstractController
                 foreach ($events as $event) {
                     $cursor = max($cursor, (int) $event['id']);
 
+                    // Primary event name consumed by app/web realtime clients.
                     echo 'id: ' . $event['id'] . "\n";
-                    echo 'event: app.action' . "\n";
+                    echo 'event: api.action' . "\n";
                     echo 'data: ' . json_encode($event, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . "\n\n";
                 }
 
