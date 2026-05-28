@@ -8,6 +8,7 @@ use App\Repository\ActivityLogRepository;
 use App\Repository\OrderRepository;
 use App\Repository\ServicesRepository;
 use App\Repository\UserRepository;
+use App\Service\UserRoleService;
 use Doctrine\DBAL\Exception\ForeignKeyConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -15,10 +16,16 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/user')]
+#[IsGranted('ROLE_ADMIN')]
 class UserController extends AbstractController
 {
+    public function __construct(
+        private readonly UserRoleService $userRoleService,
+    ) {
+    }
     #[Route('/', name: 'app_user_index')]
     public function index(UserRepository $userRepository, OrderRepository $orderRepository): Response
     {
@@ -60,6 +67,15 @@ class UserController extends AbstractController
             $plainPassword = $form->get('password')->getData();
             if ($plainPassword) {
                 $user->setPassword($passwordHasher->hashPassword($user, $plainPassword));
+            }
+
+            $role = $form->get('roles')->getData();
+            if (is_string($role) && $role !== '') {
+                $actor = $this->getUser();
+                if ($actor instanceof User) {
+                    $this->userRoleService->assertCanAssignRole($actor, $user, $role);
+                    $this->userRoleService->applyRole($user, $role);
+                }
             }
 
             $entityManager->persist($user);
@@ -110,6 +126,26 @@ class UserController extends AbstractController
                 $this->addFlash('success', 'Password updated successfully!');
             }
 
+            if (!$form->get('roles')->isDisabled()) {
+                $role = $form->get('roles')->getData();
+                if (is_string($role) && $role !== '') {
+                    $actor = $this->getUser();
+                    if ($actor instanceof User) {
+                        try {
+                            $this->userRoleService->assertCanAssignRole($actor, $user, $role);
+                            $this->userRoleService->applyRole($user, $role);
+                        } catch (\Symfony\Component\Security\Core\Exception\AccessDeniedException $e) {
+                            $this->addFlash('error', $e->getMessage());
+
+                            return $this->render('ADMIN/_TABLES/user/edit.html.twig', [
+                                'form' => $form->createView(),
+                                'user' => $user,
+                            ]);
+                        }
+                    }
+                }
+            }
+
             $entityManager->flush();
             $this->addFlash('success', 'User updated successfully!');
             return $this->redirectToRoute('app_user_index');
@@ -119,6 +155,33 @@ class UserController extends AbstractController
             'form' => $form->createView(),
             'user' => $user
         ]);
+    }
+
+    #[Route('/{id}/promote-staff', name: 'app_user_promote_staff', methods: ['POST'])]
+    public function promoteToStaff(int $id, Request $request, UserRepository $userRepository, EntityManagerInterface $entityManager): Response
+    {
+        $user = $userRepository->find($id);
+        if (!$user) {
+            $this->addFlash('error', 'User not found.');
+            return $this->redirectToRoute('app_user_index');
+        }
+
+        if (!$this->isCsrfTokenValid('promote_staff' . $user->getId(), $request->request->get('_token'))) {
+            $this->addFlash('error', 'Invalid security token. Please try again.');
+            return $this->redirectToRoute('app_user_index');
+        }
+
+        if (!$this->userRoleService->canPromoteToStaff($user)) {
+            $this->addFlash('error', 'Only client accounts can be promoted to staff.');
+            return $this->redirectToRoute('app_user_index');
+        }
+
+        $this->userRoleService->applyRole($user, UserRoleService::ROLE_STAFF);
+        $entityManager->flush();
+
+        $this->addFlash('success', sprintf('%s is now a staff member. They can log in at /login and access orders and services.', $user->getEmail()));
+
+        return $this->redirectToRoute('app_user_index');
     }
 
     #[Route('/{id}/delete', name: 'app_user_delete', methods: ['POST'])]

@@ -2,6 +2,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title>{% block title %}Welcome!{% endblock %}</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>⚫️</text><text y=%221.3em%22 x=%220.2em%22 font-size=%2276%22 fill=%22%23fff%22>sf</text></svg>">
 
@@ -9,6 +10,7 @@
         {{ encore_entry_link_tags('app') }}
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
         <link rel="stylesheet" href="{{ asset('style/css/DASHBOARD/base.css') }}">
+        <link rel="stylesheet" href="{{ asset('style/css/DASHBOARD/admin-responsive.css') }}">
     {% endblock %}
 
     {% block javascripts %}{% endblock %}
@@ -16,8 +18,10 @@
 
 <body>
 
+    <button type="button" class="sidebar-overlay" id="sidebar-overlay" aria-label="Close menu" tabindex="-1"></button>
+
     <!-- Sidebar -->
-    <div class="sidebar">
+    <div class="sidebar" id="admin-sidebar">
 
         <!-- Logo Section -->
         <div class="sidebar-logo">
@@ -232,11 +236,56 @@
     {% endif %}
 
     <script>
-        // Mobile menu toggle
-        document.getElementById('mobile-menu-button').addEventListener('click', function() {
-            const sidebar = document.querySelector('.sidebar');
-            sidebar.classList.toggle('mobile-open');
-        });
+        (function () {
+            const sidebar = document.getElementById('admin-sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            const menuBtn = document.getElementById('mobile-menu-button');
+
+            function openNav() {
+                sidebar?.classList.add('mobile-open');
+                overlay?.classList.add('is-visible');
+                document.body.classList.add('admin-nav-open');
+                overlay?.setAttribute('tabindex', '0');
+            }
+
+            function closeNav() {
+                sidebar?.classList.remove('mobile-open');
+                overlay?.classList.remove('is-visible');
+                document.body.classList.remove('admin-nav-open');
+                overlay?.setAttribute('tabindex', '-1');
+            }
+
+            function toggleNav() {
+                if (sidebar?.classList.contains('mobile-open')) {
+                    closeNav();
+                } else {
+                    openNav();
+                }
+            }
+
+            menuBtn?.addEventListener('click', toggleNav);
+            overlay?.addEventListener('click', closeNav);
+
+            document.querySelectorAll('.sidebar-nav .nav-link').forEach(function (link) {
+                link.addEventListener('click', function () {
+                    if (window.matchMedia('(max-width: 768px)').matches) {
+                        closeNav();
+                    }
+                });
+            });
+
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape') {
+                    closeNav();
+                }
+            });
+
+            window.addEventListener('resize', function () {
+                if (window.innerWidth > 768) {
+                    closeNav();
+                }
+            });
+        })();
 
         // Ensure active link highlighting works properly
         document.addEventListener('DOMContentLoaded', function() {
@@ -263,6 +312,8 @@
             }
         });
     </script>
+
+    {% include '_realtime/listener.html.twig' %}
 
 </body>
 </html>

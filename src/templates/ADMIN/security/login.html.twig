@@ -29,7 +29,7 @@
 
         {% if error %}
             <div class="login-alert login-alert--error" role="alert">
-                Wrong email or password. Please try again.
+                {{ error_message|default('Wrong email or password. Please try again.') }}
             </div>
         {% endif %}
 
@@ -74,7 +74,7 @@
         Swal.fire({
             icon: 'error',
             title: 'Login failed',
-            text: 'Wrong email or password. Please try again.',
+            text: {{ (error_message|default('Wrong email or password. Please try again.'))|json_encode|raw }},
             confirmButtonText: 'OK',
             allowOutsideClick: false
         });

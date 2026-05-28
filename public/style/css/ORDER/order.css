@@ -90,9 +90,22 @@ body {
 }
 
 @media (max-width: 768px) {
+    .hero-section {
+        padding: 1.5rem 1rem;
+    }
+
+    .hero-section h1 {
+        font-size: 1.5rem;
+    }
+
     .btn-container {
         text-align: center;
-        margin-bottom: 32px; /* spacing for mobile */
+        margin-bottom: 32px;
+    }
+
+    .btn-create {
+        width: 100%;
+        justify-content: center;
     }
 }
 
@@ -110,7 +123,8 @@ body {
     border-radius: 12px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
     border: 1px solid #e5e7eb;
-    overflow: hidden;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 /* DataTables Wrapper Fixes */

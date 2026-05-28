@@ -46,17 +46,28 @@
                             <td>{{ client.email }}</td>
                             <td>{{ client.phone ?: 'N/A' }}</td>
                         
-                       <td>
-    {% set displayRole = client.roles[0] is iterable ? client.roles[0][0] : client.roles[0] %}
-    {{ displayRole is defined ? displayRole|replace({'ROLE_':''}) : 'N/A' }}
-</td>
-
-
-
-
                             <td>
+                                {% if client.isAdmin %}
+                                    Admin
+                                {% elseif client.isStaff %}
+                                    Staff
+                                {% else %}
+                                    Client
+                                {% endif %}
+                            </td>
+
+
+
+
+                            <td class="user-actions-cell">
                                 <a href="{{ path('app_user_show', {'id': client.id}) }}" class="btn-action">Show</a>
                                 <a href="{{ path('app_user_edit', {'id': client.id}) }}" class="btn-action">Edit</a>
+                                {% if not client.isAdmin and not client.isStaff %}
+                                    <form method="post" action="{{ path('app_user_promote_staff', {'id': client.id}) }}" style="display:inline;" onsubmit="return confirm('Promote this client to staff? They will use the admin panel at /login.');">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('promote_staff' ~ client.id) }}">
+                                        <button type="submit" class="btn-action btn-action--staff">Make Staff</button>
+                                    </form>
+                                {% endif %}
                                 <form method="post" action="{{ path('app_user_delete', {'id': client.id}) }}" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this user?');">
                                     <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ client.id) }}">
                                     <button type="submit" class="btn-delete">Delete</button>

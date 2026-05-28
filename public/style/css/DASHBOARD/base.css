@@ -765,8 +765,12 @@ body.dark-mode ::-webkit-scrollbar-thumb:hover {
 }
 
 /* ============================================
-   Responsive Design
+   Responsive Design (see admin-responsive.css)
    ============================================ */
+.sidebar-overlay {
+    display: none;
+}
+
 @media (max-width: 768px) {
     .sidebar {
         transform: translateX(-100%);

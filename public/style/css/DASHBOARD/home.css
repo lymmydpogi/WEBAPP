@@ -7,7 +7,9 @@
 
 .logo-container {
     margin-bottom: 32px;
-    margin-left: 470px;
+    margin-left: 0;
+    display: flex;
+    justify-content: center;
 }
 
 /* Logo */
@@ -221,14 +223,44 @@
 
 /* Responsive */
 @media (max-width: 768px) {
+    .hero-section {
+        padding: 2rem 1rem 3rem;
+        margin-bottom: 2rem;
+    }
+
+    .logo-container img {
+        max-width: 140px;
+    }
+
     .hero-section h1 {
-        font-size: 32px;
+        font-size: 1.75rem;
     }
+
     .hero-section p {
-        font-size: 16px;
+        font-size: 1rem;
+        padding: 0 0.5rem;
     }
+
     .hero-cta {
         flex-direction: column;
         gap: 10px;
+        width: 100%;
+        max-width: 18rem;
+    }
+
+    .btn-primary,
+    .btn-secondary {
+        display: block;
+        width: 100%;
+        text-align: center;
+    }
+
+    .section-title {
+        font-size: 1.35rem;
+    }
+
+    .stat-card,
+    .feature-card {
+        padding: 1.25rem;
     }
 }

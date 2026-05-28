@@ -100,7 +100,8 @@ body {
     border-radius: 12px;
     border: 1px solid #e5e7eb;
     box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-    overflow: hidden;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
     margin-bottom: 40px;
     padding: 20px; /* same as Order table */
 }
@@ -166,6 +167,46 @@ body {
     background: #6366f1;
     color: #fff;
     border-color: #6366f1;
+}
+
+/* User table action links */
+.btn-action {
+    display: inline-block;
+    padding: 7px 14px;
+    margin-right: 6px;
+    margin-bottom: 4px;
+    background: #f9fafb;
+    color: #374151;
+    text-decoration: none;
+    border-radius: 6px;
+    border: 1px solid #e5e7eb;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.btn-action:hover {
+    background: #6366f1;
+    color: #fff;
+    border-color: #6366f1;
+}
+
+.btn-action--staff {
+    background: #eef2ff;
+    color: #4338ca;
+    border-color: #c7d2fe;
+}
+
+.btn-action--staff:hover {
+    background: #6366f1;
+    color: #fff;
+    border-color: #6366f1;
+}
+
+.user-actions-cell {
+    white-space: normal;
+    min-width: 11rem;
 }
 
 /* Empty State */

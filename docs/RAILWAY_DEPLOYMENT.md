@@ -39,6 +39,15 @@ Optional:
 | Variable | Notes |
 |----------|--------|
 | `RUN_MIGRATIONS` | Set to `1` once to run migrations on startup, then remove |
+| `RUN_FIXTURES` | Set to `1` **once** to create admin + default services, then remove |
+| `INITIAL_ADMIN_EMAIL` | Admin login email (or use `ADMIN_EMAIL`) |
+| `INITIAL_ADMIN_PASSWORD` | Plain password; hashed in DB (or use `ADMIN_PASSWORD`) |
+| `INITIAL_ADMIN_NAME` | Display name (or use `ADMIN_NAME`) |
+| `SYNC_INITIAL_ADMIN_PASSWORD` | Set to `1` for one deploy — entrypoint runs `app:sync-initial-admin` against Railway MySQL |
+| `PROMOTE_INITIAL_ADMIN` | Optional; entrypoint always passes `--promote` so client accounts become admin |
+| `RUN_ADMIN_SYNC` | Alias for `SYNC_INITIAL_ADMIN_PASSWORD=1` |
+| `ADMIN_EMAIL` / `ADMIN_PASSWORD` | Aliases for `INITIAL_ADMIN_*` if you used those names earlier |
+| `LOGIN_DEBUG` | Set to `1` temporarily — logs login failure diagnostics (no passwords); remove after fixing |
 | `CORS_ALLOWED_ORIGINS` | `*` default in prod config; native mobile ignores CORS |
 | Firebase `FIREBASE_WEB_*` | Only if web client pages need Firebase |
 

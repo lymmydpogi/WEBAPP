@@ -57,7 +57,7 @@ final class ServicesController extends AbstractController
             $entityManager->persist($service);
             $entityManager->flush();
 
-            $this->addFlash('success', 'Service created successfully. It is now visible in the mobile app catalog.');
+            $this->addFlash('success', 'Service created successfully.');
 
             return $this->redirectToRoute('app_services_index', [], Response::HTTP_SEE_OTHER);
         }

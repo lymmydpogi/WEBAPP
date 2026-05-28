@@ -99,25 +99,52 @@ final class AuthController extends AbstractController
         $verificationToken = $emailVerificationService->generateVerificationToken();
         $user->markEmailAsPendingVerification($verificationToken);
 
-        $entityManager->persist($user);
-        $entityManager->flush();
+        try {
+            $entityManager->persist($user);
+            $entityManager->flush();
+        } catch (\Throwable) {
+            return $this->apiError(
+                'Could not save your account. Please try again later.',
+                Response::HTTP_INTERNAL_SERVER_ERROR,
+            );
+        }
 
-        $verificationUrl = $this->generateUrl(
+        $baseUrl = rtrim(
+            (string) ($_ENV['APP_URL'] ?? $_SERVER['APP_URL'] ?? $request->getSchemeAndHttpHost()),
+            '/',
+        );
+        $verificationWeb = $baseUrl . $this->generateUrl(
             'app_verify_email',
             ['token' => $verificationToken],
-            UrlGeneratorInterface::ABSOLUTE_URL
+            UrlGeneratorInterface::RELATIVE_PATH,
         );
-        $emailVerificationService->sendVerificationEmail($user, $verificationUrl);
+        $verificationApi = $baseUrl . $this->generateUrl(
+            'api_verify_email',
+            ['token' => $verificationToken],
+            UrlGeneratorInterface::RELATIVE_PATH,
+        );
 
-        return $this->apiSuccess('Registration successful. Please verify your email.', [
+        $emailSent = true;
+        try {
+            $emailVerificationService->sendVerificationEmail($user, $verificationWeb);
+        } catch (\Throwable) {
+            // Account is saved on Railway even if MAILER_* is not configured yet.
+            $emailSent = false;
+        }
+
+        $message = $emailSent
+            ? 'Registration successful. Please verify your email.'
+            : 'Registration successful. Your account was created; verification email could not be sent yet.';
+
+        return $this->apiSuccess($message, [
             'user' => [
                 'id' => $user->getId(),
                 'email' => $user->getEmail(),
                 'isVerified' => $user->isVerified(),
             ],
             'verification' => [
-                'web' => $verificationUrl,
-                'api' => $this->generateUrl('api_verify_email', ['token' => $verificationToken], UrlGeneratorInterface::ABSOLUTE_URL),
+                'web' => $verificationWeb,
+                'api' => $verificationApi,
             ],
         ], Response::HTTP_CREATED);
     }

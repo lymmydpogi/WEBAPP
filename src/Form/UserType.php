@@ -3,6 +3,7 @@
 namespace App\Form;
 
 use App\Entity\User;
+use App\Service\UserRoleService;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
@@ -16,6 +17,11 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 class UserType extends AbstractType
 {
+    public function __construct(
+        private readonly UserRoleService $userRoleService,
+    ) {
+    }
+
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $isEdit = $options['is_edit'];
@@ -134,16 +140,25 @@ class UserType extends AbstractType
         // Roles (admin only)
         // ===============================
         if (!$isProfile) {
+            /** @var User|null $user */
+            $user = $builder->getData();
+            $roleChoices = $user instanceof User
+                ? $this->userRoleService->assignableRoleChoices($user)
+                : [
+                    'Client' => UserRoleService::ROLE_CLIENT,
+                    'Staff' => UserRoleService::ROLE_STAFF,
+                ];
+
             $builder->add('roles', ChoiceType::class, [
                 'label' => 'Role',
-                'choices' => [
-                    'Client' => 'ROLE_CLIENT',
-                    'Staff' => 'ROLE_STAFF',
-                    'Manager' => 'ROLE_MANAGER',
-                ],
+                'choices' => $roleChoices,
                 'multiple' => false,
                 'expanded' => false,
                 'required' => true,
+                'disabled' => $user instanceof User && $user->isAdmin(),
+                'help' => ($user instanceof User && $user->isAdmin())
+                    ? 'Administrator role cannot be changed here.'
+                    : 'Change Client to Staff to grant access to orders and services in the admin panel.',
                 'constraints' => [
                     new Assert\NotBlank(['message' => 'Role is required']),
                 ],

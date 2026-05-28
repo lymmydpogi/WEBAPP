@@ -39,7 +39,7 @@ COPY --from=assets /app/public/build /app/public/build
 COPY docker/entrypoint.sh /entrypoint.sh
 
 RUN chmod +x /entrypoint.sh \
-    && mkdir -p var/cache var/log public/uploads/avatars config/jwt \
+    && mkdir -p var/cache var/log var/sessions public/uploads/avatars config/jwt \
     && printf '%s\n' 'APP_ENV=prod' 'APP_DEBUG=0' > .env \
     && openssl genrsa -out config/jwt/private.pem 2048 2>/dev/null \
     && openssl rsa -in config/jwt/private.pem -pubout -out config/jwt/public.pem 2>/dev/null \

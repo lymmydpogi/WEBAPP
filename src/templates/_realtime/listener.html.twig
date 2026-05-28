@@ -1,0 +1,104 @@
+<script>
+(function () {
+    const streamUrl = '{{ path('realtime_stream') }}';
+    let source = null;
+    let retryTimer = null;
+    let reconnectDelayMs = 3000;
+    let lastEventId = Number(localStorage.getItem('realtime_last_event_id') || 0) || 0;
+
+    const shouldAutoReload = () => {
+        const p = window.location.pathname;
+        return (
+            p.startsWith('/order') ||
+            p.startsWith('/orders') ||
+            p.startsWith('/services') ||
+            p.startsWith('/user') ||
+            p.startsWith('/home') ||
+            p.startsWith('/reports') ||
+            p.startsWith('/analytics') ||
+            p.startsWith('/client/orders') ||
+            p.startsWith('/client/profile') ||
+            p.startsWith('/admin/messages')
+        );
+    };
+
+    const showRealtimeToast = (text) => {
+        const el = document.createElement('div');
+        el.textContent = text;
+        el.style.position = 'fixed';
+        el.style.right = '16px';
+        el.style.bottom = '16px';
+        el.style.zIndex = '2000';
+        el.style.background = 'rgba(15,23,42,0.95)';
+        el.style.color = '#e2e8f0';
+        el.style.padding = '10px 14px';
+        el.style.borderRadius = '8px';
+        el.style.border = '1px solid rgba(56,189,248,0.45)';
+        el.style.boxShadow = '0 10px 28px rgba(2,6,23,0.45)';
+        el.style.fontSize = '13px';
+        document.body.appendChild(el);
+        setTimeout(() => el.remove(), 2500);
+    };
+
+    const scheduleReconnect = () => {
+        if (retryTimer) {
+            return;
+        }
+
+        retryTimer = setTimeout(() => {
+            retryTimer = null;
+            connect();
+        }, reconnectDelayMs);
+    };
+
+    const connect = () => {
+        if (source) {
+            source.close();
+        }
+
+        const url = lastEventId > 0 ? `${streamUrl}?lastEventId=${lastEventId}` : streamUrl;
+        source = new EventSource(url, { withCredentials: true });
+
+        source.addEventListener('app.action', (event) => {
+            try {
+                const payload = JSON.parse(event.data || '{}');
+                const id = Number(payload.id || 0);
+                if (id > 0) {
+                    lastEventId = id;
+                    localStorage.setItem('realtime_last_event_id', String(id));
+                }
+
+                const summary = payload?.payload?.summary || 'App data updated.';
+                showRealtimeToast(`Realtime update: ${summary}`);
+
+                if (document.visibilityState === 'visible' && shouldAutoReload()) {
+                    setTimeout(() => window.location.reload(), 900);
+                }
+            } catch (_e) {
+                // Ignore malformed realtime payloads.
+            }
+        });
+
+        source.onerror = () => {
+            source?.close();
+            source = null;
+            scheduleReconnect();
+        };
+    };
+
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible' && !source) {
+            connect();
+        }
+    });
+
+    window.addEventListener('beforeunload', () => {
+        source?.close();
+        if (retryTimer) {
+            clearTimeout(retryTimer);
+        }
+    });
+
+    connect();
+})();
+</script>

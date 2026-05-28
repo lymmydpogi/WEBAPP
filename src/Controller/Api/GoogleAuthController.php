@@ -72,10 +72,19 @@ final class GoogleAuthController extends AbstractController
             return $this->apiError('idToken is required.', Response::HTTP_BAD_REQUEST);
         }
 
-        $client = HttpClient::create();
-        $tokenInfoResponse = $client->request('GET', 'https://oauth2.googleapis.com/tokeninfo', [
-            'query' => ['id_token' => $idToken],
-        ]);
+        $client = HttpClient::create(['timeout' => 15]);
+        try {
+            $tokenInfoResponse = $client->request('GET', 'https://oauth2.googleapis.com/tokeninfo', [
+                'query' => ['id_token' => $idToken],
+            ]);
+        } catch (\Throwable $e) {
+            $this->logger->error('Google tokeninfo request failed.', ['exception' => $e->getMessage()]);
+
+            return $this->apiError(
+                'Could not verify Google sign-in. Please try again.',
+                Response::HTTP_BAD_GATEWAY,
+            );
+        }
 
         if ($tokenInfoResponse->getStatusCode() >= 400) {
             return $this->apiError('Invalid Google ID token.', Response::HTTP_UNAUTHORIZED);
@@ -146,7 +155,13 @@ final class GoogleAuthController extends AbstractController
 
     private function sendGoogleConfirmationEmailSafely(User $user, string $email, bool $isNewUser): void
     {
-        $dashboardUrl = $this->urlGenerator->generate('app_client_dashboard', [], UrlGeneratorInterface::ABSOLUTE_URL);
+        $baseUrl = rtrim((string) ($_ENV['APP_URL'] ?? ''), '/');
+        $dashboardPath = $this->urlGenerator->generate(
+            'app_client_dashboard',
+            [],
+            UrlGeneratorInterface::RELATIVE_PATH,
+        );
+        $dashboardUrl = ($baseUrl !== '' ? $baseUrl : '') . $dashboardPath;
 
         try {
             $this->emailVerificationService->sendGoogleSignInEmail($user, $dashboardUrl, $isNewUser);

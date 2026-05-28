@@ -69,6 +69,7 @@ security:
         - { path: ^/api/client/orders, roles: ROLE_CLIENT }
         - { path: ^/api/messages, roles: ROLE_CLIENT }
         - { path: ^/connect/google, roles: PUBLIC_ACCESS }
+        - { path: ^/realtime/stream, roles: [ROLE_ADMIN, ROLE_STAFF, ROLE_CLIENT, ROLE_USER] }
 
         # Admin-only routes
         - { path: ^/admin/messages, roles: ROLE_ADMIN }
