@@ -39,8 +39,11 @@ final class OrderController extends AbstractController
     {
         $snapshot = $liveData->getOrdersSnapshot();
 
-        $loginSince = self::parseSinceParam($request->query->getString('loginSince'));
-        $messageSince = self::parseSinceParam($request->query->getString('messageSince'));
+        $since = self::parseSinceParam($request->query->getString('since'));
+        $maxOrderId = $request->query->getInt('maxOrderId', 0);
+        $activities = $since !== null
+            ? $liveData->buildActivitiesSince($since, $maxOrderId)
+            : [];
 
         $response = $this->json([
             'success' => true,
@@ -48,8 +51,8 @@ final class OrderController extends AbstractController
             'count' => $snapshot['count'],
             'maxOrderId' => $snapshot['maxOrderId'],
             'revision' => $snapshot['revision'],
-            'mobileLogins' => $liveData->getMobileLoginsSince($loginSince),
-            'clientMessages' => $liveData->getClientMessagesSince($messageSince),
+            'activities' => $activities,
+            'serverTime' => (new \DateTimeImmutable())->format(\DateTimeInterface::ATOM),
         ]);
         $response->headers->set('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
 

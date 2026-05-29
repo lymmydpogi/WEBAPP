@@ -57,7 +57,7 @@ env APP_ENV="${APP_ENV}" APP_DEBUG="${APP_DEBUG}" \
 env APP_ENV="${APP_ENV}" APP_DEBUG="${APP_DEBUG}" \
     php bin/console cache:warmup --env=prod --no-debug
 
-if [ "${RUN_MIGRATIONS:-0}" = "1" ]; then
+if [ "${RUN_MIGRATIONS:-1}" = "1" ]; then
     echo "Running database migrations..." >&2
     env APP_ENV="${APP_ENV}" APP_DEBUG="${APP_DEBUG}" \
         php bin/console doctrine:migrations:migrate --no-interaction --env=prod --no-debug

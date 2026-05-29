@@ -10,6 +10,7 @@ use App\Repository\OrderRepository;
 use App\Repository\ServicesRepository;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Twig\Environment;
 
@@ -23,6 +24,7 @@ final class AdminLiveDataService
         private readonly UserRepository $userRepository,
         private readonly Environment $twig,
         private readonly UrlGeneratorInterface $urlGenerator,
+        private readonly LoggerInterface $logger,
     ) {
     }
 
@@ -111,9 +113,15 @@ final class AdminLiveDataService
             return [];
         }
 
-        $this->em->clear();
+        try {
+            $this->em->clear();
 
-        return $this->userRepository->findMobileLoginsSince($since);
+            return $this->userRepository->findMobileLoginsSince($since);
+        } catch (\Throwable $e) {
+            $this->logger->warning('Admin live: mobile login poll skipped.', ['error' => $e->getMessage()]);
+
+            return [];
+        }
     }
 
     /**
@@ -131,9 +139,22 @@ final class AdminLiveDataService
             return [];
         }
 
-        $this->em->clear();
+        try {
+            $this->em->clear();
+        } catch (\Throwable $e) {
+            $this->logger->warning('Admin live: message poll skipped.', ['error' => $e->getMessage()]);
 
-        $messages = $this->chatMessageRepository->findUserMessagesSince($since);
+            return [];
+        }
+
+        try {
+            $messages = $this->chatMessageRepository->findUserMessagesSince($since);
+        } catch (\Throwable $e) {
+            $this->logger->warning('Admin live: message query failed.', ['error' => $e->getMessage()]);
+
+            return [];
+        }
+
         $items = [];
 
         foreach ($messages as $message) {
@@ -167,6 +188,72 @@ final class AdminLiveDataService
         }
 
         return $items;
+    }
+
+    /**
+     * Unified customer-activity feed for admin banner alerts.
+     *
+     * @return list<array{id: string, type: string, title: string, message: string, href: string, at: string}>
+     */
+    public function buildActivitiesSince(\DateTimeImmutable $since, int $maxOrderId = 0): array
+    {
+        $since = $since->modify('-3 seconds');
+        $activities = [];
+
+        try {
+            $this->em->clear();
+            foreach ($this->orderRepository->findNewOrdersForAdminAlert($since, $maxOrderId) as $order) {
+                if (!$order instanceof Order) {
+                    continue;
+                }
+
+                $user = $order->getUser();
+                $service = $order->getService();
+                $client = $user ? ($user->getName() ?: 'A client') : ($order->getClientName() ?: 'A client');
+                $serviceName = $service ? $service->getName() : 'a service';
+                $orderDate = $order->getOrderDate() ?? new \DateTimeImmutable();
+
+                $activities[] = [
+                    'id' => 'order-' . $order->getId(),
+                    'type' => 'order',
+                    'title' => 'New customer order',
+                    'message' => '#' . $order->getId() . ' — ' . $client . ' ordered ' . $serviceName,
+                    'href' => $this->urlGenerator->generate('app_order_show', ['id' => $order->getId()]),
+                    'at' => $orderDate->format(\DateTimeInterface::ATOM),
+                ];
+            }
+        } catch (\Throwable $e) {
+            $this->logger->error('Admin live: order activities failed.', ['error' => $e->getMessage()]);
+        }
+
+        foreach ($this->getClientMessagesSince($since) as $msg) {
+            $userId = (int) ($msg['userId'] ?? 0);
+            $activities[] = [
+                'id' => 'message-' . ($msg['messageId'] ?? 0),
+                'type' => 'message',
+                'title' => 'New customer message',
+                'message' => ($msg['clientName'] ?? 'A client') . ': “' . ($msg['preview'] ?? '') . '”',
+                'href' => $userId > 0
+                    ? $this->urlGenerator->generate('admin_messages_show', ['userId' => $userId])
+                    : $this->urlGenerator->generate('admin_messages_index'),
+                'at' => (string) ($msg['createdAt'] ?? ''),
+            ];
+        }
+
+        foreach ($this->getMobileLoginsSince($since) as $login) {
+            $activities[] = [
+                'id' => 'login-' . ($login['userId'] ?? 0) . '-' . ($login['loggedAt'] ?? ''),
+                'type' => 'login',
+                'title' => 'Customer signed in',
+                'message' => ($login['name'] ?? 'A client') . ' logged in on the mobile app.',
+                'href' => $this->urlGenerator->generate('app_user_index'),
+                'at' => (string) ($login['loggedAt'] ?? ''),
+            ];
+        }
+
+        usort($activities, static fn (array $a, array $b): int => strcmp((string) ($a['at'] ?? ''), (string) ($b['at'] ?? '')));
+
+        return $activities;
     }
 
     /**

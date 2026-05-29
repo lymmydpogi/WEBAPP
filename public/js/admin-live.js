@@ -17,10 +17,50 @@
     const ORDERS_PAGE_URL = body.getAttribute('data-live-orders-page-url') || '/order';
     const ORDER_SHOW_PATH = (body.getAttribute('data-live-order-show-path') || '/order').replace(/\/$/, '');
     const POLL_MS = Math.min(2000, Math.max(500, Number(body.getAttribute('data-live-poll-ms') || '800')));
-    const LOGIN_SINCE_KEY = 'admin-live-login-since';
-    const MESSAGE_SINCE_KEY = 'admin-live-message-since';
-    const MESSAGES_PATH = (body.getAttribute('data-live-messages-path') || '/admin/messages').replace(/\/$/, '');
+    const PAGE_LOAD_AT = new Date().toISOString();
+    const SEEN_ACTIVITIES_KEY = 'admin-live-seen-activity-ids';
+    const MAX_ORDER_ID_KEY = 'admin-live-max-order-id';
     const BANNER_MS = 12000;
+
+    const loadSeenActivityIds = () => {
+        try {
+            const raw = sessionStorage.getItem(SEEN_ACTIVITIES_KEY);
+            if (!raw) {
+                return new Set();
+            }
+            const parsed = JSON.parse(raw);
+            return new Set(Array.isArray(parsed) ? parsed : []);
+        } catch {
+            return new Set();
+        }
+    };
+
+    const seenActivityIds = loadSeenActivityIds();
+
+    const persistSeenActivityIds = () => {
+        try {
+            const ids = Array.from(seenActivityIds).slice(-300);
+            sessionStorage.setItem(SEEN_ACTIVITIES_KEY, JSON.stringify(ids));
+        } catch {
+            /* ignore */
+        }
+    };
+
+    const getMaxOrderId = () => {
+        try {
+            return parseInt(sessionStorage.getItem(MAX_ORDER_ID_KEY) || '0', 10) || 0;
+        } catch {
+            return 0;
+        }
+    };
+
+    const setMaxOrderId = (value) => {
+        try {
+            sessionStorage.setItem(MAX_ORDER_ID_KEY, String(Math.max(0, value)));
+        } catch {
+            /* ignore */
+        }
+    };
 
     if (!ORDERS_URL) {
         console.warn(LOG, 'error (missing data-live-orders-url)');
@@ -39,9 +79,8 @@
     let ordersStopped = false;
     let dashboardStopped = false;
     let ordersAuthFailures = 0;
-    let knownOrderIds = null;
     let knownOrderStatuses = new Map();
-    let alertsBootstrapped = false;
+    let orderStatusBootstrapped = false;
 
     const formatRevenue = (value) => {
         const amount = Number(value) || 0;
@@ -183,171 +222,77 @@
         window.setTimeout(dismiss, BANNER_MS);
     };
 
-    const getLoginSince = () => {
-        try {
-            const stored = sessionStorage.getItem(LOGIN_SINCE_KEY);
-            if (stored) {
-                return stored;
-            }
-        } catch {
-            /* ignore */
-        }
-        const now = new Date().toISOString();
-        setLoginSince(now);
-        return now;
-    };
-
-    const setLoginSince = (iso) => {
-        try {
-            sessionStorage.setItem(LOGIN_SINCE_KEY, iso);
-        } catch {
-            /* ignore */
-        }
-    };
-
-    const advanceLoginSince = (logins) => {
-        if (!Array.isArray(logins) || !logins.length) {
-            return;
-        }
-        let latest = getLoginSince();
-        logins.forEach((entry) => {
-            if (entry.loggedAt && entry.loggedAt > latest) {
-                latest = entry.loggedAt;
-            }
-        });
-        setLoginSince(latest);
-    };
-
-    const getMessageSince = () => {
-        try {
-            const stored = sessionStorage.getItem(MESSAGE_SINCE_KEY);
-            if (stored) {
-                return stored;
-            }
-        } catch {
-            /* ignore */
-        }
-        const now = new Date().toISOString();
-        setMessageSince(now);
-        return now;
-    };
-
-    const setMessageSince = (iso) => {
-        try {
-            sessionStorage.setItem(MESSAGE_SINCE_KEY, iso);
-        } catch {
-            /* ignore */
-        }
-    };
-
-    const advanceMessageSince = (messages) => {
-        if (!Array.isArray(messages) || !messages.length) {
-            return;
-        }
-        let latest = getMessageSince();
-        messages.forEach((entry) => {
-            if (entry.createdAt && entry.createdAt > latest) {
-                latest = entry.createdAt;
-            }
-        });
-        setMessageSince(latest);
-    };
-
     const buildOrdersPollUrl = () => {
-        const loginSince = encodeURIComponent(getLoginSince());
-        const messageSince = encodeURIComponent(getMessageSince());
         const sep = ORDERS_URL.includes('?') ? '&' : '?';
-        return ORDERS_URL + sep + 'loginSince=' + loginSince + '&messageSince=' + messageSince;
+        return (
+            ORDERS_URL +
+            sep +
+            'since=' +
+            encodeURIComponent(PAGE_LOAD_AT) +
+            '&maxOrderId=' +
+            encodeURIComponent(String(getMaxOrderId()))
+        );
     };
 
-    const bootstrapOrderTracking = (orders) => {
-        const ids = new Set();
+    const processActivities = (payload) => {
+        const activities = Array.isArray(payload.activities) ? payload.activities : [];
+        if (!activities.length) {
+            return;
+        }
+
+        activities.forEach((activity) => {
+            const id = String(activity.id || '');
+            if (!id || seenActivityIds.has(id)) {
+                return;
+            }
+            seenActivityIds.add(id);
+            showAdminBanner(
+                activity.type || 'order',
+                activity.title || 'Customer activity',
+                activity.message || '',
+                activity.href || null
+            );
+        });
+
+        persistSeenActivityIds();
+
+        const maxFromServer = Number(payload.maxOrderId ?? 0);
+        if (maxFromServer > getMaxOrderId()) {
+            setMaxOrderId(maxFromServer);
+        }
+    };
+
+    const bootstrapOrderStatuses = (orders) => {
         knownOrderStatuses = new Map();
         orders.forEach((order) => {
-            const id = String(order.id);
-            ids.add(id);
-            knownOrderStatuses.set(id, order.status || '');
+            knownOrderStatuses.set(String(order.id), order.status || '');
         });
-        knownOrderIds = ids;
-        alertsBootstrapped = true;
+        orderStatusBootstrapped = true;
     };
 
-    const processOrderAlerts = (orders) => {
-        const ids = new Set(orders.map((o) => String(o.id)));
-
-        if (!alertsBootstrapped) {
-            bootstrapOrderTracking(orders);
+    const processOrderStatusAlerts = (orders) => {
+        if (!orderStatusBootstrapped) {
+            bootstrapOrderStatuses(orders);
             return;
         }
 
         orders.forEach((order) => {
             const id = String(order.id);
             const status = order.status || '';
-            const client = order.clientName || 'A client';
-            const service = order.serviceName || 'a service';
+            const prevStatus = knownOrderStatuses.get(id);
 
-            if (!knownOrderIds.has(id)) {
+            if (prevStatus !== undefined && prevStatus !== status) {
+                const client = order.clientName || 'A client';
                 showAdminBanner(
-                    'order',
-                    'New customer order',
-                    '#' + id + ' — ' + client + ' ordered ' + service,
+                    'order-update',
+                    'Order activity',
+                    '#' + id + ' (' + client + ') is now ' + status,
                     ORDER_SHOW_PATH + '/' + id
                 );
-            } else {
-                const prevStatus = knownOrderStatuses.get(id);
-                if (prevStatus !== undefined && prevStatus !== status) {
-                    showAdminBanner(
-                        'order-update',
-                        'Order activity',
-                        '#' + id + ' (' + client + ') is now ' + status,
-                        ORDER_SHOW_PATH + '/' + id
-                    );
-                }
             }
 
             knownOrderStatuses.set(id, status);
         });
-
-        knownOrderIds = ids;
-    };
-
-    const processMobileLoginAlerts = (logins) => {
-        if (!Array.isArray(logins) || !logins.length) {
-            return;
-        }
-
-        logins.forEach((entry) => {
-            const name = entry.name || entry.email || 'A client';
-            showAdminBanner(
-                'login',
-                'Customer signed in',
-                name + ' logged in on the mobile app.',
-                '/user'
-            );
-        });
-
-        advanceLoginSince(logins);
-    };
-
-    const processClientMessageAlerts = (messages) => {
-        if (!Array.isArray(messages) || !messages.length) {
-            return;
-        }
-
-        messages.forEach((entry) => {
-            const name = entry.clientName || 'A client';
-            const preview = entry.preview || 'New message';
-            const userId = entry.userId;
-            const href = userId ? MESSAGES_PATH + '/' + userId : MESSAGES_PATH;
-            showAdminBanner(
-                'message',
-                'New customer message',
-                name + ': “' + preview + '”',
-                href
-            );
-        });
-
-        advanceMessageSince(messages);
     };
 
     const fetchJson = async (baseUrl, label) => {
@@ -604,15 +549,19 @@
 
         log('success', '(' + orders.length + ' orders)');
 
-        processOrderAlerts(orders);
-        processMobileLoginAlerts(payload.mobileLogins);
-        processClientMessageAlerts(payload.clientMessages);
+        processActivities(payload);
+        processOrderStatusAlerts(orders);
 
         if (revision !== lastOrdersRevision) {
             lastOrdersRevision = revision;
             if (getOrdersTable()) {
                 syncOrdersTable(orders);
             }
+        }
+
+        const pollMaxId = Number(payload.maxOrderId ?? 0);
+        if (pollMaxId > getMaxOrderId()) {
+            setMaxOrderId(pollMaxId);
         }
 
         scheduleOrdersPoll();

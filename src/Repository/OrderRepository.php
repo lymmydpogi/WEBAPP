@@ -44,4 +44,29 @@ class OrderRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    /**
+     * Orders placed after admin started watching (or newer than last seen id).
+     *
+     * @return list<Order>
+     */
+    public function findNewOrdersForAdminAlert(\DateTimeImmutable $since, int $maxOrderId): array
+    {
+        $qb = $this->createQueryBuilder('o')
+            ->leftJoin('o.user', 'u')->addSelect('u')
+            ->leftJoin('o.service', 's')->addSelect('s')
+            ->setParameter('since', $since);
+
+        if ($maxOrderId > 0) {
+            $qb->andWhere('o.orderDate >= :since OR o.id > :maxOrderId')
+                ->setParameter('maxOrderId', $maxOrderId);
+        } else {
+            $qb->andWhere('o.orderDate >= :since');
+        }
+
+        return $qb->orderBy('o.id', 'ASC')
+            ->setMaxResults(30)
+            ->getQuery()
+            ->getResult();
+    }
+
 }
