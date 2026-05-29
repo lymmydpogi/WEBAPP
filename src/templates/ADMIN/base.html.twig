@@ -13,7 +13,6 @@
         <link rel="stylesheet" href="{{ asset('style/css/DASHBOARD/admin-responsive.css') }}">
     {% endblock %}
 
-    {% block javascripts %}{% endblock %}
 </head>
 
 <body>
@@ -312,6 +311,11 @@
             }
         });
     </script>
+
+    {% block javascripts %}{% endblock %}
+    {% if app.user %}
+        {% include '_polling/admin_live.html.twig' %}
+    {% endif %}
 
 </body>
 </html>

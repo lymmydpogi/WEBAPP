@@ -117,13 +117,16 @@ class HomeController extends AbstractController
             ->getQuery()
             ->getSingleScalarResult() ?? 0);
 
-        return $this->json([
+        $response = $this->json([
             'success' => true,
             'activeServices' => $servicesRepository->count([]),
             'pendingOrders' => $pendingOrders,
             'totalUsers' => $userRepository->countAllClients(),
             'monthlyRevenue' => $monthlyRevenue,
         ]);
+        $response->headers->set('Cache-Control', 'no-store, no-cache, must-revalidate');
+
+        return $response;
     }
 }
 

@@ -55,11 +55,14 @@ final class OrderController extends AbstractController
             ];
         }
 
-        return $this->json([
+        $response = $this->json([
             'success' => true,
             'orders' => $items,
             'count' => count($items),
         ]);
+        $response->headers->set('Cache-Control', 'no-store, no-cache, must-revalidate');
+
+        return $response;
     }
 
     #[Route('/new', name: 'app_order_new', methods: ['GET', 'POST'])]
@@ -98,7 +101,7 @@ final class OrderController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}', name: 'app_order_show', methods: ['GET'])]
+    #[Route('/{id}', name: 'app_order_show', methods: ['GET'], requirements: ['id' => '\d+'])]
     public function show(Order $order): Response
     {
         return $this->render('ADMIN/_TABLES/order/show.html.twig', [
@@ -106,7 +109,7 @@ final class OrderController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}/edit', name: 'app_order_edit', methods: ['GET', 'POST'])]
+    #[Route('/{id}/edit', name: 'app_order_edit', methods: ['GET', 'POST'], requirements: ['id' => '\d+'])]
     public function edit(
         Request $request,
         Order $order,
@@ -150,7 +153,7 @@ final class OrderController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}/delete', name: 'app_order_delete', methods: ['POST'])]
+    #[Route('/{id}/delete', name: 'app_order_delete', methods: ['POST'], requirements: ['id' => '\d+'])]
     public function delete(
         Request $request,
         Order $order,
@@ -181,7 +184,7 @@ final class OrderController extends AbstractController
         return $this->redirectToRoute('app_order_index');
     }
 
-    #[Route('/{id}/receipt', name: 'app_order_receipt', methods: ['GET'])]
+    #[Route('/{id}/receipt', name: 'app_order_receipt', methods: ['GET'], requirements: ['id' => '\d+'])]
     public function receiptPdf(Order $order, Pdf $knpSnappyPdf): PdfResponse
     {
         $html = $this->renderView('ADMIN/_TABLES/order/receipt.html.twig', [

@@ -1,0 +1,193 @@
+{# Auto-updates admin dashboard stats and orders table (no manual refresh). Loaded at end of body. #}
+<script>
+(function () {
+    const ORDER_POLL_URL = '{{ path('app_order_poll') }}';
+    const DASHBOARD_POLL_URL = '{{ path('app_home_poll') }}';
+    const POLL_MS = 800;
+
+    const ordersTable = document.getElementById('ordersTable');
+    const hasDashboard = Boolean(document.getElementById('live-stat-pending-orders'));
+    const hasOrders = Boolean(ordersTable);
+
+    if (!hasDashboard && !hasOrders) {
+        return;
+    }
+
+    let orderFingerprint = null;
+    let dashboardFingerprint = null;
+    let orderTimer = null;
+    let dashboardTimer = null;
+
+    const formatRevenue = (value) => {
+        const amount = Number(value) || 0;
+        return '₱' + amount.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    };
+
+    const ordersFingerprint = (orders) => orders
+        .map((o) => `${o.id}|${o.status}|${o.deliveryDate}|${o.clientName}|${o.clientEmail}|${o.serviceName}`)
+        .join(';;');
+
+    const renderOrdersTable = (orders) => {
+        const tbody = ordersTable.querySelector('tbody');
+        if (!tbody) {
+            return;
+        }
+
+        tbody.innerHTML = '';
+
+        if (!orders.length) {
+            const empty = document.createElement('tr');
+            empty.innerHTML = '<td colspan="7" class="empty-state text-center py-4">No orders found.</td>';
+            tbody.appendChild(empty);
+            return;
+        }
+
+        orders.forEach((order) => {
+            const tr = document.createElement('tr');
+            tr.id = 'order-row-' + order.id;
+            tr.setAttribute('data-order-id', String(order.id));
+
+            const cols = [
+                String(order.id),
+                order.clientName || 'N/A',
+                order.clientEmail || 'N/A',
+                order.serviceName || 'N/A',
+                order.status || 'N/A',
+                order.deliveryDate || 'N/A',
+            ];
+
+            cols.forEach((value) => {
+                const td = document.createElement('td');
+                td.textContent = value;
+                tr.appendChild(td);
+            });
+
+            const actions = document.createElement('td');
+            actions.innerHTML = order.actionsHtml || '';
+            tr.appendChild(actions);
+
+            tbody.appendChild(tr);
+        });
+    };
+
+    const pollOrders = async () => {
+        if (document.visibilityState === 'hidden') {
+            return;
+        }
+
+        try {
+            const response = await fetch(ORDER_POLL_URL, {
+                method: 'GET',
+                credentials: 'same-origin',
+                headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                cache: 'no-store',
+            });
+
+            if (!response.ok) {
+                return;
+            }
+
+            const contentType = response.headers.get('content-type') || '';
+            if (!contentType.includes('application/json')) {
+                return;
+            }
+
+            const payload = await response.json();
+            const orders = Array.isArray(payload.orders) ? payload.orders : [];
+            const next = ordersFingerprint(orders);
+
+            if (orderFingerprint === null) {
+                orderFingerprint = next;
+                return;
+            }
+
+            if (next !== orderFingerprint) {
+                renderOrdersTable(orders);
+                orderFingerprint = next;
+            }
+        } catch (_e) {
+            // Retry on next tick.
+        }
+    };
+
+    const pollDashboard = async () => {
+        if (document.visibilityState === 'hidden') {
+            return;
+        }
+
+        try {
+            const response = await fetch(DASHBOARD_POLL_URL, {
+                method: 'GET',
+                credentials: 'same-origin',
+                headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                cache: 'no-store',
+            });
+
+            if (!response.ok) {
+                return;
+            }
+
+            const contentType = response.headers.get('content-type') || '';
+            if (!contentType.includes('application/json')) {
+                return;
+            }
+
+            const data = await response.json();
+            const next = [
+                data.activeServices,
+                data.pendingOrders,
+                data.totalUsers,
+                data.monthlyRevenue,
+            ].join('|');
+
+            if (dashboardFingerprint === null) {
+                dashboardFingerprint = next;
+                return;
+            }
+
+            if (next === dashboardFingerprint) {
+                return;
+            }
+
+            const activeEl = document.getElementById('live-stat-active-services');
+            const pendingEl = document.getElementById('live-stat-pending-orders');
+            const usersEl = document.getElementById('live-stat-total-users');
+            const revenueEl = document.getElementById('live-stat-monthly-revenue');
+
+            if (activeEl) activeEl.textContent = String(data.activeServices ?? 0);
+            if (pendingEl) pendingEl.textContent = String(data.pendingOrders ?? 0);
+            if (usersEl) usersEl.textContent = String(data.totalUsers ?? 0);
+            if (revenueEl) revenueEl.textContent = formatRevenue(data.monthlyRevenue);
+
+            dashboardFingerprint = next;
+        } catch (_e) {
+            // Retry on next tick.
+        }
+    };
+
+    const start = () => {
+        if (hasOrders) {
+            void pollOrders();
+            orderTimer = setInterval(pollOrders, POLL_MS);
+        }
+        if (hasDashboard) {
+            void pollDashboard();
+            dashboardTimer = setInterval(pollDashboard, POLL_MS);
+        }
+    };
+
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+            if (hasOrders) void pollOrders();
+            if (hasDashboard) void pollDashboard();
+        }
+    });
+
+    start();
+
+    window.addEventListener('beforeunload', () => {
+        if (orderTimer) clearInterval(orderTimer);
+        if (dashboardTimer) clearInterval(dashboardTimer);
+    });
+})();
+</script>
