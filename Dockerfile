@@ -24,10 +24,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         libicu-dev \
         libzip-dev \
         libonig-dev \
+        zlib1g-dev \
         wkhtmltopdf \
         fontconfig \
         xfonts-base \
         xfonts-75dpi \
+    && pecl install grpc \
+    && docker-php-ext-enable grpc \
     && docker-php-ext-install -j"$(nproc)" pdo_mysql intl opcache zip \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*

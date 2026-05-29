@@ -1,0 +1,175 @@
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script>
+(function () {
+    const firebaseConfig = {{ firebase_web_config|json_encode(constant('JSON_HEX_TAG'))|raw }};
+    const tokenUrl = '{{ path('firebase_custom_token_web') }}';
+
+    if (!firebaseConfig || !firebaseConfig.apiKey) {
+        console.warn('[firestore] Firebase web config missing; realtime orders disabled.');
+        return;
+    }
+
+    let unsubscribe = null;
+    let dataTable = null;
+    let ready = false;
+    let initialOrderIds = new Set();
+
+    const collectInitialOrderIds = () => {
+        initialOrderIds = new Set();
+        window.jQuery('#ordersTable tbody tr').each(function () {
+            const id = window.jQuery(this).find('td:first').text().trim();
+            if (id) {
+                initialOrderIds.add(String(id));
+            }
+        });
+    };
+
+    const showToast = (text) => {
+        const el = document.createElement('div');
+        el.textContent = text;
+        el.style.cssText = 'position:fixed;right:16px;bottom:16px;z-index:2000;background:rgba(15,23,42,0.95);color:#e2e8f0;padding:10px 14px;border-radius:8px;border:1px solid rgba(56,189,248,0.45);font-size:13px;';
+        document.body.appendChild(el);
+        setTimeout(() => el.remove(), 2500);
+    };
+
+    const escapeHtml = (value) => String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+
+    const formatDelivery = (value) => {
+        if (!value) return 'N/A';
+        if (typeof value === 'string') return value.slice(0, 10);
+        if (value.toDate) return value.toDate().toISOString().slice(0, 10);
+        return 'N/A';
+    };
+
+    const buildActionsHtml = (order) => {
+        const id = order.id;
+        const status = order.status || '';
+        const showUrl = '{{ path('app_order_show', {'id': '__ID__'}) }}'.replace('__ID__', id);
+        const editUrl = '{{ path('app_order_edit', {'id': '__ID__'}) }}'.replace('__ID__', id);
+        const receiptUrl = '{{ path('app_order_receipt', {'id': '__ID__'}) }}'.replace('__ID__', id);
+
+        let html = `<a href="${showUrl}" class="btn-show">Show</a> `;
+        html += `<a href="${editUrl}" class="btn-edit">Edit</a> `;
+        if (status === 'Completed') {
+            html += `<a href="${receiptUrl}" class="btn-receipt">Receipt</a> `;
+        }
+        return html;
+    };
+
+    const buildRowHtml = (order) => {
+        return [
+            escapeHtml(order.id),
+            escapeHtml(order.clientName || 'N/A'),
+            escapeHtml(order.clientEmail || 'N/A'),
+            escapeHtml(order.serviceName || 'N/A'),
+            escapeHtml(order.status || 'N/A'),
+            escapeHtml(formatDelivery(order.deliveryDate)),
+            buildActionsHtml(order),
+        ];
+    };
+
+    const upsertRow = (order) => {
+        if (!window.jQuery || !dataTable) return;
+
+        const $ = window.jQuery;
+        const rowId = `order-row-${order.id}`;
+        let $row = $(`#${rowId}`);
+
+        if ($row.length === 0) {
+            if (!initialOrderIds.has(String(order.id))) {
+                showToast(`New order #${order.id} received — refreshing table.`);
+                window.location.reload();
+                return;
+            }
+            return;
+        }
+
+        $row.find('td').eq(4).text(order.status || 'N/A');
+        $row.find('td').eq(5).text(formatDelivery(order.deliveryDate));
+        showToast(`Order #${order.id} updated.`);
+    };
+
+    const removeRow = (orderId) => {
+        if (!dataTable || !window.jQuery) return;
+        const $ = window.jQuery;
+        const $row = $(`#order-row-${orderId}`);
+        if ($row.length === 0) return;
+        dataTable.row($row).remove().draw(false);
+        showToast(`Order #${orderId} removed.`);
+    };
+
+    const attachListener = async () => {
+        if (!window.firebase || ready) return;
+
+        try {
+            const res = await fetch(tokenUrl, { credentials: 'include' });
+            if (!res.ok) throw new Error('custom token request failed');
+            const json = await res.json();
+            if (!json.success || !json.token) throw new Error('custom token missing');
+
+            if (!firebase.apps.length) {
+                firebase.initializeApp(firebaseConfig);
+            }
+
+            await firebase.auth().signInWithCustomToken(json.token);
+            const db = firebase.firestore();
+
+            let initial = true;
+            unsubscribe = db.collection('orders').onSnapshot((snapshot) => {
+                if (initial) {
+                    initial = false;
+                    return;
+                }
+                snapshot.docChanges().forEach((change) => {
+                    if (change.type === 'removed') {
+                        removeRow(change.doc.id);
+                    } else {
+                        upsertRow(change.doc.data());
+                    }
+                });
+            }, (error) => {
+                console.error('[firestore] orders listener error', error);
+            });
+
+            ready = true;
+        } catch (error) {
+            console.warn('[firestore] Could not start orders listener:', error);
+        }
+    };
+
+    const boot = () => {
+        if (!window.jQuery || !window.jQuery.fn.dataTable) {
+            setTimeout(boot, 150);
+            return;
+        }
+
+        const tableEl = document.getElementById('ordersTable');
+        if (!tableEl) return;
+
+        dataTable = window.jQuery('#ordersTable').DataTable();
+        collectInitialOrderIds();
+        window.jQuery('#ordersTable tbody tr').each(function () {
+            const id = window.jQuery(this).find('td:first').text().trim();
+            if (id) {
+                this.id = `order-row-${id}`;
+                this.setAttribute('data-order-id', id);
+            }
+        });
+
+        attachListener();
+    };
+
+    document.addEventListener('DOMContentLoaded', boot);
+    window.addEventListener('beforeunload', () => {
+        if (typeof unsubscribe === 'function') {
+            unsubscribe();
+        }
+    });
+})();
+</script>

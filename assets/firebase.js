@@ -1,6 +1,8 @@
 import { initializeApp } from 'firebase/app';
+import { getFirestore } from 'firebase/firestore';
 
 let firebaseApp = null;
+let firestoreDb = null;
 
 /**
  * Firebase Web SDK (project config from Twig / window.__FIREBASE_CONFIG__).
@@ -20,6 +22,17 @@ export function getFirebaseApp() {
         firebaseApp = initializeApp(cfg);
     }
     return firebaseApp;
+}
+
+export function getFirestoreDb() {
+    const app = getFirebaseApp();
+    if (!app) {
+        return null;
+    }
+    if (!firestoreDb) {
+        firestoreDb = getFirestore(app);
+    }
+    return firestoreDb;
 }
 
 async function initAnalytics(app) {

@@ -902,9 +902,6 @@
         window.__FIREBASE_CONFIG__ = {{ firebase_web_config|json_encode(constant('JSON_HEX_TAG'))|raw }};
     </script>
     {{ encore_entry_script_tags('app') }}
-    {% if app.user is not null %}
-        {% include '_realtime/listener.html.twig' %}
-    {% endif %}
 {% endblock %}
 </body>
 </html>

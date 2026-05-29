@@ -1,6 +1,8 @@
 parameters:
     avatars_directory: '%kernel.project_dir%/public/uploads/avatars'
     oauth_google_redirect_uri: ''
+    firebase_credentials_json: ''
+    firebase_credentials_path: ''
 
 services:
     _defaults:
@@ -16,6 +18,11 @@ services:
             - { name: doctrine.event_subscriber }
             - { name: 'kernel.event_subscriber' }
     
+    App\Service\Firebase\FirebaseAdminFactory:
+        arguments:
+            $credentialsJson: '%env(default:firebase_credentials_json:FIREBASE_CREDENTIALS_JSON)%'
+            $credentialsPath: '%env(default:firebase_credentials_path:FIREBASE_CREDENTIALS_PATH)%'
+
     # Explicitly register AccessDeniedHandler and make it public
     App\Security\AccessDeniedHandler:
         public: true
