@@ -210,6 +210,7 @@ final class ClientOrderController extends AbstractController
             'orderDate' => $order->getOrderDate()?->format(\DateTimeInterface::ATOM),
             'paymentMethod' => $order->getPaymentMethod(),
             'paymentStatus' => $order->getPaymentStatus(),
+            'deliveryDate' => $order->getDeliveryDate()?->format('Y-m-d'),
             'canEdit' => $order->canBeModifiedByClient(),
             'canCancel' => $order->canBeModifiedByClient(),
         ];
