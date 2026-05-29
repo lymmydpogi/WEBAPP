@@ -2,8 +2,10 @@
 
 namespace App\Service\Admin;
 
+use App\Entity\ChatMessage;
 use App\Entity\Order;
 use App\Entity\User;
+use App\Repository\ChatMessageRepository;
 use App\Repository\OrderRepository;
 use App\Repository\ServicesRepository;
 use App\Repository\UserRepository;
@@ -16,6 +18,7 @@ final class AdminLiveDataService
     public function __construct(
         private readonly EntityManagerInterface $em,
         private readonly OrderRepository $orderRepository,
+        private readonly ChatMessageRepository $chatMessageRepository,
         private readonly ServicesRepository $servicesRepository,
         private readonly UserRepository $userRepository,
         private readonly Environment $twig,
@@ -111,6 +114,59 @@ final class AdminLiveDataService
         $this->em->clear();
 
         return $this->userRepository->findMobileLoginsSince($since);
+    }
+
+    /**
+     * @return list<array{
+     *     messageId: int,
+     *     userId: int,
+     *     clientName: string,
+     *     preview: string,
+     *     createdAt: string
+     * }>
+     */
+    public function getClientMessagesSince(?\DateTimeImmutable $since): array
+    {
+        if ($since === null) {
+            return [];
+        }
+
+        $this->em->clear();
+
+        $messages = $this->chatMessageRepository->findUserMessagesSince($since);
+        $items = [];
+
+        foreach ($messages as $message) {
+            if (!$message instanceof ChatMessage) {
+                continue;
+            }
+
+            $user = $message->getUser();
+            if ($user === null) {
+                continue;
+            }
+
+            $body = trim($message->getMessage());
+            $preview = $body;
+            if (mb_strlen($preview) > 100) {
+                $preview = mb_substr($preview, 0, 97) . '...';
+            }
+
+            $createdAt = $message->getCreatedAt();
+            if ($createdAt === null) {
+                continue;
+            }
+
+            $items[] = [
+                'messageId' => (int) $message->getId(),
+                'userId' => (int) $user->getId(),
+                'clientName' => $user->getName() ?: (string) $user->getEmail(),
+                'preview' => $preview,
+                'createdAt' => $createdAt->format(\DateTimeInterface::ATOM),
+            ];
+        }
+
+        return $items;
     }
 
     /**

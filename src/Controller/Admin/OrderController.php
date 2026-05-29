@@ -39,15 +39,8 @@ final class OrderController extends AbstractController
     {
         $snapshot = $liveData->getOrdersSnapshot();
 
-        $loginSince = null;
-        $loginSinceRaw = $request->query->getString('loginSince');
-        if ($loginSinceRaw !== '') {
-            try {
-                $loginSince = new \DateTimeImmutable($loginSinceRaw);
-            } catch (\Exception) {
-                $loginSince = null;
-            }
-        }
+        $loginSince = self::parseSinceParam($request->query->getString('loginSince'));
+        $messageSince = self::parseSinceParam($request->query->getString('messageSince'));
 
         $response = $this->json([
             'success' => true,
@@ -56,6 +49,7 @@ final class OrderController extends AbstractController
             'maxOrderId' => $snapshot['maxOrderId'],
             'revision' => $snapshot['revision'],
             'mobileLogins' => $liveData->getMobileLoginsSince($loginSince),
+            'clientMessages' => $liveData->getClientMessagesSince($messageSince),
         ]);
         $response->headers->set('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
 
@@ -214,6 +208,19 @@ final class OrderController extends AbstractController
 
         $user->setStatus($hasActiveOrder ? 'active' : 'suspended');
         $entityManager->flush();
+    }
+
+    private static function parseSinceParam(string $raw): ?\DateTimeImmutable
+    {
+        if ($raw === '') {
+            return null;
+        }
+
+        try {
+            return new \DateTimeImmutable($raw);
+        } catch (\Exception) {
+            return null;
+        }
     }
 }
 

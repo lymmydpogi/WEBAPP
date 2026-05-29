@@ -28,103 +28,136 @@
     50% { opacity: 0.45; }
 }
 
-.admin-live-toast-stack {
+/* Full-width activity banners (below top navbar) */
+.admin-live-banner-stack {
     position: fixed;
-    top: 16px;
-    right: 16px;
-    z-index: 10000;
+    top: 70px;
+    left: 280px;
+    right: 0;
+    z-index: 9999;
     display: flex;
     flex-direction: column;
-    gap: 10px;
-    max-width: min(420px, calc(100vw - 32px));
+    gap: 0;
     pointer-events: none;
 }
 
-.admin-live-toast {
+.admin-live-banner {
     pointer-events: auto;
     display: flex;
-    align-items: flex-start;
-    gap: 12px;
-    padding: 14px 16px;
-    border-radius: 12px;
-    background: #0f172a;
-    color: #f8fafc;
-    box-shadow: 0 12px 32px rgba(15, 23, 42, 0.35);
-    border: 1px solid rgba(148, 163, 184, 0.25);
-    animation: admin-live-toast-in 0.28s ease-out;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 20px;
+    min-height: 52px;
+    color: #fff;
+    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.2);
+    animation: admin-live-banner-in 0.3s ease-out;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
 }
 
-.admin-live-toast--order {
-    border-left: 4px solid #38bdf8;
+.admin-live-banner--order {
+    background: linear-gradient(90deg, #0369a1 0%, #0284c7 100%);
 }
 
-.admin-live-toast--login {
-    border-left: 4px solid #a78bfa;
+.admin-live-banner--message {
+    background: linear-gradient(90deg, #6d28d9 0%, #7c3aed 100%);
 }
 
-.admin-live-toast__icon {
-    font-size: 1.25rem;
-    line-height: 1;
+.admin-live-banner--login {
+    background: linear-gradient(90deg, #5b21b6 0%, #7c3aed 100%);
+}
+
+.admin-live-banner--order-update {
+    background: linear-gradient(90deg, #b45309 0%, #d97706 100%);
+}
+
+.admin-live-banner__icon {
+    font-size: 1.35rem;
     flex-shrink: 0;
+    line-height: 1;
 }
 
-.admin-live-toast__body {
+.admin-live-banner__content {
     flex: 1;
     min-width: 0;
 }
 
-.admin-live-toast__title {
-    font-weight: 600;
-    font-size: 0.9rem;
-    margin-bottom: 4px;
+.admin-live-banner__title {
+    font-weight: 700;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    opacity: 0.92;
+    margin-bottom: 2px;
 }
 
-.admin-live-toast__message {
-    font-size: 0.85rem;
-    color: #cbd5e1;
-    line-height: 1.4;
+.admin-live-banner__message {
+    font-size: 0.95rem;
+    font-weight: 500;
+    line-height: 1.35;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
-.admin-live-toast__link {
-    display: inline-block;
-    margin-top: 8px;
+.admin-live-banner__action {
+    flex-shrink: 0;
+    padding: 8px 14px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.2);
+    color: #fff;
     font-size: 0.8rem;
     font-weight: 600;
-    color: #7dd3fc;
     text-decoration: none;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    transition: background 0.15s ease;
 }
 
-.admin-live-toast__link:hover {
-    text-decoration: underline;
+.admin-live-banner__action:hover {
+    background: rgba(255, 255, 255, 0.32);
+    color: #fff;
 }
 
-.admin-live-toast__close {
+.admin-live-banner__close {
+    flex-shrink: 0;
     background: transparent;
     border: none;
-    color: #94a3b8;
-    cursor: pointer;
-    font-size: 1.1rem;
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 1.35rem;
     line-height: 1;
-    padding: 0;
-    flex-shrink: 0;
+    cursor: pointer;
+    padding: 4px 8px;
 }
 
-.admin-live-toast__close:hover {
-    color: #f8fafc;
+.admin-live-banner__close:hover {
+    color: #fff;
 }
 
-@keyframes admin-live-toast-in {
+body.admin-live-banners-visible .main-content {
+    transition: margin-top 0.2s ease;
+}
+
+@keyframes admin-live-banner-in {
     from {
         opacity: 0;
-        transform: translateX(12px);
+        transform: translateY(-100%);
     }
     to {
         opacity: 1;
-        transform: translateX(0);
+        transform: translateY(0);
     }
 }
+
+@media (max-width: 768px) {
+    .admin-live-banner-stack {
+        left: 0;
+    }
+}
+
+body.dark-mode .admin-live-banner {
+    border-bottom-color: rgba(255, 255, 255, 0.08);
+}
 </style>
-<div id="admin-live-toast-stack" class="admin-live-toast-stack" aria-live="polite" aria-relevant="additions"></div>
+<div id="admin-live-banner-stack" class="admin-live-banner-stack" aria-live="polite" aria-relevant="additions"></div>
 <script>
 {% include '_polling/admin_live.script.js.twig' %}
 </script>

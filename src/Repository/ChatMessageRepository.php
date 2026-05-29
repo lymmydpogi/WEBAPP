@@ -119,4 +119,22 @@ class ChatMessageRepository extends ServiceEntityRepository
 
         return $summaries;
     }
+
+    /**
+     * Client-originated messages for admin live alerts.
+     *
+     * @return list<ChatMessage>
+     */
+    public function findUserMessagesSince(\DateTimeImmutable $since): array
+    {
+        return $this->createQueryBuilder('m')
+            ->andWhere('m.senderType = :senderType')
+            ->andWhere('m.createdAt > :since')
+            ->setParameter('senderType', ChatMessage::SENDER_USER)
+            ->setParameter('since', $since)
+            ->orderBy('m.createdAt', 'ASC')
+            ->setMaxResults(20)
+            ->getQuery()
+            ->getResult();
+    }
 }

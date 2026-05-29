@@ -18,7 +18,9 @@
     const ORDER_SHOW_PATH = (body.getAttribute('data-live-order-show-path') || '/order').replace(/\/$/, '');
     const POLL_MS = Math.min(2000, Math.max(500, Number(body.getAttribute('data-live-poll-ms') || '800')));
     const LOGIN_SINCE_KEY = 'admin-live-login-since';
-    const TOAST_MS = 10000;
+    const MESSAGE_SINCE_KEY = 'admin-live-message-since';
+    const MESSAGES_PATH = (body.getAttribute('data-live-messages-path') || '/admin/messages').replace(/\/$/, '');
+    const BANNER_MS = 12000;
 
     if (!ORDERS_URL) {
         console.warn(LOG, 'error (missing data-live-orders-url)');
@@ -38,6 +40,7 @@
     let dashboardStopped = false;
     let ordersAuthFailures = 0;
     let knownOrderIds = null;
+    let knownOrderStatuses = new Map();
     let alertsBootstrapped = false;
 
     const formatRevenue = (value) => {
@@ -79,12 +82,26 @@
         badge.title = title || (ok ? 'Live sync active' : 'Live sync stopped');
     };
 
-    const getToastStack = () => {
-        let stack = document.getElementById('admin-live-toast-stack');
+    const BANNER_ICONS = {
+        order: '📦',
+        message: '💬',
+        login: '📱',
+        'order-update': '🔄',
+    };
+
+    const BANNER_ACTIONS = {
+        order: 'View order',
+        message: 'Open chat',
+        login: 'View clients',
+        'order-update': 'View order',
+    };
+
+    const getBannerStack = () => {
+        let stack = document.getElementById('admin-live-banner-stack');
         if (!stack) {
             stack = document.createElement('div');
-            stack.id = 'admin-live-toast-stack';
-            stack.className = 'admin-live-toast-stack';
+            stack.id = 'admin-live-banner-stack';
+            stack.className = 'admin-live-banner-stack';
             stack.setAttribute('aria-live', 'polite');
             stack.setAttribute('aria-relevant', 'additions');
             document.body.appendChild(stack);
@@ -92,56 +109,78 @@
         return stack;
     };
 
-    const showAdminAlert = (kind, title, message, href) => {
-        const stack = getToastStack();
-        const toast = document.createElement('div');
-        toast.className = 'admin-live-toast admin-live-toast--' + kind;
-        toast.setAttribute('role', 'alert');
+    const syncBannerLayout = () => {
+        const stack = document.getElementById('admin-live-banner-stack');
+        const main = document.querySelector('.main-content');
+        if (!stack || !main) {
+            return;
+        }
+        const height = stack.offsetHeight;
+        if (height > 0) {
+            document.body.classList.add('admin-live-banners-visible');
+            main.style.marginTop = 70 + height + 'px';
+        } else {
+            document.body.classList.remove('admin-live-banners-visible');
+            main.style.marginTop = '';
+        }
+    };
+
+    const showAdminBanner = (kind, title, message, href) => {
+        const stack = getBannerStack();
+        const banner = document.createElement('div');
+        banner.className = 'admin-live-banner admin-live-banner--' + kind;
+        banner.setAttribute('role', 'alert');
 
         const icon = document.createElement('span');
-        icon.className = 'admin-live-toast__icon';
-        icon.textContent = kind === 'order' ? '📦' : '📱';
+        icon.className = 'admin-live-banner__icon';
+        icon.textContent = BANNER_ICONS[kind] || '🔔';
 
-        const bodyEl = document.createElement('div');
-        bodyEl.className = 'admin-live-toast__body';
+        const content = document.createElement('div');
+        content.className = 'admin-live-banner__content';
 
         const titleEl = document.createElement('div');
-        titleEl.className = 'admin-live-toast__title';
+        titleEl.className = 'admin-live-banner__title';
         titleEl.textContent = title;
 
         const messageEl = document.createElement('div');
-        messageEl.className = 'admin-live-toast__message';
+        messageEl.className = 'admin-live-banner__message';
         messageEl.textContent = message;
 
-        bodyEl.appendChild(titleEl);
-        bodyEl.appendChild(messageEl);
+        content.appendChild(titleEl);
+        content.appendChild(messageEl);
+
+        banner.appendChild(icon);
+        banner.appendChild(content);
 
         if (href) {
-            const link = document.createElement('a');
-            link.className = 'admin-live-toast__link';
-            link.href = href;
-            link.textContent = kind === 'order' ? 'View order' : 'View clients';
-            bodyEl.appendChild(link);
+            const action = document.createElement('a');
+            action.className = 'admin-live-banner__action';
+            action.href = href;
+            action.textContent = BANNER_ACTIONS[kind] || 'Open';
+            banner.appendChild(action);
         }
 
         const closeBtn = document.createElement('button');
         closeBtn.type = 'button';
-        closeBtn.className = 'admin-live-toast__close';
+        closeBtn.className = 'admin-live-banner__close';
         closeBtn.setAttribute('aria-label', 'Dismiss');
         closeBtn.textContent = '×';
-        closeBtn.addEventListener('click', () => toast.remove());
+        closeBtn.addEventListener('click', () => {
+            banner.remove();
+            syncBannerLayout();
+        });
+        banner.appendChild(closeBtn);
 
-        toast.appendChild(icon);
-        toast.appendChild(bodyEl);
-        toast.appendChild(closeBtn);
-        stack.appendChild(toast);
+        stack.appendChild(banner);
+        syncBannerLayout();
 
         const dismiss = () => {
-            if (toast.isConnected) {
-                toast.remove();
+            if (banner.isConnected) {
+                banner.remove();
+                syncBannerLayout();
             }
         };
-        window.setTimeout(dismiss, TOAST_MS);
+        window.setTimeout(dismiss, BANNER_MS);
     };
 
     const getLoginSince = () => {
@@ -179,33 +218,94 @@
         setLoginSince(latest);
     };
 
+    const getMessageSince = () => {
+        try {
+            const stored = sessionStorage.getItem(MESSAGE_SINCE_KEY);
+            if (stored) {
+                return stored;
+            }
+        } catch {
+            /* ignore */
+        }
+        const now = new Date().toISOString();
+        setMessageSince(now);
+        return now;
+    };
+
+    const setMessageSince = (iso) => {
+        try {
+            sessionStorage.setItem(MESSAGE_SINCE_KEY, iso);
+        } catch {
+            /* ignore */
+        }
+    };
+
+    const advanceMessageSince = (messages) => {
+        if (!Array.isArray(messages) || !messages.length) {
+            return;
+        }
+        let latest = getMessageSince();
+        messages.forEach((entry) => {
+            if (entry.createdAt && entry.createdAt > latest) {
+                latest = entry.createdAt;
+            }
+        });
+        setMessageSince(latest);
+    };
+
     const buildOrdersPollUrl = () => {
-        const since = encodeURIComponent(getLoginSince());
+        const loginSince = encodeURIComponent(getLoginSince());
+        const messageSince = encodeURIComponent(getMessageSince());
         const sep = ORDERS_URL.includes('?') ? '&' : '?';
-        return ORDERS_URL + sep + 'loginSince=' + since;
+        return ORDERS_URL + sep + 'loginSince=' + loginSince + '&messageSince=' + messageSince;
+    };
+
+    const bootstrapOrderTracking = (orders) => {
+        const ids = new Set();
+        knownOrderStatuses = new Map();
+        orders.forEach((order) => {
+            const id = String(order.id);
+            ids.add(id);
+            knownOrderStatuses.set(id, order.status || '');
+        });
+        knownOrderIds = ids;
+        alertsBootstrapped = true;
     };
 
     const processOrderAlerts = (orders) => {
         const ids = new Set(orders.map((o) => String(o.id)));
 
         if (!alertsBootstrapped) {
-            knownOrderIds = ids;
-            alertsBootstrapped = true;
+            bootstrapOrderTracking(orders);
             return;
         }
 
         orders.forEach((order) => {
             const id = String(order.id);
+            const status = order.status || '';
+            const client = order.clientName || 'A client';
+            const service = order.serviceName || 'a service';
+
             if (!knownOrderIds.has(id)) {
-                const client = order.clientName || 'A client';
-                const service = order.serviceName || 'a service';
-                showAdminAlert(
+                showAdminBanner(
                     'order',
-                    'New order',
-                    '#' + id + ' from ' + client + ' — ' + service,
+                    'New customer order',
+                    '#' + id + ' — ' + client + ' ordered ' + service,
                     ORDER_SHOW_PATH + '/' + id
                 );
+            } else {
+                const prevStatus = knownOrderStatuses.get(id);
+                if (prevStatus !== undefined && prevStatus !== status) {
+                    showAdminBanner(
+                        'order-update',
+                        'Order activity',
+                        '#' + id + ' (' + client + ') is now ' + status,
+                        ORDER_SHOW_PATH + '/' + id
+                    );
+                }
             }
+
+            knownOrderStatuses.set(id, status);
         });
 
         knownOrderIds = ids;
@@ -218,15 +318,36 @@
 
         logins.forEach((entry) => {
             const name = entry.name || entry.email || 'A client';
-            showAdminAlert(
+            showAdminBanner(
                 'login',
-                'Mobile app sign-in',
-                name + ' signed in on the mobile app.',
+                'Customer signed in',
+                name + ' logged in on the mobile app.',
                 '/user'
             );
         });
 
         advanceLoginSince(logins);
+    };
+
+    const processClientMessageAlerts = (messages) => {
+        if (!Array.isArray(messages) || !messages.length) {
+            return;
+        }
+
+        messages.forEach((entry) => {
+            const name = entry.clientName || 'A client';
+            const preview = entry.preview || 'New message';
+            const userId = entry.userId;
+            const href = userId ? MESSAGES_PATH + '/' + userId : MESSAGES_PATH;
+            showAdminBanner(
+                'message',
+                'New customer message',
+                name + ': “' + preview + '”',
+                href
+            );
+        });
+
+        advanceMessageSince(messages);
     };
 
     const fetchJson = async (baseUrl, label) => {
@@ -485,6 +606,7 @@
 
         processOrderAlerts(orders);
         processMobileLoginAlerts(payload.mobileLogins);
+        processClientMessageAlerts(payload.clientMessages);
 
         if (revision !== lastOrdersRevision) {
             lastOrdersRevision = revision;
