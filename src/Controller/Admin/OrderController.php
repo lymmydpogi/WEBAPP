@@ -7,9 +7,11 @@ use App\Form\OrderType;
 use App\Repository\OrderRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 use Knp\Snappy\Pdf;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
@@ -24,6 +26,36 @@ final class OrderController extends AbstractController
 
         return $this->render('ADMIN/_TABLES/order/index.html.twig', [
             'orders' => $orders,
+        ]);
+    }
+
+    /**
+     * Lightweight JSON poll for admin orders table (mobile app → MySQL → website).
+     */
+    #[Route('/poll', name: 'app_order_poll', methods: ['GET'], priority: 20)]
+    #[IsGranted('ROLE_STAFF')]
+    public function poll(OrderRepository $orderRepository): JsonResponse
+    {
+        $orders = $orderRepository->findBy([], ['id' => 'DESC']);
+        $items = [];
+
+        foreach ($orders as $order) {
+            $user = $order->getUser();
+            $service = $order->getService();
+            $items[] = [
+                'id' => $order->getId(),
+                'clientName' => $user ? ($user->getName() ?: 'Unnamed User') : ($order->getClientName() ?: 'N/A'),
+                'clientEmail' => $user ? (string) $user->getEmail() : ($order->getClientEmail() ?: 'N/A'),
+                'serviceName' => $service ? $service->getName() : 'N/A',
+                'status' => $order->getStatus(),
+                'deliveryDate' => $order->getDeliveryDate()?->format('Y-m-d') ?? 'N/A',
+            ];
+        }
+
+        return $this->json([
+            'success' => true,
+            'orders' => $items,
+            'count' => count($items),
         ]);
     }
 

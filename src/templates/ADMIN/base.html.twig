@@ -13,13 +13,7 @@
         <link rel="stylesheet" href="{{ asset('style/css/DASHBOARD/admin-responsive.css') }}">
     {% endblock %}
 
-    {% block javascripts %}
-        {% if app.user %}
-        <script>
-            window.__FIREBASE_CONFIG__ = {{ firebase_web_config|json_encode(constant('JSON_HEX_TAG'))|raw }};
-        </script>
-        {% endif %}
-    {% endblock %}
+    {% block javascripts %}{% endblock %}
 </head>
 
 <body>
