@@ -15,7 +15,10 @@
     const ORDERS_URL = body.getAttribute('data-live-orders-url');
     const DASHBOARD_URL = body.getAttribute('data-live-dashboard-url');
     const ORDERS_PAGE_URL = body.getAttribute('data-live-orders-page-url') || '/order';
+    const ORDER_SHOW_PATH = (body.getAttribute('data-live-order-show-path') || '/order').replace(/\/$/, '');
     const POLL_MS = Math.min(2000, Math.max(500, Number(body.getAttribute('data-live-poll-ms') || '800')));
+    const LOGIN_SINCE_KEY = 'admin-live-login-since';
+    const TOAST_MS = 10000;
 
     if (!ORDERS_URL) {
         console.warn(LOG, 'error (missing data-live-orders-url)');
@@ -34,6 +37,8 @@
     let ordersStopped = false;
     let dashboardStopped = false;
     let ordersAuthFailures = 0;
+    let knownOrderIds = null;
+    let alertsBootstrapped = false;
 
     const formatRevenue = (value) => {
         const amount = Number(value) || 0;
@@ -72,6 +77,156 @@
             ? 'admin-live-status admin-live-status--on'
             : 'admin-live-status admin-live-status--off';
         badge.title = title || (ok ? 'Live sync active' : 'Live sync stopped');
+    };
+
+    const getToastStack = () => {
+        let stack = document.getElementById('admin-live-toast-stack');
+        if (!stack) {
+            stack = document.createElement('div');
+            stack.id = 'admin-live-toast-stack';
+            stack.className = 'admin-live-toast-stack';
+            stack.setAttribute('aria-live', 'polite');
+            stack.setAttribute('aria-relevant', 'additions');
+            document.body.appendChild(stack);
+        }
+        return stack;
+    };
+
+    const showAdminAlert = (kind, title, message, href) => {
+        const stack = getToastStack();
+        const toast = document.createElement('div');
+        toast.className = 'admin-live-toast admin-live-toast--' + kind;
+        toast.setAttribute('role', 'alert');
+
+        const icon = document.createElement('span');
+        icon.className = 'admin-live-toast__icon';
+        icon.textContent = kind === 'order' ? '📦' : '📱';
+
+        const bodyEl = document.createElement('div');
+        bodyEl.className = 'admin-live-toast__body';
+
+        const titleEl = document.createElement('div');
+        titleEl.className = 'admin-live-toast__title';
+        titleEl.textContent = title;
+
+        const messageEl = document.createElement('div');
+        messageEl.className = 'admin-live-toast__message';
+        messageEl.textContent = message;
+
+        bodyEl.appendChild(titleEl);
+        bodyEl.appendChild(messageEl);
+
+        if (href) {
+            const link = document.createElement('a');
+            link.className = 'admin-live-toast__link';
+            link.href = href;
+            link.textContent = kind === 'order' ? 'View order' : 'View clients';
+            bodyEl.appendChild(link);
+        }
+
+        const closeBtn = document.createElement('button');
+        closeBtn.type = 'button';
+        closeBtn.className = 'admin-live-toast__close';
+        closeBtn.setAttribute('aria-label', 'Dismiss');
+        closeBtn.textContent = '×';
+        closeBtn.addEventListener('click', () => toast.remove());
+
+        toast.appendChild(icon);
+        toast.appendChild(bodyEl);
+        toast.appendChild(closeBtn);
+        stack.appendChild(toast);
+
+        const dismiss = () => {
+            if (toast.isConnected) {
+                toast.remove();
+            }
+        };
+        window.setTimeout(dismiss, TOAST_MS);
+    };
+
+    const getLoginSince = () => {
+        try {
+            const stored = sessionStorage.getItem(LOGIN_SINCE_KEY);
+            if (stored) {
+                return stored;
+            }
+        } catch {
+            /* ignore */
+        }
+        const now = new Date().toISOString();
+        setLoginSince(now);
+        return now;
+    };
+
+    const setLoginSince = (iso) => {
+        try {
+            sessionStorage.setItem(LOGIN_SINCE_KEY, iso);
+        } catch {
+            /* ignore */
+        }
+    };
+
+    const advanceLoginSince = (logins) => {
+        if (!Array.isArray(logins) || !logins.length) {
+            return;
+        }
+        let latest = getLoginSince();
+        logins.forEach((entry) => {
+            if (entry.loggedAt && entry.loggedAt > latest) {
+                latest = entry.loggedAt;
+            }
+        });
+        setLoginSince(latest);
+    };
+
+    const buildOrdersPollUrl = () => {
+        const since = encodeURIComponent(getLoginSince());
+        const sep = ORDERS_URL.includes('?') ? '&' : '?';
+        return ORDERS_URL + sep + 'loginSince=' + since;
+    };
+
+    const processOrderAlerts = (orders) => {
+        const ids = new Set(orders.map((o) => String(o.id)));
+
+        if (!alertsBootstrapped) {
+            knownOrderIds = ids;
+            alertsBootstrapped = true;
+            return;
+        }
+
+        orders.forEach((order) => {
+            const id = String(order.id);
+            if (!knownOrderIds.has(id)) {
+                const client = order.clientName || 'A client';
+                const service = order.serviceName || 'a service';
+                showAdminAlert(
+                    'order',
+                    'New order',
+                    '#' + id + ' from ' + client + ' — ' + service,
+                    ORDER_SHOW_PATH + '/' + id
+                );
+            }
+        });
+
+        knownOrderIds = ids;
+    };
+
+    const processMobileLoginAlerts = (logins) => {
+        if (!Array.isArray(logins) || !logins.length) {
+            return;
+        }
+
+        logins.forEach((entry) => {
+            const name = entry.name || entry.email || 'A client';
+            showAdminAlert(
+                'login',
+                'Mobile app sign-in',
+                name + ' signed in on the mobile app.',
+                '/user'
+            );
+        });
+
+        advanceLoginSince(logins);
     };
 
     const fetchJson = async (baseUrl, label) => {
@@ -297,7 +452,7 @@
 
         ordersInFlight = true;
 
-        const result = await fetchJson(ORDERS_URL, 'orders');
+        const result = await fetchJson(buildOrdersPollUrl(), 'orders');
         ordersInFlight = false;
 
         if (!result.ok) {
@@ -327,6 +482,9 @@
         const revision = buildRevision(payload, orders);
 
         log('success', '(' + orders.length + ' orders)');
+
+        processOrderAlerts(orders);
+        processMobileLoginAlerts(payload.mobileLogins);
 
         if (revision !== lastOrdersRevision) {
             lastOrdersRevision = revision;

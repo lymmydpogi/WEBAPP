@@ -69,6 +69,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: 'datetime_immutable')]
     private ?\DateTimeImmutable $createdAt = null;
 
+    #[ORM\Column(type: 'datetime_immutable', nullable: true)]
+    private ?\DateTimeImmutable $lastMobileLoginAt = null;
+
     #[ORM\Column(type: 'boolean')]
     private bool $isVerified = false;
 
@@ -149,6 +152,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setStatus(string $status): static { $this->status = $status; return $this; }
 
     public function getCreatedAt(): ?\DateTimeImmutable { return $this->createdAt; }
+
+    public function getLastMobileLoginAt(): ?\DateTimeImmutable
+    {
+        return $this->lastMobileLoginAt;
+    }
+
+    public function setLastMobileLoginAt(?\DateTimeImmutable $lastMobileLoginAt): static
+    {
+        $this->lastMobileLoginAt = $lastMobileLoginAt;
+
+        return $this;
+    }
 
     public function isVerified(): bool { return $this->isVerified; }
     public function setIsVerified(bool $isVerified): static { $this->isVerified = $isVerified; return $this; }

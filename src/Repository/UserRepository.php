@@ -118,4 +118,39 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
             ->getQuery()
             ->getOneOrNullResult();
     }
+
+    /**
+     * @return list<array{userId: int, email: string, name: string, loggedAt: string}>
+     */
+    public function findMobileLoginsSince(\DateTimeImmutable $since): array
+    {
+        $rows = $this->createQueryBuilder('u')
+            ->where('u.lastMobileLoginAt > :since')
+            ->setParameter('since', $since)
+            ->orderBy('u.lastMobileLoginAt', 'ASC')
+            ->setMaxResults(20)
+            ->getQuery()
+            ->getResult();
+
+        $items = [];
+        foreach ($rows as $user) {
+            if (!$user instanceof User || !$user->isMobileAppUser()) {
+                continue;
+            }
+
+            $loggedAt = $user->getLastMobileLoginAt();
+            if ($loggedAt === null) {
+                continue;
+            }
+
+            $items[] = [
+                'userId' => (int) $user->getId(),
+                'email' => (string) $user->getEmail(),
+                'name' => $user->getName() ?: (string) $user->getEmail(),
+                'loggedAt' => $loggedAt->format(\DateTimeInterface::ATOM),
+            ];
+        }
+
+        return $items;
+    }
 }

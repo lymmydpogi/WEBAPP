@@ -6,6 +6,7 @@ use App\Entity\User;
 use App\Exception\MobileAccessDeniedException;
 use App\Repository\UserRepository;
 use App\Service\MobileAppAccessService;
+use App\Service\MobileLoginRecorder;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -19,6 +20,7 @@ class SecurityController extends AbstractController
 {
     public function __construct(
         private readonly MobileAppAccessService $mobileAppAccess,
+        private readonly MobileLoginRecorder $mobileLoginRecorder,
     ) {
     }
 
@@ -109,6 +111,8 @@ class SecurityController extends AbstractController
         } catch (MobileAccessDeniedException $e) {
             return $this->apiError($e->getMessage(), $e->getHttpStatus());
         }
+
+        $this->mobileLoginRecorder->record($user);
 
         $token = $jwtManager->create($user);
 

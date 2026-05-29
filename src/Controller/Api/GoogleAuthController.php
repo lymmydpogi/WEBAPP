@@ -7,6 +7,7 @@ use App\Exception\MobileAccessDeniedException;
 use App\Repository\UserRepository;
 use App\Service\EmailVerificationService;
 use App\Service\MobileAppAccessService;
+use App\Service\MobileLoginRecorder;
 use Doctrine\ORM\EntityManagerInterface;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Psr\Log\LoggerInterface;
@@ -31,6 +32,7 @@ final class GoogleAuthController extends AbstractController
         private UserPasswordHasherInterface $passwordHasher,
         private EmailVerificationService $emailVerificationService,
         private MobileAppAccessService $mobileAppAccess,
+        private MobileLoginRecorder $mobileLoginRecorder,
         private LoggerInterface $logger,
         private UrlGeneratorInterface $urlGenerator,
     ) {
@@ -143,6 +145,8 @@ final class GoogleAuthController extends AbstractController
         }
 
         $this->sendGoogleConfirmationEmailSafely($user, $email, $isNewUser);
+
+        $this->mobileLoginRecorder->record($user);
 
         $jwt = $jwtManager->create($user);
 

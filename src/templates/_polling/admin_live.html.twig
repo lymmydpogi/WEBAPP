@@ -27,7 +27,104 @@
     0%, 100% { opacity: 1; }
     50% { opacity: 0.45; }
 }
+
+.admin-live-toast-stack {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    z-index: 10000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-width: min(420px, calc(100vw - 32px));
+    pointer-events: none;
+}
+
+.admin-live-toast {
+    pointer-events: auto;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px 16px;
+    border-radius: 12px;
+    background: #0f172a;
+    color: #f8fafc;
+    box-shadow: 0 12px 32px rgba(15, 23, 42, 0.35);
+    border: 1px solid rgba(148, 163, 184, 0.25);
+    animation: admin-live-toast-in 0.28s ease-out;
+}
+
+.admin-live-toast--order {
+    border-left: 4px solid #38bdf8;
+}
+
+.admin-live-toast--login {
+    border-left: 4px solid #a78bfa;
+}
+
+.admin-live-toast__icon {
+    font-size: 1.25rem;
+    line-height: 1;
+    flex-shrink: 0;
+}
+
+.admin-live-toast__body {
+    flex: 1;
+    min-width: 0;
+}
+
+.admin-live-toast__title {
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin-bottom: 4px;
+}
+
+.admin-live-toast__message {
+    font-size: 0.85rem;
+    color: #cbd5e1;
+    line-height: 1.4;
+}
+
+.admin-live-toast__link {
+    display: inline-block;
+    margin-top: 8px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #7dd3fc;
+    text-decoration: none;
+}
+
+.admin-live-toast__link:hover {
+    text-decoration: underline;
+}
+
+.admin-live-toast__close {
+    background: transparent;
+    border: none;
+    color: #94a3b8;
+    cursor: pointer;
+    font-size: 1.1rem;
+    line-height: 1;
+    padding: 0;
+    flex-shrink: 0;
+}
+
+.admin-live-toast__close:hover {
+    color: #f8fafc;
+}
+
+@keyframes admin-live-toast-in {
+    from {
+        opacity: 0;
+        transform: translateX(12px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
 </style>
+<div id="admin-live-toast-stack" class="admin-live-toast-stack" aria-live="polite" aria-relevant="additions"></div>
 <script>
 {% include '_polling/admin_live.script.js.twig' %}
 </script>

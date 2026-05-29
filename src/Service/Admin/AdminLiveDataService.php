@@ -100,6 +100,20 @@ final class AdminLiveDataService
     }
 
     /**
+     * @return list<array{userId: int, email: string, name: string, loggedAt: string}>
+     */
+    public function getMobileLoginsSince(?\DateTimeImmutable $since): array
+    {
+        if ($since === null) {
+            return [];
+        }
+
+        $this->em->clear();
+
+        return $this->userRepository->findMobileLoginsSince($since);
+    }
+
+    /**
      * @param list<array<string, mixed>> $items
      */
     private function buildOrdersRevision(array $items, int $maxOrderId): string

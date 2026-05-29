@@ -35,15 +35,27 @@ final class OrderController extends AbstractController
      */
     #[Route('/poll', name: 'app_order_poll', methods: ['GET'], priority: 20)]
     #[IsGranted('ROLE_STAFF')]
-    public function poll(AdminLiveDataService $liveData): JsonResponse
+    public function poll(Request $request, AdminLiveDataService $liveData): JsonResponse
     {
         $snapshot = $liveData->getOrdersSnapshot();
+
+        $loginSince = null;
+        $loginSinceRaw = $request->query->getString('loginSince');
+        if ($loginSinceRaw !== '') {
+            try {
+                $loginSince = new \DateTimeImmutable($loginSinceRaw);
+            } catch (\Exception) {
+                $loginSince = null;
+            }
+        }
+
         $response = $this->json([
             'success' => true,
             'orders' => $snapshot['orders'],
             'count' => $snapshot['count'],
             'maxOrderId' => $snapshot['maxOrderId'],
             'revision' => $snapshot['revision'],
+            'mobileLogins' => $liveData->getMobileLoginsSince($loginSince),
         ]);
         $response->headers->set('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
 
