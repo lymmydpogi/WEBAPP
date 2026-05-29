@@ -8,6 +8,7 @@ use App\Form\ServicesType;
 use App\Repository\ServicesRepository;
 use App\Repository\OrderRepository;
 use App\Repository\UserRepository;
+use App\Service\Admin\AdminLiveDataService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -93,38 +94,14 @@ class HomeController extends AbstractController
 
     #[Route('/home/poll', name: 'app_home_poll', methods: ['GET'], priority: 20)]
     #[IsGranted('ROLE_STAFF')]
-    public function poll(
-        ServicesRepository $servicesRepository,
-        OrderRepository $orderRepository,
-        UserRepository $userRepository,
-    ): JsonResponse {
-        $currentDate = new \DateTime();
-        $startOfMonth = (clone $currentDate)->modify('first day of this month')->setTime(0, 0, 0);
-        $endOfMonth = (clone $currentDate)->modify('last day of this month')->setTime(23, 59, 59);
-
-        $pendingOrders = (int) $orderRepository->createQueryBuilder('o')
-            ->select('COUNT(o.id)')
-            ->where('o.status = :status')
-            ->setParameter('status', Order::STATUS_PENDING)
-            ->getQuery()
-            ->getSingleScalarResult();
-
-        $monthlyRevenue = (float) ($orderRepository->createQueryBuilder('o')
-            ->select('SUM(o.totalPrice)')
-            ->where('o.orderDate BETWEEN :start AND :end')
-            ->setParameter('start', $startOfMonth)
-            ->setParameter('end', $endOfMonth)
-            ->getQuery()
-            ->getSingleScalarResult() ?? 0);
-
+    public function poll(AdminLiveDataService $liveData): JsonResponse
+    {
+        $data = $liveData->getDashboardSnapshot();
         $response = $this->json([
             'success' => true,
-            'activeServices' => $servicesRepository->count([]),
-            'pendingOrders' => $pendingOrders,
-            'totalUsers' => $userRepository->countAllClients(),
-            'monthlyRevenue' => $monthlyRevenue,
+            ...$data,
         ]);
-        $response->headers->set('Cache-Control', 'no-store, no-cache, must-revalidate');
+        $response->headers->set('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
 
         return $response;
     }

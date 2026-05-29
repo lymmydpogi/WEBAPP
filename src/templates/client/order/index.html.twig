@@ -10,14 +10,14 @@
         </div>
 
         {% if orders is empty %}
-            <div class="orders-empty">
+            <div class="orders-empty" id="clientOrdersList">
                 <div class="orders-empty__icon" aria-hidden="true">📋</div>
                 <h2>No orders yet</h2>
                 <p>When you submit a project brief from a service page, your request will show up here so you can track status and updates.</p>
                 <a href="{{ path('client_services') }}" class="btn btn-primary">Browse services</a>
             </div>
         {% else %}
-            <div class="order-list">
+            <div class="order-list" id="clientOrdersList">
                 {% for order in orders %}
                     <article class="order-list-item">
                         <div>

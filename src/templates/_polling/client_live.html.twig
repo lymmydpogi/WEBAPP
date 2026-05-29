@@ -1,0 +1,104 @@
+<script>
+(function () {
+    const listEl = document.getElementById('clientOrdersList');
+    if (!listEl) {
+        return;
+    }
+
+    const POLL_URL = '{{ url('client_live_orders') }}';
+    const POLL_MS = 500;
+    let revision = null;
+    let inFlight = false;
+    let timer = null;
+
+    const statusClass = (status) => {
+        const slug = String(status || 'pending').toLowerCase().replace(/\s+/g, '-');
+        return 'order-status order-status--' + slug;
+    };
+
+    const formatPrice = (value) => {
+        const amount = Number(value) || 0;
+        return '₱' + amount.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    };
+
+    const render = (orders) => {
+        listEl.innerHTML = '';
+
+        if (!orders.length) {
+            listEl.innerHTML = '<div class="orders-empty"><div class="orders-empty__icon" aria-hidden="true">📋</div><h2>No orders yet</h2><p>When you submit a project brief from a service page, your request will show up here.</p></div>';
+            return;
+        }
+
+        orders.forEach((order) => {
+            const article = document.createElement('article');
+            article.className = 'order-list-item';
+            article.setAttribute('data-order-id', String(order.id));
+
+            let actions = '<a href="' + order.showUrl + '" class="btn btn-ghost">View</a>';
+            if (order.canEdit) {
+                actions += ' <a href="' + order.editUrl + '" class="btn btn-ghost">Edit</a>';
+            }
+
+            article.innerHTML =
+                '<div><strong>#' + order.id + ' — ' + (order.serviceName || 'Service') + '</strong>' +
+                '<p class="subtle">' + (order.orderDate || '') + ' · ' + formatPrice(order.totalPrice) + '</p>' +
+                '<span class="pill-small ' + statusClass(order.status) + '">' + (order.status || '') + '</span></div>' +
+                '<div class="order-list-actions">' + actions + '</div>';
+
+            listEl.appendChild(article);
+        });
+    };
+
+    const poll = async () => {
+        if (inFlight || document.visibilityState === 'hidden') {
+            return;
+        }
+
+        inFlight = true;
+        try {
+            const response = await fetch(POLL_URL + '?_=' + Date.now(), {
+                credentials: 'same-origin',
+                headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                cache: 'no-store',
+            });
+
+            if (!response.ok || !(response.headers.get('content-type') || '').includes('json')) {
+                return;
+            }
+
+            const payload = await response.json();
+            if (!payload.success) {
+                return;
+            }
+
+            const next = String(payload.revision || '');
+            const orders = Array.isArray(payload.orders) ? payload.orders : [];
+
+            if (revision === null) {
+                revision = next;
+                return;
+            }
+
+            if (next !== revision) {
+                render(orders);
+                revision = next;
+            }
+        } finally {
+            inFlight = false;
+        }
+    };
+
+    void poll();
+    timer = setInterval(poll, POLL_MS);
+
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+            void poll();
+        }
+    });
+
+    window.addEventListener('beforeunload', () => {
+        if (timer) clearInterval(timer);
+    });
+})();
+</script>

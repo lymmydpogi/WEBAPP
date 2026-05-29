@@ -1,33 +1,72 @@
-{# Auto-updates admin dashboard stats and orders table (no manual refresh). Loaded at end of body. #}
+{# Live updates for admin staff — polls MySQL every 500ms, no page refresh. #}
 <script>
 (function () {
-    const ORDER_POLL_URL = '{{ path('app_order_poll') }}';
-    const DASHBOARD_POLL_URL = '{{ path('app_home_poll') }}';
-    const POLL_MS = 800;
+    const ORDERS_URL = '{{ url('admin_live_orders') }}';
+    const DASHBOARD_URL = '{{ url('admin_live_dashboard') }}';
+    const ORDERS_PAGE_URL = '{{ url('app_order_index') }}';
+    const POLL_MS = 500;
 
     const ordersTable = document.getElementById('ordersTable');
     const hasDashboard = Boolean(document.getElementById('live-stat-pending-orders'));
-    const hasOrders = Boolean(ordersTable);
 
-    if (!hasDashboard && !hasOrders) {
-        return;
-    }
-
-    let orderFingerprint = null;
-    let dashboardFingerprint = null;
-    let orderTimer = null;
+    let ordersRevision = null;
+    let dashboardRevision = null;
+    let ordersTimer = null;
     let dashboardTimer = null;
+    let ordersInFlight = false;
+    let dashboardInFlight = false;
 
     const formatRevenue = (value) => {
         const amount = Number(value) || 0;
         return '₱' + amount.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     };
 
-    const ordersFingerprint = (orders) => orders
-        .map((o) => `${o.id}|${o.status}|${o.deliveryDate}|${o.clientName}|${o.clientEmail}|${o.serviceName}`)
-        .join(';;');
+    const fetchJson = async (baseUrl) => {
+        const response = await fetch(baseUrl + (baseUrl.includes('?') ? '&' : '?') + '_=' + Date.now(), {
+            method: 'GET',
+            credentials: 'same-origin',
+            headers: {
+                Accept: 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+            cache: 'no-store',
+        });
+
+        if (!response.ok) {
+            return null;
+        }
+
+        const type = response.headers.get('content-type') || '';
+        if (!type.includes('json')) {
+            return null;
+        }
+
+        return response.json();
+    };
+
+    const showNewOrderToast = (count) => {
+        if (ordersTable) {
+            return;
+        }
+
+        let el = document.getElementById('admin-live-toast');
+        if (!el) {
+            el = document.createElement('div');
+            el.id = 'admin-live-toast';
+            el.style.cssText = 'position:fixed;right:16px;bottom:16px;z-index:9999;background:#0f172a;color:#e2e8f0;padding:12px 16px;border-radius:10px;border:1px solid rgba(56,189,248,0.5);font-size:14px;box-shadow:0 8px 24px rgba(0,0,0,0.35);max-width:280px;';
+            document.body.appendChild(el);
+        }
+
+        el.innerHTML = 'Orders updated (' + count + ' total). <a href="' + ORDERS_PAGE_URL + '" style="color:#38bdf8;margin-left:6px;">View orders</a>';
+        el.style.display = 'block';
+        setTimeout(() => { el.style.display = 'none'; }, 4000);
+    };
 
     const renderOrdersTable = (orders) => {
+        if (!ordersTable) {
+            return;
+        }
+
         const tbody = ordersTable.querySelector('tbody');
         if (!tbody) {
             return;
@@ -47,16 +86,14 @@
             tr.id = 'order-row-' + order.id;
             tr.setAttribute('data-order-id', String(order.id));
 
-            const cols = [
+            [
                 String(order.id),
                 order.clientName || 'N/A',
                 order.clientEmail || 'N/A',
                 order.serviceName || 'N/A',
                 order.status || 'N/A',
                 order.deliveryDate || 'N/A',
-            ];
-
-            cols.forEach((value) => {
+            ].forEach((value) => {
                 const td = document.createElement('td');
                 td.textContent = value;
                 tr.appendChild(td);
@@ -68,84 +105,63 @@
 
             tbody.appendChild(tr);
         });
+
+        ordersTable.classList.add('admin-live-flash');
+        setTimeout(() => ordersTable.classList.remove('admin-live-flash'), 600);
     };
 
     const pollOrders = async () => {
-        if (document.visibilityState === 'hidden') {
+        if (ordersInFlight || document.visibilityState === 'hidden') {
             return;
         }
 
+        ordersInFlight = true;
         try {
-            const response = await fetch(ORDER_POLL_URL, {
-                method: 'GET',
-                credentials: 'same-origin',
-                headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
-                cache: 'no-store',
-            });
-
-            if (!response.ok) {
+            const payload = await fetchJson(ORDERS_URL);
+            if (!payload || !payload.success) {
                 return;
             }
 
-            const contentType = response.headers.get('content-type') || '';
-            if (!contentType.includes('application/json')) {
-                return;
-            }
-
-            const payload = await response.json();
+            const revision = String(payload.revision || '');
             const orders = Array.isArray(payload.orders) ? payload.orders : [];
-            const next = ordersFingerprint(orders);
 
-            if (orderFingerprint === null) {
-                orderFingerprint = next;
+            if (ordersRevision === null) {
+                ordersRevision = revision;
                 return;
             }
 
-            if (next !== orderFingerprint) {
-                renderOrdersTable(orders);
-                orderFingerprint = next;
+            if (revision === ordersRevision) {
+                return;
             }
-        } catch (_e) {
-            // Retry on next tick.
+
+            renderOrdersTable(orders);
+            showNewOrderToast(payload.count || orders.length);
+            ordersRevision = revision;
+        } finally {
+            ordersInFlight = false;
         }
     };
 
     const pollDashboard = async () => {
-        if (document.visibilityState === 'hidden') {
+        if (!hasDashboard || dashboardInFlight || document.visibilityState === 'hidden') {
             return;
         }
 
+        dashboardInFlight = true;
         try {
-            const response = await fetch(DASHBOARD_POLL_URL, {
-                method: 'GET',
-                credentials: 'same-origin',
-                headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
-                cache: 'no-store',
-            });
-
-            if (!response.ok) {
+            const data = await fetchJson(DASHBOARD_URL);
+            if (!data || !data.success) {
                 return;
             }
 
-            const contentType = response.headers.get('content-type') || '';
-            if (!contentType.includes('application/json')) {
+            const revision = String(data.revision || '');
+
+            if (dashboardRevision === null) {
+                dashboardRevision = revision;
                 return;
             }
 
-            const data = await response.json();
-            const next = [
-                data.activeServices,
-                data.pendingOrders,
-                data.totalUsers,
-                data.monthlyRevenue,
-            ].join('|');
-
-            if (dashboardFingerprint === null) {
-                dashboardFingerprint = next;
-                return;
-            }
-
-            if (next === dashboardFingerprint) {
+            if (revision === dashboardRevision) {
                 return;
             }
 
@@ -159,17 +175,16 @@
             if (usersEl) usersEl.textContent = String(data.totalUsers ?? 0);
             if (revenueEl) revenueEl.textContent = formatRevenue(data.monthlyRevenue);
 
-            dashboardFingerprint = next;
-        } catch (_e) {
-            // Retry on next tick.
+            dashboardRevision = revision;
+        } finally {
+            dashboardInFlight = false;
         }
     };
 
     const start = () => {
-        if (hasOrders) {
-            void pollOrders();
-            orderTimer = setInterval(pollOrders, POLL_MS);
-        }
+        void pollOrders();
+        ordersTimer = setInterval(pollOrders, POLL_MS);
+
         if (hasDashboard) {
             void pollDashboard();
             dashboardTimer = setInterval(pollDashboard, POLL_MS);
@@ -178,16 +193,23 @@
 
     document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'visible') {
-            if (hasOrders) void pollOrders();
-            if (hasDashboard) void pollDashboard();
+            void pollOrders();
+            void pollDashboard();
         }
     });
 
     start();
 
     window.addEventListener('beforeunload', () => {
-        if (orderTimer) clearInterval(orderTimer);
+        if (ordersTimer) clearInterval(ordersTimer);
         if (dashboardTimer) clearInterval(dashboardTimer);
     });
 })();
 </script>
+<style>
+    #ordersTable.admin-live-flash {
+        outline: 2px solid rgba(56, 189, 248, 0.45);
+        outline-offset: 2px;
+        transition: outline-color 0.4s ease;
+    }
+</style>

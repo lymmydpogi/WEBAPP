@@ -5,6 +5,7 @@ namespace App\Controller\Admin;
 use App\Entity\Order;
 use App\Form\OrderType;
 use App\Repository\OrderRepository;
+use App\Service\Admin\AdminLiveDataService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -34,33 +35,16 @@ final class OrderController extends AbstractController
      */
     #[Route('/poll', name: 'app_order_poll', methods: ['GET'], priority: 20)]
     #[IsGranted('ROLE_STAFF')]
-    public function poll(OrderRepository $orderRepository): JsonResponse
+    public function poll(AdminLiveDataService $liveData): JsonResponse
     {
-        $orders = $orderRepository->findBy([], ['id' => 'DESC']);
-        $items = [];
-
-        foreach ($orders as $order) {
-            $user = $order->getUser();
-            $service = $order->getService();
-            $items[] = [
-                'id' => $order->getId(),
-                'clientName' => $user ? ($user->getName() ?: 'Unnamed User') : ($order->getClientName() ?: 'N/A'),
-                'clientEmail' => $user ? (string) $user->getEmail() : ($order->getClientEmail() ?: 'N/A'),
-                'serviceName' => $service ? $service->getName() : 'N/A',
-                'status' => $order->getStatus(),
-                'deliveryDate' => $order->getDeliveryDate()?->format('Y-m-d') ?? 'N/A',
-                'actionsHtml' => $this->renderView('ADMIN/_TABLES/order/_poll_actions.html.twig', [
-                    'order' => $order,
-                ]),
-            ];
-        }
-
+        $snapshot = $liveData->getOrdersSnapshot();
         $response = $this->json([
             'success' => true,
-            'orders' => $items,
-            'count' => count($items),
+            'orders' => $snapshot['orders'],
+            'count' => $snapshot['count'],
+            'revision' => $snapshot['revision'],
         ]);
-        $response->headers->set('Cache-Control', 'no-store, no-cache, must-revalidate');
+        $response->headers->set('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
 
         return $response;
     }
