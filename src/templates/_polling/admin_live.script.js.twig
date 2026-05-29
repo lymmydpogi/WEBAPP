@@ -79,8 +79,9 @@
     let ordersStopped = false;
     let dashboardStopped = false;
     let ordersAuthFailures = 0;
-    let knownOrderStatuses = new Map();
-    let orderStatusBootstrapped = false;
+    let knownOrderIds = new Set();
+    let knownOrderFingerprints = new Map();
+    let orderTrackingBootstrapped = false;
 
     const formatRevenue = (value) => {
         const amount = Number(value) || 0;
@@ -126,6 +127,8 @@
         message: '💬',
         login: '📱',
         'order-update': '🔄',
+        'order-edit': '✏️',
+        'order-remove': '🗑️',
     };
 
     const BANNER_ACTIONS = {
@@ -133,6 +136,8 @@
         message: 'Open chat',
         login: 'View clients',
         'order-update': 'View order',
+        'order-edit': 'View order',
+        'order-remove': 'View orders',
     };
 
     const getBannerStack = () => {
@@ -262,37 +267,85 @@
         }
     };
 
-    const bootstrapOrderStatuses = (orders) => {
-        knownOrderStatuses = new Map();
+    const orderContentFingerprint = (order) =>
+        [
+            order.status || '',
+            order.serviceName || '',
+            order.deliveryDate || '',
+            String(order.totalPrice ?? ''),
+            String(order.quantity ?? ''),
+            order.notesPreview || '',
+        ].join('\u0001');
+
+    const bootstrapOrderTracking = (orders) => {
+        knownOrderIds = new Set();
+        knownOrderFingerprints = new Map();
         orders.forEach((order) => {
-            knownOrderStatuses.set(String(order.id), order.status || '');
+            const id = String(order.id);
+            knownOrderIds.add(id);
+            knownOrderFingerprints.set(id, orderContentFingerprint(order));
         });
-        orderStatusBootstrapped = true;
+        orderTrackingBootstrapped = true;
     };
 
-    const processOrderStatusAlerts = (orders) => {
-        if (!orderStatusBootstrapped) {
-            bootstrapOrderStatuses(orders);
+    const processOrderChangeAlerts = (orders) => {
+        const currentIds = new Set(orders.map((o) => String(o.id)));
+
+        if (!orderTrackingBootstrapped) {
+            bootstrapOrderTracking(orders);
             return;
         }
 
-        orders.forEach((order) => {
-            const id = String(order.id);
-            const status = order.status || '';
-            const prevStatus = knownOrderStatuses.get(id);
-
-            if (prevStatus !== undefined && prevStatus !== status) {
-                const client = order.clientName || 'A client';
+        knownOrderIds.forEach((id) => {
+            if (!currentIds.has(id)) {
                 showAdminBanner(
-                    'order-update',
-                    'Order activity',
-                    '#' + id + ' (' + client + ') is now ' + status,
-                    ORDER_SHOW_PATH + '/' + id
+                    'order-remove',
+                    'Order removed',
+                    'Order #' + id + ' was removed or deleted from the system.',
+                    ORDERS_PAGE_URL
                 );
             }
-
-            knownOrderStatuses.set(id, status);
         });
+
+        orders.forEach((order) => {
+            const id = String(order.id);
+            const client = order.clientName || 'A client';
+            const href = ORDER_SHOW_PATH + '/' + id;
+            const prev = knownOrderFingerprints.get(id);
+            const next = orderContentFingerprint(order);
+
+            if (prev !== undefined && prev !== next) {
+                const prevStatus = prev.split('\u0001')[0];
+                const nextStatus = order.status || '';
+
+                if (nextStatus === 'Cancelled' && prevStatus !== 'Cancelled') {
+                    showAdminBanner(
+                        'order-remove',
+                        'Order cancelled by customer',
+                        '#' + id + ' — ' + client + ' cancelled their order.',
+                        href
+                    );
+                } else if (prevStatus !== nextStatus) {
+                    showAdminBanner(
+                        'order-update',
+                        'Order status changed',
+                        '#' + id + ' (' + client + ') is now ' + nextStatus + '.',
+                        href
+                    );
+                } else {
+                    showAdminBanner(
+                        'order-edit',
+                        'Order edited by customer',
+                        '#' + id + ' — ' + client + ' updated order details (service, brief, or quantity).',
+                        href
+                    );
+                }
+            }
+
+            knownOrderFingerprints.set(id, next);
+        });
+
+        knownOrderIds = currentIds;
     };
 
     const fetchJson = async (baseUrl, label) => {
@@ -550,7 +603,7 @@
         log('success', '(' + orders.length + ' orders)');
 
         processActivities(payload);
-        processOrderStatusAlerts(orders);
+        processOrderChangeAlerts(orders);
 
         if (revision !== lastOrdersRevision) {
             lastOrdersRevision = revision;

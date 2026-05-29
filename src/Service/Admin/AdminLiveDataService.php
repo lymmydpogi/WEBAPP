@@ -41,6 +41,12 @@ final class AdminLiveDataService
         foreach ($orders as $order) {
             $user = $order->getUser();
             $service = $order->getService();
+            $notes = trim((string) ($order->getNotes() ?? ''));
+            $notesPreview = $notes;
+            if (mb_strlen($notesPreview) > 120) {
+                $notesPreview = mb_substr($notesPreview, 0, 117) . '...';
+            }
+
             $items[] = [
                 'id' => $order->getId(),
                 'clientName' => $user ? ($user->getName() ?: 'Unnamed User') : ($order->getClientName() ?: 'N/A'),
@@ -48,6 +54,9 @@ final class AdminLiveDataService
                 'serviceName' => $service ? $service->getName() : 'N/A',
                 'status' => $order->getStatus(),
                 'deliveryDate' => $order->getDeliveryDate()?->format('Y-m-d') ?? 'N/A',
+                'totalPrice' => (float) ($order->getTotalPrice() ?? 0),
+                'quantity' => (int) $order->getQuantity(),
+                'notesPreview' => $notesPreview,
                 'actionsHtml' => $this->twig->render('ADMIN/_TABLES/order/_poll_actions.html.twig', [
                     'order' => $order,
                 ]),
@@ -269,6 +278,9 @@ final class AdminLiveDataService
                 (string) ($item['deliveryDate'] ?? ''),
                 (string) ($item['clientName'] ?? ''),
                 (string) ($item['serviceName'] ?? ''),
+                (string) ($item['totalPrice'] ?? ''),
+                (string) ($item['quantity'] ?? ''),
+                (string) ($item['notesPreview'] ?? ''),
             ]);
         }
 
