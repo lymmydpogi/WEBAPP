@@ -90,6 +90,8 @@ final class AdminLiveDataService
             'pendingOrders' => $pendingOrders,
             'totalUsers' => $this->userRepository->countAllClients(),
             'monthlyRevenue' => $monthlyRevenue,
+            'totalRevenue' => $this->orderRepository->getTotalRevenue(),
+            'totalOrders' => (int) $this->orderRepository->count([]),
         ];
 
         $data['revision'] = hash('xxh128', json_encode($data, JSON_THROW_ON_ERROR));

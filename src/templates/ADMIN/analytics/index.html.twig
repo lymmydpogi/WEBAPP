@@ -29,22 +29,22 @@
 <div class="stats-overview">
     <div class="stat-card">
         <div class="stat-header"><span class="stat-label">Total Revenue</span></div>
-        <div class="stat-value">₱{{ monthlyRevenue|number_format(2, '.', ',') }}</div>
+        <div class="stat-value" id="live-stat-monthly-revenue">₱{{ monthlyRevenue|number_format(2, '.', ',') }}</div>
     </div>
 
     <div class="stat-card">
         <div class="stat-header"><span class="stat-label">Pending Orders</span></div>
-        <div class="stat-value">{{ pendingOrders }}</div>
+        <div class="stat-value" id="live-stat-pending-orders">{{ pendingOrders }}</div>
     </div>
 
     <div class="stat-card">
         <div class="stat-header"><span class="stat-label">Total Clients</span></div>
-        <div class="stat-value">{{ totalUsers }}</div>
+        <div class="stat-value" id="live-stat-total-users">{{ totalUsers }}</div>
     </div>
 
     <div class="stat-card">
         <div class="stat-header"><span class="stat-label">Active Services</span></div>
-        <div class="stat-value">{{ activeServices }}</div>
+        <div class="stat-value" id="live-stat-active-services">{{ activeServices }}</div>
     </div>
 </div>
 

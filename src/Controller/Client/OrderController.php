@@ -22,7 +22,7 @@ final class OrderController extends AbstractController
     public function index(OrderRepository $orderRepository): Response
     {
         $client = $this->requireClientUser();
-        $orders = $orderRepository->findBy(['user' => $client], ['orderDate' => 'DESC']);
+        $orders = $orderRepository->findForClientNewestFirst($client);
 
         return $this->render('client/order/index.html.twig', [
             'orders' => $orders,

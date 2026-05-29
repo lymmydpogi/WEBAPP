@@ -48,7 +48,7 @@ final class ClientProfileController extends AbstractController
             return $this->apiError('Unauthorized.', Response::HTTP_UNAUTHORIZED);
         }
 
-        if (!$this->isGranted('ROLE_CLIENT')) {
+        if (!$user instanceof User || !$user->isMobileAppUser()) {
             return $this->apiError('Client access required.', Response::HTTP_FORBIDDEN);
         }
 

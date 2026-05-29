@@ -13,7 +13,7 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/api/messages')]
-#[IsGranted('ROLE_CLIENT')]
+#[IsGranted('ROLE_USER')]
 final class MessageController extends AbstractController
 {
     public function __construct(
@@ -44,8 +44,7 @@ final class MessageController extends AbstractController
     #[Route('', name: 'api_messages_list', methods: ['GET'])]
     public function list(): JsonResponse
     {
-        /** @var User $client */
-        $client = $this->getUser();
+        $client = $this->requireClientUser();
         $messages = $this->chatMessageService->getClientConversation($client);
 
         return $this->apiSuccess('Messages loaded.', [
@@ -67,8 +66,7 @@ final class MessageController extends AbstractController
         $rawMessage = (string) ($data['message'] ?? '');
 
         try {
-            /** @var User $client */
-            $client = $this->getUser();
+            $client = $this->requireClientUser();
             $chatMessage = $this->chatMessageService->sendUserMessage($client, $rawMessage);
 
             return $this->apiSuccess('Message sent.', [
@@ -81,5 +79,15 @@ final class MessageController extends AbstractController
         } catch (\Throwable) {
             return $this->apiError(ChatMessageService::MSG_SEND_FAILED, Response::HTTP_INTERNAL_SERVER_ERROR);
         }
+    }
+
+    private function requireClientUser(): User
+    {
+        $user = $this->getUser();
+        if (!$user instanceof User || !$user->isMobileAppUser()) {
+            throw $this->createAccessDeniedException('Client account required.');
+        }
+
+        return $user;
     }
 }

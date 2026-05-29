@@ -18,7 +18,7 @@ COPY webpack.config.js postcss.config.js tailwind.config.js ./
 COPY assets ./assets
 RUN npm run build
 
-FROM php:8.2-cli-bookworm AS runtime
+FROM php:8.3-cli-bookworm AS runtime
 RUN apt-get update && apt-get install -y --no-install-recommends \
         openssl \
         libicu-dev \
@@ -29,8 +29,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         fontconfig \
         xfonts-base \
         xfonts-75dpi \
-    && pecl install grpc \
-    && docker-php-ext-enable grpc \
     && docker-php-ext-install -j"$(nproc)" pdo_mysql intl opcache zip \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
@@ -41,7 +39,8 @@ COPY --from=vendor /app /app
 COPY --from=assets /app/public/build /app/public/build
 COPY docker/entrypoint.sh /entrypoint.sh
 
-RUN chmod +x /entrypoint.sh \
+RUN sed -i 's/\r$//' /entrypoint.sh \
+    && chmod +x /entrypoint.sh \
     && mkdir -p var/cache var/log var/sessions public/uploads/avatars config/jwt \
     && printf '%s\n' 'APP_ENV=prod' 'APP_DEBUG=0' > .env \
     && openssl genrsa -out config/jwt/private.pem 2048 2>/dev/null \

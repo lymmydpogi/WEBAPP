@@ -37,7 +37,17 @@ final class FirebaseAdminFactory
     {
         $this->boot();
 
-        return $this->factory?->createFirestore();
+        if ($this->factory === null) {
+            return null;
+        }
+
+        try {
+            return $this->factory->createFirestore();
+        } catch (\Throwable $e) {
+            $this->logger->warning('[firebase] Firestore unavailable (order sync skipped): ' . $e->getMessage());
+
+            return null;
+        }
     }
 
     private function boot(): void

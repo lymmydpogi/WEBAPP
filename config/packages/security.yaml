@@ -63,12 +63,12 @@ security:
         - { path: ^/api/register, roles: PUBLIC_ACCESS }
         - { path: ^/api/auth/google, roles: PUBLIC_ACCESS }
         - { path: ^/api/verify-email, roles: PUBLIC_ACCESS }
-        - { path: ^/api/client/profile, roles: ROLE_CLIENT }
+        - { path: ^/api/client/profile, roles: [ROLE_CLIENT, ROLE_USER] }
         - { path: ^/api/client/contact, roles: PUBLIC_ACCESS }
         - { path: ^/api/client/services, roles: PUBLIC_ACCESS }
         - { path: ^/api/me, roles: [ROLE_CLIENT, ROLE_USER] }
-        - { path: ^/api/client/orders, roles: ROLE_CLIENT }
-        - { path: ^/api/messages, roles: ROLE_CLIENT }
+        - { path: ^/api/client/orders, roles: [ROLE_CLIENT, ROLE_USER] }
+        - { path: ^/api/messages, roles: [ROLE_CLIENT, ROLE_USER] }
         - { path: ^/connect/google, roles: PUBLIC_ACCESS }
         - { path: ^/firebase/custom-token, roles: [ROLE_ADMIN, ROLE_STAFF, ROLE_CLIENT, ROLE_USER] }
         - { path: ^/api/firebase/custom-token, roles: IS_AUTHENTICATED_FULLY }

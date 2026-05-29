@@ -22,19 +22,31 @@ final class OrderFirestoreListener
 
     public function postPersist(Order $order, PostPersistEventArgs $event): void
     {
-        $this->firestoreOrders->sync($order);
+        try {
+            $this->firestoreOrders->sync($order);
+        } catch (\Throwable $e) {
+            // Never fail order creation if optional Firestore sync is unavailable.
+        }
     }
 
     public function postUpdate(Order $order, PostUpdateEventArgs $event): void
     {
-        $this->firestoreOrders->sync($order);
+        try {
+            $this->firestoreOrders->sync($order);
+        } catch (\Throwable $e) {
+        }
     }
 
     public function postRemove(Order $order, PostRemoveEventArgs $event): void
     {
         $id = $order->getId();
-        if ($id !== null) {
+        if ($id === null) {
+            return;
+        }
+
+        try {
             $this->firestoreOrders->remove($id);
+        } catch (\Throwable $e) {
         }
     }
 }

@@ -16,6 +16,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
+#[IsGranted('ROLE_USER')]
 final class ClientOrderController extends AbstractController
 {
     public function __construct(
@@ -52,22 +53,24 @@ final class ClientOrderController extends AbstractController
      * Always creates a new order row. Never updates or merges an existing order for the same service.
      */
     #[Route('/api/client/orders/from-service', name: 'api_client_orders_from_service', methods: ['POST'])]
-    #[IsGranted('ROLE_CLIENT')]
     public function createFromService(
         Request $request,
         ServicesRepository $servicesRepository,
     ): JsonResponse {
+        $client = $this->requireClientUser();
+
         $data = json_decode($request->getContent(), true);
         if (!is_array($data)) {
             return $this->apiError('Invalid JSON payload.', Response::HTTP_BAD_REQUEST);
         }
 
         $serviceId = (int) ($data['serviceId'] ?? 0);
+        $serviceSlug = trim((string) ($data['serviceSlug'] ?? ''));
         $projectBrief = trim((string) ($data['projectBrief'] ?? ''));
         $quantity = (int) ($data['quantity'] ?? 1);
 
         $errors = [];
-        if ($serviceId <= 0) {
+        if ($serviceId <= 0 && $serviceSlug === '') {
             $errors['serviceId'] = 'Please select a service.';
         }
         if ($projectBrief === '') {
@@ -83,7 +86,10 @@ final class ClientOrderController extends AbstractController
             return $this->apiError('Validation failed.', Response::HTTP_BAD_REQUEST, $errors);
         }
 
-        $service = $servicesRepository->find($serviceId);
+        $service = $serviceId > 0 ? $servicesRepository->find($serviceId) : null;
+        if (!$service instanceof Services && $serviceSlug !== '') {
+            $service = $servicesRepository->findOneBySlug($serviceSlug);
+        }
         if (!$service instanceof Services) {
             return $this->apiError('Service not found.', Response::HTTP_NOT_FOUND, [
                 'serviceId' => 'Invalid service.',
@@ -99,8 +105,6 @@ final class ClientOrderController extends AbstractController
         }
 
         try {
-            /** @var User $client */
-            $client = $this->getUser();
             $order = $this->clientOrderService->createFromServiceBrief($service, $client, $projectBrief, $quantity);
 
             $message = sprintf(
@@ -115,16 +119,19 @@ final class ClientOrderController extends AbstractController
             ], Response::HTTP_CREATED);
         } catch (ClientOrderException $e) {
             return $this->handleClientOrderException($e);
+        } catch (\Throwable $e) {
+            return $this->apiError(
+                'Could not create your order. Please try again.',
+                Response::HTTP_INTERNAL_SERVER_ERROR,
+            );
         }
     }
 
     #[Route('/api/client/orders', name: 'api_client_orders_list', methods: ['GET'])]
-    #[IsGranted('ROLE_CLIENT')]
     public function listMyOrders(OrderRepository $orderRepository): JsonResponse
     {
-        /** @var User $client */
-        $client = $this->getUser();
-        $orders = $orderRepository->findBy(['user' => $client], ['orderDate' => 'DESC']);
+        $client = $this->requireClientUser();
+        $orders = $orderRepository->findForClientNewestFirst($client);
 
         $items = [];
         foreach ($orders as $order) {
@@ -135,12 +142,10 @@ final class ClientOrderController extends AbstractController
     }
 
     #[Route('/api/client/orders/{id}', name: 'api_client_orders_show', requirements: ['id' => '\d+'], methods: ['GET'])]
-    #[IsGranted('ROLE_CLIENT')]
     public function showOrder(int $id): JsonResponse
     {
         try {
-            /** @var User $client */
-            $client = $this->getUser();
+            $client = $this->requireClientUser();
             $order = $this->clientOrderService->getOrderForClient($client, $id);
 
             return $this->apiSuccess('Order loaded.', [
@@ -152,7 +157,6 @@ final class ClientOrderController extends AbstractController
     }
 
     #[Route('/api/client/orders/{id}', name: 'api_client_orders_update', requirements: ['id' => '\d+'], methods: ['PATCH', 'PUT'])]
-    #[IsGranted('ROLE_CLIENT')]
     public function updateOrder(int $id, Request $request): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
@@ -161,8 +165,7 @@ final class ClientOrderController extends AbstractController
         }
 
         try {
-            /** @var User $client */
-            $client = $this->getUser();
+            $client = $this->requireClientUser();
             $order = $this->clientOrderService->getOrderForClient($client, $id);
             $this->clientOrderService->assertClientCanEdit($client, $order);
 
@@ -177,12 +180,10 @@ final class ClientOrderController extends AbstractController
     }
 
     #[Route('/api/client/orders/{id}/cancel', name: 'api_client_orders_cancel', requirements: ['id' => '\d+'], methods: ['PATCH', 'POST', 'DELETE'])]
-    #[IsGranted('ROLE_CLIENT')]
     public function cancelOrder(int $id): JsonResponse
     {
         try {
-            /** @var User $client */
-            $client = $this->getUser();
+            $client = $this->requireClientUser();
             $order = $this->clientOrderService->getOrderForClient($client, $id);
             $this->clientOrderService->assertClientCanCancel($client, $order);
 
@@ -212,5 +213,15 @@ final class ClientOrderController extends AbstractController
             'canEdit' => $order->canBeModifiedByClient(),
             'canCancel' => $order->canBeModifiedByClient(),
         ];
+    }
+
+    private function requireClientUser(): User
+    {
+        $user = $this->getUser();
+        if (!$user instanceof User || !$user->isMobileAppUser()) {
+            throw $this->createAccessDeniedException('Client account required.');
+        }
+
+        return $user;
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Order;
+use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -28,6 +29,19 @@ class OrderRepository extends ServiceEntityRepository
             ->select('COALESCE(SUM(o.totalPrice), 0)')
             ->getQuery()
             ->getSingleScalarResult();
+    }
+
+    /**
+     * @return list<Order>
+     */
+    public function findForClientNewestFirst(User $client): array
+    {
+        return $this->createQueryBuilder('o')
+            ->andWhere('o.user = :client')
+            ->setParameter('client', $client)
+            ->orderBy('o.id', 'DESC')
+            ->getQuery()
+            ->getResult();
     }
 
 }

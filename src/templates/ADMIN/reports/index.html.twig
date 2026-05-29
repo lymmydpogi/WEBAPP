@@ -21,19 +21,19 @@
     <h2 class="section-title">Overview</h2>
     <div class="stats-grid">
         <div class="stat-card">
-            <div class="stat-value">{{ totalClients }}</div>
+            <div class="stat-value" id="live-stat-total-users">{{ totalClients }}</div>
             <div class="stat-label">Total Clients</div>
         </div>
         <div class="stat-card">
-            <div class="stat-value">{{ totalOrders }}</div>
+            <div class="stat-value" id="live-stat-total-orders">{{ totalOrders }}</div>
             <div class="stat-label">Total Orders</div>
         </div>
         <div class="stat-card">
-            <div class="stat-value">₱{{ totalRevenue|number_format(2, '.', ',') }}</div>
+            <div class="stat-value" id="live-stat-total-revenue">₱{{ totalRevenue|number_format(2, '.', ',') }}</div>
             <div class="stat-label">Revenue</div>
         </div>
         <div class="stat-card">
-            <div class="stat-value">{{ activeServices }}</div>
+            <div class="stat-value" id="live-stat-active-services">{{ activeServices }}</div>
             <div class="stat-label">Active Services</div>
         </div>
     </div>

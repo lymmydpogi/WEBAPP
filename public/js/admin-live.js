@@ -23,7 +23,7 @@
     }
 
     const getOrdersTable = () => document.getElementById('ordersTable');
-    const hasDashboard = () => Boolean(document.getElementById('live-stat-pending-orders'));
+    const hasDashboard = () => document.querySelector('[id^="live-stat-"]') !== null;
 
     let lastOrdersRevision = null;
     let lastDashboardRevision = null;
@@ -38,6 +38,22 @@
     const formatRevenue = (value) => {
         const amount = Number(value) || 0;
         return '₱' + amount.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    };
+
+    const updateDashboardStats = (data) => {
+        const setText = (id, text) => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.textContent = text;
+            }
+        };
+
+        setText('live-stat-active-services', String(data.activeServices ?? 0));
+        setText('live-stat-pending-orders', String(data.pendingOrders ?? 0));
+        setText('live-stat-total-users', String(data.totalUsers ?? 0));
+        setText('live-stat-total-orders', String(data.totalOrders ?? 0));
+        setText('live-stat-monthly-revenue', formatRevenue(data.monthlyRevenue));
+        setText('live-stat-total-revenue', formatRevenue(data.totalRevenue));
     };
 
     const log = (message, ...args) => {
@@ -356,16 +372,7 @@
 
         const revision = String(data.revision || '');
         if (revision !== lastDashboardRevision) {
-            const activeEl = document.getElementById('live-stat-active-services');
-            const pendingEl = document.getElementById('live-stat-pending-orders');
-            const usersEl = document.getElementById('live-stat-total-users');
-            const revenueEl = document.getElementById('live-stat-monthly-revenue');
-
-            if (activeEl) activeEl.textContent = String(data.activeServices ?? 0);
-            if (pendingEl) pendingEl.textContent = String(data.pendingOrders ?? 0);
-            if (usersEl) usersEl.textContent = String(data.totalUsers ?? 0);
-            if (revenueEl) revenueEl.textContent = formatRevenue(data.monthlyRevenue);
-
+            updateDashboardStats(data);
             lastDashboardRevision = revision;
             log('success', '(dashboard stats updated)');
         }
