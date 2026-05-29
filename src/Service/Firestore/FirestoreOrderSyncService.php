@@ -24,6 +24,8 @@ final class FirestoreOrderSyncService
 
         $firestore = $this->firebase->firestore();
         if ($firestore === null) {
+            $this->logger->warning('[firestore] Skip sync for order #' . $order->getId() . ': Firebase Admin not configured.');
+
             return;
         }
 
@@ -61,6 +63,8 @@ final class FirestoreOrderSyncService
     {
         $firestore = $this->firebase->firestore();
         if ($firestore === null) {
+            $this->logger->warning('[firestore] Skip delete for order #' . $orderId . ': Firebase Admin not configured.');
+
             return;
         }
 

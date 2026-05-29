@@ -1,16 +1,37 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /orders/{orderId} {
-      // Clients read their own orders; staff/admin read all (via custom token claims).
-      allow read: if request.auth != null
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isStaff() {
+      return signedIn()
+        && request.auth.token.roles != null
         && (
-          resource.data.userId == request.auth.token.campanaUserId
-          || 'ROLE_STAFF' in request.auth.token.roles
-          || 'ROLE_ADMIN' in request.auth.token.roles
+          request.auth.token.roles.hasAny(['ROLE_ADMIN', 'ROLE_STAFF'])
         );
-      // Writes only from Firebase Admin SDK (server).
-      allow write: if false;
+    }
+
+    function isOrderOwner() {
+      return signedIn()
+        && request.auth.token.campanaUserId != null
+        && resource.data.userId == request.auth.token.campanaUserId;
+    }
+
+    function isOrderOwnerWrite() {
+      return signedIn()
+        && request.auth.token.campanaUserId != null
+        && request.resource.data.userId == request.auth.token.campanaUserId;
+    }
+
+    match /orders/{orderId} {
+      allow read: if isStaff() || isOrderOwner();
+
+      allow create, update: if isOrderOwnerWrite()
+        && request.resource.data.id == int(orderId);
+
+      allow delete: if false;
     }
   }
 }
