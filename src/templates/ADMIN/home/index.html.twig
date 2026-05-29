@@ -30,7 +30,7 @@
                 <div class="stat-header">
                     <span class="stat-trend up">↑ 12%</span>
                 </div>
-                <div class="stat-value">{{ activeServices }}</div>
+                <div class="stat-value" id="live-stat-active-services">{{ activeServices }}</div>
                 <div class="stat-label">Active Services</div>
             </div>
 
@@ -38,7 +38,7 @@
                 <div class="stat-header">
                     <span class="stat-trend up">↑ 8%</span>
                 </div>
-                <div class="stat-value">{{ pendingOrders }}</div>
+                <div class="stat-value" id="live-stat-pending-orders">{{ pendingOrders }}</div>
                 <div class="stat-label">Pending Orders</div>
             </div>
 
@@ -46,7 +46,7 @@
                 <div class="stat-header">
                     <span class="stat-trend up">↑ 23%</span>
                 </div>
-                <div class="stat-value">{{ totalUsers }}</div>
+                <div class="stat-value" id="live-stat-total-users">{{ totalUsers }}</div>
                 <div class="stat-label">Total Clients</div>
             </div>
 
@@ -54,7 +54,7 @@
                 <div class="stat-header">
                     <span class="stat-trend up">↑ 15%</span>
                 </div>
-                <div class="stat-value">₱{{ monthlyRevenue|number_format(2, '.', ',') }}</div>
+                <div class="stat-value" id="live-stat-monthly-revenue">₱{{ monthlyRevenue|number_format(2, '.', ',') }}</div>
                 <div class="stat-label">Revenue (MTD)</div>
             </div>
         </div>
@@ -91,4 +91,9 @@
             <a href="{{ path('app_analytics_index') }}" class="action-button">View Reports</a>
         </div>
     </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    {% include '_polling/dashboard_poll.html.twig' %}
 {% endblock %}

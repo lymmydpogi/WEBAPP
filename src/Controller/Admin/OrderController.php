@@ -49,6 +49,9 @@ final class OrderController extends AbstractController
                 'serviceName' => $service ? $service->getName() : 'N/A',
                 'status' => $order->getStatus(),
                 'deliveryDate' => $order->getDeliveryDate()?->format('Y-m-d') ?? 'N/A',
+                'actionsHtml' => $this->renderView('ADMIN/_TABLES/order/_poll_actions.html.twig', [
+                    'order' => $order,
+                ]),
             ];
         }
 

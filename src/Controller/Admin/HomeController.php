@@ -10,9 +10,11 @@ use App\Repository\OrderRepository;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 class HomeController extends AbstractController
 {
@@ -86,6 +88,41 @@ class HomeController extends AbstractController
             'totalUsers' => $totalUsers, // renamed for clarity
             'monthlyRevenue' => $monthlyRevenue,
             'pendingOrdersTrend' => $pendingOrdersTrend,
+        ]);
+    }
+
+    #[Route('/home/poll', name: 'app_home_poll', methods: ['GET'], priority: 20)]
+    #[IsGranted('ROLE_STAFF')]
+    public function poll(
+        ServicesRepository $servicesRepository,
+        OrderRepository $orderRepository,
+        UserRepository $userRepository,
+    ): JsonResponse {
+        $currentDate = new \DateTime();
+        $startOfMonth = (clone $currentDate)->modify('first day of this month')->setTime(0, 0, 0);
+        $endOfMonth = (clone $currentDate)->modify('last day of this month')->setTime(23, 59, 59);
+
+        $pendingOrders = (int) $orderRepository->createQueryBuilder('o')
+            ->select('COUNT(o.id)')
+            ->where('o.status = :status')
+            ->setParameter('status', Order::STATUS_PENDING)
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        $monthlyRevenue = (float) ($orderRepository->createQueryBuilder('o')
+            ->select('SUM(o.totalPrice)')
+            ->where('o.orderDate BETWEEN :start AND :end')
+            ->setParameter('start', $startOfMonth)
+            ->setParameter('end', $endOfMonth)
+            ->getQuery()
+            ->getSingleScalarResult() ?? 0);
+
+        return $this->json([
+            'success' => true,
+            'activeServices' => $servicesRepository->count([]),
+            'pendingOrders' => $pendingOrders,
+            'totalUsers' => $userRepository->countAllClients(),
+            'monthlyRevenue' => $monthlyRevenue,
         ]);
     }
 }

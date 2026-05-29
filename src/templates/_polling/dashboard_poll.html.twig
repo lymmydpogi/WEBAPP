@@ -1,0 +1,111 @@
+<script>
+(function () {
+    const pollUrl = '{{ path('app_home_poll') }}';
+    const POLL_MS = 1500;
+    let pollTimer = null;
+    let lastFingerprint = null;
+    let isPolling = false;
+
+    const formatRevenue = (value) => {
+        const amount = Number(value) || 0;
+        return '₱' + amount.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    };
+
+    const fingerprint = (data) => [
+        data.activeServices,
+        data.pendingOrders,
+        data.totalUsers,
+        data.monthlyRevenue,
+    ].join('|');
+
+    const applyStats = (data) => {
+        const activeEl = document.getElementById('live-stat-active-services');
+        const pendingEl = document.getElementById('live-stat-pending-orders');
+        const usersEl = document.getElementById('live-stat-total-users');
+        const revenueEl = document.getElementById('live-stat-monthly-revenue');
+
+        if (activeEl) {
+            activeEl.textContent = String(data.activeServices ?? 0);
+        }
+        if (pendingEl) {
+            pendingEl.textContent = String(data.pendingOrders ?? 0);
+        }
+        if (usersEl) {
+            usersEl.textContent = String(data.totalUsers ?? 0);
+        }
+        if (revenueEl) {
+            revenueEl.textContent = formatRevenue(data.monthlyRevenue);
+        }
+    };
+
+    const poll = async () => {
+        if (isPolling || document.visibilityState === 'hidden') {
+            return;
+        }
+
+        isPolling = true;
+        try {
+            const response = await fetch(pollUrl, {
+                method: 'GET',
+                credentials: 'same-origin',
+                headers: { Accept: 'application/json' },
+                cache: 'no-store',
+            });
+
+            if (!response.ok) {
+                return;
+            }
+
+            const data = await response.json();
+            const next = fingerprint(data);
+
+            if (lastFingerprint === null) {
+                lastFingerprint = next;
+                return;
+            }
+
+            if (next === lastFingerprint) {
+                return;
+            }
+
+            applyStats(data);
+            lastFingerprint = next;
+        } catch (_error) {
+            // Retry on next interval.
+        } finally {
+            isPolling = false;
+        }
+    };
+
+    const start = () => {
+        if (!document.getElementById('live-stat-pending-orders')) {
+            return;
+        }
+
+        if (pollTimer) {
+            clearInterval(pollTimer);
+        }
+
+        void poll();
+        pollTimer = setInterval(poll, POLL_MS);
+    };
+
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+            void poll();
+        }
+    });
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', start);
+    } else {
+        start();
+    }
+
+    window.addEventListener('beforeunload', () => {
+        if (pollTimer) {
+            clearInterval(pollTimer);
+        }
+    });
+})();
+</script>

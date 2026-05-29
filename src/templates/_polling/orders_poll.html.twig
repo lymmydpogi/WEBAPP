@@ -1,66 +1,136 @@
 <script>
 (function () {
     const pollUrl = '{{ path('app_order_poll') }}';
-    const POLL_MS = 4000;
+    const POLL_MS = 1500;
     let dataTable = null;
     let pollTimer = null;
-    let baseline = null;
+    let knownIds = new Set();
+    let lastFingerprint = null;
     let isPolling = false;
 
-    const rowIdsOnPage = () => {
-        const ids = [];
+    const text = (value) => String(value ?? '');
+
+    const fingerprint = (orders) => orders
+        .map((o) => `${o.id}|${o.status}|${o.deliveryDate}|${o.clientName}|${o.clientEmail}|${o.serviceName}`)
+        .join(';;');
+
+    const collectKnownIds = () => {
+        knownIds = new Set();
         document.querySelectorAll('#ordersTable tbody tr[data-order-id]').forEach((row) => {
             const id = row.getAttribute('data-order-id');
             if (id) {
-                ids.push(String(id));
+                knownIds.add(String(id));
             }
         });
-        return ids;
     };
 
-    const fingerprint = (orders) => {
-        return orders
-            .map((o) => `${o.id}|${o.status}|${o.deliveryDate}|${o.clientName}|${o.serviceName}`)
-            .join(';;');
+    const removeEmptyPlaceholder = () => {
+        const placeholder = document.querySelector('#ordersTable tbody tr td.empty-state');
+        if (placeholder) {
+            placeholder.closest('tr')?.remove();
+        }
     };
 
-    const applyOrderUpdates = (orders) => {
+    const buildRow = (order) => {
+        const tr = document.createElement('tr');
+        tr.id = `order-row-${order.id}`;
+        tr.setAttribute('data-order-id', String(order.id));
+
+        const values = [
+            text(order.id),
+            text(order.clientName || 'N/A'),
+            text(order.clientEmail || 'N/A'),
+            text(order.serviceName || 'N/A'),
+            text(order.status || 'N/A'),
+            text(order.deliveryDate || 'N/A'),
+        ];
+
+        values.forEach((text) => {
+            const td = document.createElement('td');
+            td.textContent = text;
+            tr.appendChild(td);
+        });
+
+        const actionsTd = document.createElement('td');
+        actionsTd.innerHTML = order.actionsHtml || '';
+        tr.appendChild(actionsTd);
+
+        return tr;
+    };
+
+    const addOrderRow = (order) => {
+        removeEmptyPlaceholder();
+        const tr = buildRow(order);
+
+        if (dataTable && window.jQuery) {
+            dataTable.row(window.jQuery(tr)).draw(false);
+        } else {
+            document.querySelector('#ordersTable tbody')?.appendChild(tr);
+        }
+
+        knownIds.add(String(order.id));
+    };
+
+    const updateOrderRow = (order) => {
+        const row = document.querySelector(`#ordersTable tbody tr[data-order-id="${order.id}"]`);
+        if (!row) {
+            addOrderRow(order);
+            return;
+        }
+
+        const cells = row.querySelectorAll('td');
+        if (cells.length < 7) {
+            return;
+        }
+
+        cells[1].textContent = order.clientName || 'N/A';
+        cells[2].textContent = order.clientEmail || 'N/A';
+        cells[3].textContent = order.serviceName || 'N/A';
+        cells[4].textContent = order.status || 'N/A';
+        cells[5].textContent = order.deliveryDate || 'N/A';
+        cells[6].innerHTML = order.actionsHtml || cells[6].innerHTML;
+
+        if (dataTable) {
+            dataTable.row(row).invalidate('dom');
+        }
+    };
+
+    const removeOrderRow = (orderId) => {
+        const row = document.querySelector(`#ordersTable tbody tr[data-order-id="${orderId}"]`);
+        if (!row) {
+            return;
+        }
+
+        if (dataTable && window.jQuery) {
+            dataTable.row(window.jQuery(row)).remove().draw(false);
+        } else {
+            row.remove();
+        }
+
+        knownIds.delete(String(orderId));
+    };
+
+    const syncOrders = (orders) => {
+        const serverIds = new Set(orders.map((o) => String(o.id)));
+
         orders.forEach((order) => {
-            const row = document.querySelector(`#ordersTable tbody tr[data-order-id="${order.id}"]`);
-            if (!row) {
-                return;
+            const id = String(order.id);
+            if (!knownIds.has(id)) {
+                addOrderRow(order);
+            } else {
+                updateOrderRow(order);
             }
-            const cells = row.querySelectorAll('td');
-            if (cells.length < 6) {
-                return;
+        });
+
+        [...knownIds].forEach((id) => {
+            if (!serverIds.has(id)) {
+                removeOrderRow(id);
             }
-            cells[1].textContent = order.clientName || 'N/A';
-            cells[2].textContent = order.clientEmail || 'N/A';
-            cells[3].textContent = order.serviceName || 'N/A';
-            cells[4].textContent = order.status || 'N/A';
-            cells[5].textContent = order.deliveryDate || 'N/A';
         });
 
         if (dataTable) {
-            dataTable.rows().invalidate('dom').draw(false);
+            dataTable.draw(false);
         }
-    };
-
-    const needsFullReload = (orders) => {
-        const serverIds = orders.map((o) => String(o.id));
-        const pageIds = rowIdsOnPage();
-
-        if (serverIds.length !== pageIds.length) {
-            return true;
-        }
-
-        for (let i = 0; i < serverIds.length; i += 1) {
-            if (!pageIds.includes(serverIds[i])) {
-                return true;
-            }
-        }
-
-        return false;
     };
 
     const poll = async () => {
@@ -74,6 +144,7 @@
                 method: 'GET',
                 credentials: 'same-origin',
                 headers: { Accept: 'application/json' },
+                cache: 'no-store',
             });
 
             if (!response.ok) {
@@ -82,26 +153,21 @@
 
             const payload = await response.json();
             const orders = Array.isArray(payload.orders) ? payload.orders : [];
-            const next = fingerprint(orders);
+            const nextFingerprint = fingerprint(orders);
 
-            if (baseline === null) {
-                baseline = next;
+            if (lastFingerprint === null) {
+                lastFingerprint = nextFingerprint;
                 return;
             }
 
-            if (next === baseline) {
+            if (nextFingerprint === lastFingerprint) {
                 return;
             }
 
-            if (needsFullReload(orders)) {
-                window.location.reload();
-                return;
-            }
-
-            applyOrderUpdates(orders);
-            baseline = next;
+            syncOrders(orders);
+            lastFingerprint = nextFingerprint;
         } catch (_error) {
-            // Ignore network errors; next poll will retry.
+            // Retry on next interval.
         } finally {
             isPolling = false;
         }
@@ -111,43 +177,42 @@
         if (pollTimer) {
             clearInterval(pollTimer);
         }
-        poll();
+        void poll();
         pollTimer = setInterval(poll, POLL_MS);
     };
 
     const boot = () => {
-        if (!window.jQuery || !window.jQuery.fn.dataTable) {
-            setTimeout(boot, 100);
-            return;
-        }
-
         const tableEl = document.getElementById('ordersTable');
         if (!tableEl) {
             return;
         }
 
-        const $ = window.jQuery;
-        if ($.fn.DataTable.isDataTable('#ordersTable')) {
-            dataTable = $('#ordersTable').DataTable();
-        } else {
-            dataTable = $('#ordersTable').DataTable({
-                paging: true,
-                searching: true,
-                ordering: true,
-                info: true,
-                pageLength: 10,
-                lengthMenu: [5, 10, 20, 50],
-                order: [[0, 'desc']],
-                columnDefs: [{ orderable: false, targets: -1 }],
-            });
+        if (window.jQuery && window.jQuery.fn.dataTable) {
+            const $ = window.jQuery;
+            if ($.fn.DataTable.isDataTable('#ordersTable')) {
+                dataTable = $('#ordersTable').DataTable();
+            } else {
+                dataTable = $('#ordersTable').DataTable({
+                    paging: true,
+                    searching: true,
+                    ordering: true,
+                    info: true,
+                    pageLength: 10,
+                    lengthMenu: [5, 10, 20, 50],
+                    order: [[0, 'desc']],
+                    columnDefs: [{ orderable: false, targets: -1 }],
+                });
+            }
         }
 
+        collectKnownIds();
+        lastFingerprint = null;
         startPolling();
     };
 
     document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'visible') {
-            poll();
+            void poll();
         }
     });
 
