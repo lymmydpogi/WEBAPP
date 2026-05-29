@@ -1,0 +1,38 @@
+/* Brief highlight when tbody is rebuilt — does not block updates */
+#ordersTable.admin-live-flash {
+    outline: 2px solid rgba(56, 189, 248, 0.45);
+    outline-offset: 2px;
+    transition: outline-color 0.4s ease;
+}
+
+/* Small indicator: green = polling OK (bottom-left, above mobile nav) */
+.admin-live-status {
+    position: fixed;
+    left: 12px;
+    bottom: 12px;
+    z-index: 9998;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    pointer-events: none;
+    box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.35);
+}
+
+.admin-live-status--on {
+    background: #22c55e;
+    animation: admin-live-pulse 2s ease-in-out infinite;
+}
+
+.admin-live-status--off {
+    background: #ef4444;
+}
+
+@keyframes admin-live-pulse {
+    0%,
+    100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.45;
+    }
+}

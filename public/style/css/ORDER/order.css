@@ -127,30 +127,7 @@ body {
     -webkit-overflow-scrolling: touch;
 }
 
-/* DataTables Wrapper Fixes */
-.dataTables_wrapper {
-    padding: 20px;
-}
-
-.dataTables_wrapper .dataTables_length,
-.dataTables_wrapper .dataTables_filter {
-    margin-bottom: 20px;
-}
-
-.dataTables_wrapper .dataTables_filter input {
-    padding: 8px 12px;
-    border: 1px solid #d1d5db;
-    border-radius: 8px;
-    width: 250px;
-}
-
-.dataTables_wrapper .dataTables_length select {
-    padding: 8px 12px;
-    border-radius: 8px;
-    border: 1px solid #d1d5db;
-}
-
-/* Table Styling */
+/* Table Styling — orders page uses plain HTML + admin-live.js (no DataTables) */
 .table {
     width: 100% !important;
     border-collapse: separate;

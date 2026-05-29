@@ -33,6 +33,7 @@ security:
             lazy: true
             provider: app_user_provider
             custom_authenticator: App\Security\LoginFormAuthenticator
+            entry_point: App\Security\JsonAwareAuthenticationEntryPoint
             access_denied_handler: App\Security\AccessDeniedHandler
 
             logout:
@@ -71,10 +72,11 @@ security:
         - { path: ^/connect/google, roles: PUBLIC_ACCESS }
         - { path: ^/firebase/custom-token, roles: [ROLE_ADMIN, ROLE_STAFF, ROLE_CLIENT, ROLE_USER] }
         - { path: ^/api/firebase/custom-token, roles: IS_AUTHENTICATED_FULLY }
-        - { path: ^/admin/live, roles: ROLE_STAFF }
+        - { path: ^/admin/live, roles: [ROLE_ADMIN, ROLE_STAFF] }
         - { path: ^/client/live, roles: ROLE_USER }
-        - { path: ^/order/poll, roles: ROLE_STAFF }
-        - { path: ^/home/poll, roles: ROLE_STAFF }
+        - { path: ^/order/poll, roles: [ROLE_ADMIN, ROLE_STAFF] }
+        - { path: ^/home/poll, roles: [ROLE_ADMIN, ROLE_STAFF] }
+        - { path: ^/order, roles: [ROLE_ADMIN, ROLE_STAFF] }
 
         # Admin-only routes
         - { path: ^/admin/messages, roles: ROLE_ADMIN }

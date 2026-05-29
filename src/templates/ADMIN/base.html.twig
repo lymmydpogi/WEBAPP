@@ -15,7 +15,15 @@
 
 </head>
 
-<body>
+<body
+    {% if app.user %}
+        data-admin-live="1"
+        data-live-orders-url="{{ url('admin_live_orders') }}"
+        data-live-dashboard-url="{{ url('admin_live_dashboard') }}"
+        data-live-orders-page-url="{{ path('app_order_index') }}"
+        data-live-poll-ms="800"
+    {% endif %}
+>
 
     <button type="button" class="sidebar-overlay" id="sidebar-overlay" aria-label="Close menu" tabindex="-1"></button>
 
@@ -313,7 +321,7 @@
     </script>
 
     {% block javascripts %}{% endblock %}
-    {% if app.user and (is_granted('ROLE_STAFF') or is_granted('ROLE_ADMIN')) %}
+    {% if app.user %}
         {% include '_polling/admin_live.html.twig' %}
     {% endif %}
 

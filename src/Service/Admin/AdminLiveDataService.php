@@ -49,10 +49,13 @@ final class AdminLiveDataService
             ];
         }
 
+        $maxOrderId = (int) ($items[0]['id'] ?? 0);
+
         return [
             'orders' => $items,
-            'revision' => $this->buildOrdersRevision($items),
+            'revision' => $this->buildOrdersRevision($items, $maxOrderId),
             'count' => count($items),
+            'maxOrderId' => $maxOrderId,
         ];
     }
 
@@ -97,9 +100,9 @@ final class AdminLiveDataService
     /**
      * @param list<array<string, mixed>> $items
      */
-    private function buildOrdersRevision(array $items): string
+    private function buildOrdersRevision(array $items, int $maxOrderId): string
     {
-        $parts = [];
+        $parts = [count($items) . '|max:' . $maxOrderId];
         foreach ($items as $item) {
             $parts[] = implode('|', [
                 (string) ($item['id'] ?? ''),
@@ -137,10 +140,13 @@ final class AdminLiveDataService
             ];
         }
 
+        $maxOrderId = (int) ($items[0]['id'] ?? 0);
+
         return [
             'orders' => $items,
-            'revision' => $this->buildOrdersRevision($items),
+            'revision' => $this->buildOrdersRevision($items, $maxOrderId),
             'count' => count($items),
+            'maxOrderId' => $maxOrderId,
         ];
     }
 }
