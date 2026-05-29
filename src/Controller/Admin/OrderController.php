@@ -42,6 +42,7 @@ final class OrderController extends AbstractController
             'success' => true,
             'orders' => $snapshot['orders'],
             'count' => $snapshot['count'],
+            'maxOrderId' => $snapshot['maxOrderId'],
             'revision' => $snapshot['revision'],
         ]);
         $response->headers->set('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');

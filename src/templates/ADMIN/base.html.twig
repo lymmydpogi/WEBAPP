@@ -18,8 +18,8 @@
 <body
     {% if app.user %}
         data-admin-live="1"
-        data-live-orders-url="{{ url('admin_live_orders') }}"
-        data-live-dashboard-url="{{ url('admin_live_dashboard') }}"
+        data-live-orders-url="{{ path('app_order_poll') }}"
+        data-live-dashboard-url="{{ path('app_home_poll') }}"
         data-live-orders-page-url="{{ path('app_order_index') }}"
         data-live-poll-ms="800"
     {% endif %}
